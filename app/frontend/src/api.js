@@ -79,14 +79,20 @@ export const api = {
   timeline: (id) => request(`/plots/${id}/timeline`),
 
   // scan / diagnoses
-  predict: (file, plotId) => {
+  predict: (file, plotId, lang) => {
     const fd = new FormData();
     fd.append("file", file);
     if (plotId) fd.append("plot_id", plotId);
+    if (lang) fd.append("lang", lang);
     return request("/predict", { method: "POST", form: fd });
   },
-  listDiagnoses: (plotId) =>
-    request(`/diagnoses${plotId ? `?plot_id=${plotId}` : ""}`),
+  listDiagnoses: (plotId, lang) => {
+    const params = new URLSearchParams();
+    if (plotId) params.set("plot_id", plotId);
+    if (lang) params.set("lang", lang);
+    const qs = params.toString();
+    return request(`/diagnoses${qs ? `?${qs}` : ""}`);
+  },
 
   // logs
   logIrrigation: (b) => request("/irrigation", { method: "POST", body: b }),

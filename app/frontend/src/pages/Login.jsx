@@ -19,7 +19,7 @@ const HERO_BULLETS = [
 function Hero() {
   const t = useT();
   return (
-    <div className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 to-brand-900 px-10 py-12 text-white md:flex md:w-[42%] md:flex-col md:justify-center">
+    <div className="login-hero relative hidden overflow-hidden px-10 py-12 text-white md:flex md:w-[42%] md:flex-col md:justify-center">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-70"

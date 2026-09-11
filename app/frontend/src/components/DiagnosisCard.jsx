@@ -7,34 +7,72 @@ import { mediaUrl } from "../api.js";
 import { isAbstain, isHealthy, prettyLabel } from "../lib/labels.js";
 import { useT } from "../i18n/useT.js";
 
+// 3-tier status derived only from fields the API actually returns
+// (abstained / healthy / confidence) — no fabricated severity score.
+// Reuses ConfidenceBar's own >=0.5 threshold rather than inventing a new one.
+const TIER = {
+  healthy: {
+    labelKey: "scan.tag.healthy",
+    banner: "border-brand-300 bg-brand-50 text-brand-800",
+    badge: "bg-brand-600 text-white",
+    icon: "check",
+  },
+  warning: {
+    labelKey: "scan.tag.warning",
+    banner: "border-amber-300 bg-amber-50 text-amber-800",
+    badge: "bg-amber-500 text-white",
+    icon: "alert",
+  },
+  critical: {
+    labelKey: "scan.tag.critical",
+    banner: "border-rose-300 bg-rose-50 text-rose-800",
+    badge: "bg-rose-600 text-white",
+    icon: "alert",
+  },
+  abstained: {
+    labelKey: "scan.tag.abstained",
+    banner: "border-amber-300 bg-amber-50 text-amber-800",
+    badge: "bg-amber-500 text-white",
+    icon: "refresh",
+  },
+};
+
 export default function DiagnosisCard({ diagnosis, originalUrl }) {
   const t = useT();
   const abstain = diagnosis.abstained || isAbstain(diagnosis.predicted_class);
   const healthy = !abstain && isHealthy(diagnosis.predicted_class);
 
-  const tone = abstain
-    ? { chip: "bg-amber-50 text-amber-700 ring-amber-200", label: t("scan.unclear") }
+  const label = abstain
+    ? t("scan.unclear")
     : healthy
-      ? { chip: "bg-brand-50 text-brand-700 ring-brand-200", label: t("scan.healthy") }
-      : { chip: "bg-rose-50 text-rose-700 ring-rose-200", label: prettyLabel(diagnosis.predicted_class) };
+      ? t("scan.healthy")
+      : diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class);
+
+  const tierKey = abstain ? "abstained" : healthy ? "healthy" : diagnosis.confidence >= 0.5 ? "critical" : "warning";
+  const tier = TIER[tierKey];
 
   const img = originalUrl || mediaUrl(diagnosis.image_url);
   const cam = mediaUrl(diagnosis.gradcam_url);
 
   return (
-    <Card className="animate-fade-up overflow-hidden">
-      <div className="border-b border-line bg-gradient-to-b from-canvas/70 to-transparent px-5 pt-4 pb-4">
+    <Card className="animate-fade-up overflow-hidden border-2">
+      <div className="px-5 pt-4 pb-4">
         <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
           <Icon name="camera" className="h-4 w-4" /> {t("scan.title")}
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-bold tracking-tight text-ink">{tone.label}</h2>
-          <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1", tone.chip)}>
-            {abstain ? t("scan.tag.abstained") : healthy ? t("scan.tag.healthy") : t("scan.tag.disease")}
+
+        <div className={clsx("mt-2 flex items-center gap-3 rounded-2xl border-2 px-4 py-3", tier.banner)}>
+          <span className={clsx("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", tier.badge)}>
+            <Icon name={tier.icon} className="h-5 w-5" />
           </span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-wide">{t(tier.labelKey)}</div>
+            <div className="truncate text-xl font-extrabold tracking-tight">{label}</div>
+          </div>
         </div>
+
         {!abstain && (
-          <div className="mt-2 max-w-xs">
+          <div className="mt-3 max-w-xs">
             <ConfidenceBar value={diagnosis.confidence} />
           </div>
         )}
@@ -42,41 +80,49 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
 
       <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
         {(img || cam) && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 content-start">
+            {cam && (
+              <figure>
+                <img src={cam} alt={t("scan.affectedArea")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-line" />
+                <figcaption className="mt-1 text-center text-[10px] font-medium text-muted">{t("scan.affectedArea")}</figcaption>
+              </figure>
+            )}
             {img && (
               <figure>
-                <img src={img} alt="leaf" className="aspect-square w-full rounded-lg object-cover ring-1 ring-line" />
+                <img src={img} alt={t("scan.yourPhoto")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-line" />
                 <figcaption className="mt-1 text-center text-[10px] text-faint">{t("scan.yourPhoto")}</figcaption>
               </figure>
             )}
             {cam && (
-              <figure>
-                <img src={cam} alt="Grad-CAM" className="aspect-square w-full rounded-lg object-cover ring-1 ring-line" />
-                <figcaption className="mt-1 text-center text-[10px] text-faint">{t("scan.affectedArea")}</figcaption>
-              </figure>
+              <div className="col-span-2 mt-1 flex items-center gap-2">
+                <div className="h-1.5 flex-1 rounded-full bg-gradient-to-r from-transparent via-amber-400 to-rose-500" />
+                <span className="text-[10px] font-medium text-faint">{t("scan.heatmapLegend")}</span>
+              </div>
             )}
           </div>
         )}
 
-        <div>
-          <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
-            {t("scan.precautions")}
+        <div className="rounded-2xl border-2 border-line bg-canvas/40 p-3.5">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-brand-700">
+            <Icon name="flask" className="h-4 w-4" /> {t("scan.precautions")}
           </div>
-          <ul className="mt-1.5 space-y-1.5">
+          <ol className="mt-2.5 space-y-2.5">
             {(diagnosis.precautions || []).map((p, i) => (
-              <li key={i} className="flex gap-2 text-sm text-ink/90">
-                <Icon name="check" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" />
-                {p}
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
+                  {i + 1}
+                </span>
+                <span className="pt-0.5 text-sm font-medium leading-snug text-ink">{p}</span>
               </li>
             ))}
-          </ul>
+          </ol>
           {!abstain && (
             <Link
               to="/assistant"
               state={{
-                prefill: `${t("scan.assistantPrefillPrefix")} ${prettyLabel(diagnosis.predicted_class)} ${t("scan.assistantPrefillSuffix")}`,
+                prefill: `${t("scan.assistantPrefillPrefix")} ${diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class)} ${t("scan.assistantPrefillSuffix")}`,
               }}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-line bg-surface px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-400 hover:bg-brand-50"
             >
               <Icon name="chat" className="h-3.5 w-3.5" />
               {t("scan.askAssistant")}

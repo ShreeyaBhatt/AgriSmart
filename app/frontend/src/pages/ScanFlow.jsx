@@ -1,18 +1,35 @@
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import DiagnosisCard from "../components/DiagnosisCard.jsx";
 import { api } from "../api.js";
-import { useT } from "../i18n/useT.js";
+import { useLang, useT } from "../i18n/useT.js";
+
+// Decorative viewfinder corners — frame the whole photo only, never a
+// sub-region: the model has no detection head, so this must never look
+// like it's pointing at a specific lesion.
+function ViewfinderCorners() {
+  return (
+    <>
+      <span className="pointer-events-none absolute left-0 top-0 h-5 w-5 rounded-tl-md border-l-[3px] border-t-[3px] border-brand-500/70" />
+      <span className="pointer-events-none absolute right-0 top-0 h-5 w-5 rounded-tr-md border-r-[3px] border-t-[3px] border-brand-500/70" />
+      <span className="pointer-events-none absolute bottom-0 left-0 h-5 w-5 rounded-bl-md border-b-[3px] border-l-[3px] border-brand-500/70" />
+      <span className="pointer-events-none absolute bottom-0 right-0 h-5 w-5 rounded-br-md border-b-[3px] border-r-[3px] border-brand-500/70" />
+    </>
+  );
+}
 
 export default function ScanFlow() {
   const t = useT();
+  const { lang } = useLang();
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [plots, setPlots] = useState([]);
   const [plotId, setPlotId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
@@ -38,7 +55,7 @@ export default function ScanFlow() {
     setBusy(true);
     setError("");
     try {
-      setResult(await api.predict(file, plotId || undefined));
+      setResult(await api.predict(file, plotId || undefined, lang));
     } catch (e) {
       setError(e.detail || e.message);
     } finally {
@@ -53,35 +70,52 @@ export default function ScanFlow() {
         <p className="text-sm text-muted">{t("scan.help")}</p>
       </div>
 
-      <Card className="p-4">
+      <Card className="border-2 p-4">
         <div
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
+            setDragOver(false);
             pick(e.dataTransfer.files?.[0]);
           }}
-          className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-canvas/40 px-4 py-8 text-center"
-        >
-          {preview ? (
-            <img src={preview} alt="preview" className="max-h-56 rounded-lg object-contain ring-1 ring-line" />
-          ) : (
-            <>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-                <Icon name="image" className="h-6 w-6" />
-              </div>
-              <p className="mt-2 text-sm text-muted">{t("scan.dropHint")}</p>
-            </>
+          className={clsx(
+            "relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed px-4 py-10 text-center transition-colors",
+            dragOver ? "border-brand-400 bg-brand-500/5" : "border-line bg-canvas/40"
           )}
+        >
+          <div className="relative">
+            {preview ? (
+              <img src={preview} alt={t("scan.yourPhoto")} className="max-h-64 rounded-lg object-contain ring-2 ring-line" />
+            ) : (
+              <>
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-2 ring-line">
+                  <Icon name="image" className="h-7 w-7" />
+                </div>
+                <p className="mt-3 text-sm font-medium text-muted">{t("scan.dropHint")}</p>
+              </>
+            )}
+            <ViewfinderCorners />
+            {busy && (
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg bg-ink/10">
+                <div className="motion-reduce:hidden absolute inset-x-0 h-0.5 animate-scan-sweep bg-brand-400 shadow-[0_0_12px_2px_var(--color-brand-400)]" />
+              </div>
+            )}
+          </div>
 
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
               onClick={() => fileRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:bg-canvas"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border-2 border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-brand-400 hover:text-brand-700"
             >
-              <Icon name="image" className="h-3.5 w-3.5" /> {t("scan.chooseFile")}
+              <Icon name="image" className="h-4 w-4" /> {t("scan.chooseFile")}
             </button>
-            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:bg-canvas">
-              <Icon name="camera" className="h-3.5 w-3.5" /> {t("scan.camera")}
+            <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg border-2 border-line bg-surface px-4 text-sm font-semibold text-ink transition hover:border-brand-400 hover:text-brand-700">
+              <Icon name="camera" className="h-4 w-4" /> {t("scan.camera")}
               <input
                 type="file"
                 accept="image/*"
@@ -106,7 +140,7 @@ export default function ScanFlow() {
             <select
               value={plotId}
               onChange={(e) => setPlotId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
+              className="mt-1 w-full rounded-lg border-2 border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
             >
               <option value="">{t("common.none")}</option>
               {plots.map((p) => (
@@ -118,12 +152,16 @@ export default function ScanFlow() {
           </label>
         )}
 
-        {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
+        {error && (
+          <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-rose-600">
+            <Icon name="alert" className="h-4 w-4 shrink-0" /> {error}
+          </p>
+        )}
 
         <button
           onClick={analyse}
           disabled={!file || busy}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
+          className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 text-base font-bold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
         >
           {busy ? (
             <>

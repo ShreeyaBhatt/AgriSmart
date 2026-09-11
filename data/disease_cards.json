@@ -2,148 +2,553 @@
   "_about": "Grounding corpus for POST /predict precautions and the Module E assistant. Keyed by the model's class label (PlantVillage folder name). Guidance compiled from ICAR / State Agricultural University package-of-practices and university extension pages; confirm chemical choices and doses locally.",
   "cards": {
     "Apple___Apple_scab": {
-      "crop": "Apple", "disease": "Apple scab", "type": "fungal",
+      "crop": "Apple",
+      "disease": "Apple scab",
+      "type": "fungal",
       "symptoms": "Olive-green to brown velvety spots on leaves and fruit; leaves turn yellow and drop early; fruit becomes cracked and corky.",
       "organic": "Rake and destroy fallen leaves; prune for airflow; apply sulphur or a Bacillus subtilis spray from bud-break at 7-10 day intervals in wet weather.",
       "chemical": "Protectant sprays of mancozeb or captan before rain; myclobutanil or difenoconazole if scab is already active.",
       "prevention": "Grow resistant varieties, wide spacing, avoid overhead irrigation, autumn leaf clean-up.",
-      "precautions": ["Remove and burn fallen leaves", "Prune to open the canopy", "Spray protectant fungicide before wet spells", "Avoid overhead watering"]
+      "precautions": [
+        "Remove and burn fallen leaves",
+        "Prune to open the canopy",
+        "Spray protectant fungicide before wet spells",
+        "Avoid overhead watering"
+      ],
+      "crop_hi": "सेब",
+      "crop_gu": "સફરજન",
+      "disease_hi": "सेब की पपड़ी रोग",
+      "disease_gu": "સફરજનનો સ્કેબ રોગ",
+      "precautions_hi": [
+        "गिरी हुई पत्तियों को हटाकर जला दें",
+        "हवा के आवागमन के लिए छंटाई करें",
+        "बारिश से पहले सुरक्षात्मक फफूंदनाशी का छिड़काव करें",
+        "ऊपर से पानी देने से बचें"
+      ],
+      "precautions_gu": [
+        "ખરી પડેલાં પાંદડાં કાઢીને બાળી નાખો",
+        "હવાની અવરજવર માટે કાપણી કરો",
+        "વરસાદ પહેલાં રક્ષણાત્મક ફૂગનાશકનો છંટકાવ કરો",
+        "ઉપરથી પાણી આપવાનું ટાળો"
+      ]
     },
     "Apple___Black_rot": {
-      "crop": "Apple", "disease": "Black rot", "type": "fungal",
+      "crop": "Apple",
+      "disease": "Black rot",
+      "type": "fungal",
       "symptoms": "Purple-bordered 'frog-eye' leaf spots; brown, concentric-ringed rot on fruit; cankers on branches.",
       "organic": "Prune out cankers and mummified fruit 30 cm below symptoms; copper sprays; orchard sanitation.",
       "chemical": "Captan or thiophanate-methyl from petal fall through summer.",
       "prevention": "Remove deadwood and mummies in winter, manage insect wounds, keep trees vigorous but not over-fertilised.",
-      "precautions": ["Cut out cankered wood well below the lesion", "Pick off and destroy mummified fruit", "Apply captan from petal fall", "Disinfect pruning tools"]
+      "precautions": [
+        "Cut out cankered wood well below the lesion",
+        "Pick off and destroy mummified fruit",
+        "Apply captan from petal fall",
+        "Disinfect pruning tools"
+      ],
+      "crop_hi": "सेब",
+      "crop_gu": "સફરજન",
+      "disease_hi": "काला सड़न रोग",
+      "disease_gu": "કાળો સડો રોગ",
+      "precautions_hi": [
+        "रोगग्रस्त लकड़ी को घाव से काफी नीचे से काट दें",
+        "सूखे-सड़े फलों को तोड़कर नष्ट करें",
+        "फूल गिरने के बाद कैप्टन का छिड़काव करें",
+        "छंटाई के औज़ारों को कीटाणुरहित करें"
+      ],
+      "precautions_gu": [
+        "રોગિષ્ટ લાકડું ઘાવથી ઘણું નીચેથી કાપી નાખો",
+        "સુકાયેલાં-સડેલાં ફળ તોડીને નષ્ટ કરો",
+        "ફૂલ ખરી ગયા પછી કેપ્ટનનો છંટકાવ કરો",
+        "કાપણીનાં સાધનો જંતુમુક્ત કરો"
+      ]
     },
     "Apple___healthy": {
-      "crop": "Apple", "disease": null, "type": "healthy",
+      "crop": "Apple",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "No disease signs - uniform green leaves, clean fruit.",
       "organic": "Maintain balanced nutrition and mulch; scout weekly.",
       "chemical": "None needed.",
       "prevention": "Keep up sanitation, airflow pruning and a preventive spray calendar in wet regions.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep scouting weekly", "Maintain airflow and balanced feeding"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep scouting weekly",
+        "Maintain airflow and balanced feeding"
+      ],
+      "crop_hi": "सेब",
+      "crop_gu": "સફરજન",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "हर हफ्ते जाँच करते रहें",
+        "हवा का आवागमन और संतुलित पोषण बनाए रखें"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "દર અઠવાડિયે નિરીક્ષણ કરતા રહો",
+        "હવાની અવરજવર અને સંતુલિત પોષણ જાળવો"
+      ]
     },
     "Corn_(maize)___Common_rust_": {
-      "crop": "Maize", "disease": "Common rust", "type": "fungal",
+      "crop": "Maize",
+      "disease": "Common rust",
+      "type": "fungal",
       "symptoms": "Small cinnamon-brown powdery pustules scattered on both leaf surfaces; heavy infection dries leaves.",
       "organic": "Usually not needed on field maize; on sweet corn use sulphur; grow resistant hybrids.",
       "chemical": "Azoxystrobin or propiconazole if rust appears before tasselling on a susceptible hybrid.",
       "prevention": "Resistant hybrids, timely sowing to escape cool humid spells, balanced nitrogen.",
-      "precautions": ["Choose rust-resistant hybrids next season", "Spray only if pustules appear before tasselling", "Avoid excess nitrogen", "Sow on time"]
+      "precautions": [
+        "Choose rust-resistant hybrids next season",
+        "Spray only if pustules appear before tasselling",
+        "Avoid excess nitrogen",
+        "Sow on time"
+      ],
+      "crop_hi": "मक्का",
+      "crop_gu": "મકાઈ",
+      "disease_hi": "सामान्य रतुआ रोग",
+      "disease_gu": "સામાન્ય ગેરુ રોગ",
+      "precautions_hi": [
+        "अगले सीज़न में रतुआ-प्रतिरोधी किस्में चुनें",
+        "फूल आने (टेसलिंग) से पहले फुंसियाँ दिखने पर ही छिड़काव करें",
+        "अधिक नाइट्रोजन देने से बचें",
+        "समय पर बुवाई करें"
+      ],
+      "precautions_gu": [
+        "આવતી સીઝનમાં ગેરુ-પ્રતિરોધક જાતો પસંદ કરો",
+        "ટૅસલિંગ પહેલાં ફોલ્લીઓ દેખાય તો જ છંટકાવ કરો",
+        "વધુ પડતું નાઇટ્રોજન આપવાનું ટાળો",
+        "સમયસર વાવણી કરો"
+      ]
     },
     "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
-      "crop": "Maize", "disease": "Gray leaf spot", "type": "fungal",
+      "crop": "Maize",
+      "disease": "Gray leaf spot",
+      "type": "fungal",
       "symptoms": "Long, narrow, rectangular grey-to-tan lesions running parallel to the veins; lower leaves blight first.",
       "organic": "Rotate away from maize for a year, plough down residue, resistant hybrids.",
       "chemical": "Strobilurin + triazole mix (e.g. azoxystrobin + propiconazole) at early lesion stage, around tasselling.",
       "prevention": "Crop rotation, residue management (main inoculum source), resistant hybrids, avoid dense stands.",
-      "precautions": ["Bury or remove maize residue", "Rotate out of maize for a season", "Spray a triazole+strobilurin near tasselling", "Pick resistant hybrids"]
+      "precautions": [
+        "Bury or remove maize residue",
+        "Rotate out of maize for a season",
+        "Spray a triazole+strobilurin near tasselling",
+        "Pick resistant hybrids"
+      ],
+      "crop_hi": "मक्का",
+      "crop_gu": "મકાઈ",
+      "disease_hi": "धूसर पत्ती धब्बा रोग",
+      "disease_gu": "રાખોડી પાન ડાઘ રોગ",
+      "precautions_hi": [
+        "मक्का के अवशेष दबा दें या हटा दें",
+        "एक सीज़न के लिए मक्का की जगह दूसरी फसल लगाएं",
+        "टेसलिंग के आसपास ट्राइज़ोल+स्ट्रोबिल्यूरिन का छिड़काव करें",
+        "प्रतिरोधी किस्में चुनें"
+      ],
+      "precautions_gu": [
+        "મકાઈના અવશેષો દાટી દો અથવા દૂર કરો",
+        "એક સીઝન માટે મકાઈને બદલે બીજો પાક લો",
+        "ટૅસલિંગ આસપાસ ટ્રાયાઝોલ+સ્ટ્રોબિલ્યુરિનનો છંટકાવ કરો",
+        "પ્રતિરોધક જાતો પસંદ કરો"
+      ]
     },
     "Corn_(maize)___healthy": {
-      "crop": "Maize", "disease": null, "type": "healthy",
+      "crop": "Maize",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "Leaves uniformly green, no lesions or pustules.",
       "organic": "Maintain balanced NPK and weed control.",
       "chemical": "None needed.",
       "prevention": "Rotation and residue management keep leaf diseases away.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep fields weed-free", "Scout after humid weather"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep fields weed-free",
+        "Scout after humid weather"
+      ],
+      "crop_hi": "मक्का",
+      "crop_gu": "મકાઈ",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "खेत को खरपतवार-मुक्त रखें",
+        "उमस भरे मौसम के बाद जाँच करें"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "ખેતરને નીંદણમુક્ત રાખો",
+        "ભેજવાળા હવામાન પછી નિરીક્ષણ કરો"
+      ]
     },
     "Grape___Black_rot": {
-      "crop": "Grape", "disease": "Black rot", "type": "fungal",
+      "crop": "Grape",
+      "disease": "Black rot",
+      "type": "fungal",
       "symptoms": "Tan leaf spots with dark pycnidia dots; young berries rot, shrivel and become hard black mummies.",
       "organic": "Remove mummies and infected tendrils; open the canopy; copper or sulphur sprays from early shoot growth.",
       "chemical": "Mancozeb or myclobutanil from 2-3 leaf stage through to 4-5 weeks after bloom.",
       "prevention": "Winter sanitation of mummies, canopy management for fast drying, avoid overhead irrigation.",
-      "precautions": ["Strip out and destroy berry mummies", "Open the canopy for airflow", "Begin fungicide at early shoot growth", "Protect through the pre-bloom to post-bloom window"]
+      "precautions": [
+        "Strip out and destroy berry mummies",
+        "Open the canopy for airflow",
+        "Begin fungicide at early shoot growth",
+        "Protect through the pre-bloom to post-bloom window"
+      ],
+      "crop_hi": "अंगूर",
+      "crop_gu": "દ્રાક્ષ",
+      "disease_hi": "काला सड़न रोग",
+      "disease_gu": "કાળો સડો રોગ",
+      "precautions_hi": [
+        "सूखे-सड़े गुच्छों को हटाकर नष्ट करें",
+        "हवा के आवागमन के लिए छतरी खोलें",
+        "नई टहनियों के बढ़ने पर फफूंदनाशी शुरू करें",
+        "फूल आने से पहले और बाद तक सुरक्षा बनाए रखें"
+      ],
+      "precautions_gu": [
+        "સુકાયેલા-સડેલા ઝૂમખા દૂર કરી નષ્ટ કરો",
+        "હવાની અવરજવર માટે છત્ર ખોલો",
+        "નવી ડાળીઓ ફૂટે ત્યારે ફૂગનાશક શરૂ કરો",
+        "ફૂલ આવતાં પહેલાં અને પછી સુધી રક્ષણ જાળવો"
+      ]
     },
     "Grape___healthy": {
-      "crop": "Grape", "disease": null, "type": "healthy",
+      "crop": "Grape",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "Clean green leaves, sound fruit clusters.",
       "organic": "Canopy management and sanitation.",
       "chemical": "None needed.",
       "prevention": "Keep the fruit zone open and dry; remove mummies in winter.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep the canopy open", "Remove mummies in winter"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep the canopy open",
+        "Remove mummies in winter"
+      ],
+      "crop_hi": "अंगूर",
+      "crop_gu": "દ્રાક્ષ",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "छतरी को खुला रखें",
+        "सर्दियों में सूखे-सड़े फल हटा दें"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "છત્ર ખુલ્લું રાખો",
+        "શિયાળામાં સુકાયેલાં-સડેલાં ફળ દૂર કરો"
+      ]
     },
     "Pepper,_bell___Bacterial_spot": {
-      "crop": "Bell pepper", "disease": "Bacterial spot", "type": "bacterial",
+      "crop": "Bell pepper",
+      "disease": "Bacterial spot",
+      "type": "bacterial",
       "symptoms": "Small water-soaked leaf spots turning brown with yellow halos; scabby raised spots on fruit; leaf drop.",
       "organic": "Use certified clean seed, hot-water seed treatment, copper + mancozeb sprays, remove infected plants.",
       "chemical": "Copper hydroxide tank-mixed with mancozeb weekly in warm wet weather; rotate with Actigard where available.",
       "prevention": "Disease-free transplants, 2-3 year rotation, avoid working plants when wet, drip not overhead irrigation.",
-      "precautions": ["Do not handle plants when leaves are wet", "Switch to drip irrigation", "Spray copper + mancozeb weekly in wet heat", "Rogue out badly infected plants"]
+      "precautions": [
+        "Do not handle plants when leaves are wet",
+        "Switch to drip irrigation",
+        "Spray copper + mancozeb weekly in wet heat",
+        "Rogue out badly infected plants"
+      ],
+      "crop_hi": "शिमला मिर्च",
+      "crop_gu": "કેપ્સિકમ",
+      "disease_hi": "जीवाणु धब्बा रोग",
+      "disease_gu": "બેક્ટેરિયલ ડાઘ રોગ",
+      "precautions_hi": [
+        "पत्तियाँ गीली होने पर पौधों को न छुएं",
+        "ड्रिप सिंचाई अपनाएं",
+        "उमस भरी गर्मी में हर हफ्ते कॉपर + मैंकोज़ेब का छिड़काव करें",
+        "बुरी तरह संक्रमित पौधों को उखाड़ दें"
+      ],
+      "precautions_gu": [
+        "પાંદડાં ભીનાં હોય ત્યારે છોડને સ્પર્શ ન કરો",
+        "ડ્રિપ સિંચાઈ અપનાવો",
+        "ભેજવાળી ગરમીમાં દર અઠવાડિયે કોપર + મેન્કોઝેબનો છંટકાવ કરો",
+        "ખરાબ રીતે સંક્રમિત છોડ ઉખેડી નાખો"
+      ]
     },
     "Pepper,_bell___healthy": {
-      "crop": "Bell pepper", "disease": null, "type": "healthy",
+      "crop": "Bell pepper",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "Deep green leaves, smooth glossy fruit.",
       "organic": "Balanced feeding, mulch, drip irrigation.",
       "chemical": "None needed.",
       "prevention": "Clean seed and rotation prevent bacterial spot.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep foliage dry", "Mulch to prevent soil splash"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep foliage dry",
+        "Mulch to prevent soil splash"
+      ],
+      "crop_hi": "शिमला मिर्च",
+      "crop_gu": "કેપ્સિકમ",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "पत्तियों को सूखा रखें",
+        "मिट्टी के छींटे रोकने के लिए मल्चिंग करें"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "પર્ણસમૂહ સૂકું રાખો",
+        "માટીના છાંટા રોકવા મલ્ચિંગ કરો"
+      ]
     },
     "Potato___Early_blight": {
-      "crop": "Potato", "disease": "Early blight", "type": "fungal",
+      "crop": "Potato",
+      "disease": "Early blight",
+      "type": "fungal",
       "symptoms": "Dark brown spots with concentric 'target' rings on older lower leaves, surrounded by yellowing; spreads upward.",
       "organic": "Remove lower affected leaves, mulch to stop soil splash, spray Bacillus subtilis or copper; keep plants well fed.",
       "chemical": "Mancozeb or chlorothalonil every 7-10 days from first spots; alternate with azoxystrobin.",
       "prevention": "Long rotation, certified seed, adequate nitrogen and potassium, avoid overhead irrigation late in the day.",
-      "precautions": ["Remove affected lower leaves", "Avoid overhead watering", "Start mancozeb/chlorothalonil at first spots", "Keep nitrogen and potassium adequate"]
+      "precautions": [
+        "Remove affected lower leaves",
+        "Avoid overhead watering",
+        "Start mancozeb/chlorothalonil at first spots",
+        "Keep nitrogen and potassium adequate"
+      ],
+      "crop_hi": "आलू",
+      "crop_gu": "બટાકા",
+      "disease_hi": "अगेती झुलसा रोग",
+      "disease_gu": "વહેલો સૂકારો રોગ",
+      "precautions_hi": [
+        "प्रभावित निचली पत्तियों को हटा दें",
+        "ऊपर से पानी देने से बचें",
+        "पहले धब्बे दिखते ही मैंकोज़ेब/क्लोरोथेलोनिल शुरू करें",
+        "नाइट्रोजन और पोटाश की उचित मात्रा बनाए रखें"
+      ],
+      "precautions_gu": [
+        "અસરગ્રસ્ત નીચલાં પાંદડાં દૂર કરો",
+        "ઉપરથી પાણી આપવાનું ટાળો",
+        "પ્રથમ ડાઘ દેખાય કે તરત મેન્કોઝેબ/ક્લોરોથેલોનિલ શરૂ કરો",
+        "નાઇટ્રોજન અને પોટાશનું યોગ્ય પ્રમાણ જાળવો"
+      ]
     },
     "Potato___Late_blight": {
-      "crop": "Potato", "disease": "Late blight", "type": "fungal (oomycete)",
+      "crop": "Potato",
+      "disease": "Late blight",
+      "type": "fungal (oomycete)",
       "symptoms": "Rapidly spreading water-soaked grey-green blotches on leaf tips/margins, white mould on the underside in humid weather; brown firm tuber rot.",
       "organic": "Destroy volunteers and cull piles; hill soil over tubers; act fast - organic options are weak once established.",
       "chemical": "Protectant mancozeb before disease; on outbreak use cymoxanil+mancozeb, dimethomorph or cyazofamid on a 5-7 day schedule.",
       "prevention": "Certified seed, resistant varieties, wide spacing, destroy cull piles, spray ahead of cool wet forecasts.",
-      "precautions": ["Act immediately - this disease moves fast", "Spray a systemic (cymoxanil/dimethomorph) on a 5-7 day cycle", "Hill soil well over tubers", "Destroy infected plants and cull piles", "Do not irrigate overhead"]
+      "precautions": [
+        "Act immediately - this disease moves fast",
+        "Spray a systemic (cymoxanil/dimethomorph) on a 5-7 day cycle",
+        "Hill soil well over tubers",
+        "Destroy infected plants and cull piles",
+        "Do not irrigate overhead"
+      ],
+      "crop_hi": "आलू",
+      "crop_gu": "બટાકા",
+      "disease_hi": "पछेती झुलसा रोग",
+      "disease_gu": "મોડો સૂકારો રોગ",
+      "precautions_hi": [
+        "तुरंत कार्रवाई करें - यह रोग तेज़ी से फैलता है",
+        "5-7 दिन के चक्र में सिस्टमिक दवा (साइमोक्सानिल/डाइमेथोमॉर्फ) का छिड़काव करें",
+        "कंदों के ऊपर अच्छी तरह मिट्टी चढ़ाएं",
+        "संक्रमित पौधों और कचरे के ढेर को नष्ट करें",
+        "ऊपर से सिंचाई न करें"
+      ],
+      "precautions_gu": [
+        "તાત્કાલિક પગલાં લો - આ રોગ ઝડપથી ફેલાય છે",
+        "5-7 દિવસના ચક્રમાં સિસ્ટમિક દવા (સાયમોક્સાનિલ/ડાયમેથોમોર્ફ)નો છંટકાવ કરો",
+        "કંદો પર સારી રીતે માટી ચઢાવો",
+        "સંક્રમિત છોડ અને કચરાના ઢગલા નષ્ટ કરો",
+        "ઉપરથી સિંચાઈ ન કરો"
+      ]
     },
     "Potato___healthy": {
-      "crop": "Potato", "disease": null, "type": "healthy",
+      "crop": "Potato",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "Uniform green foliage, no lesions.",
       "organic": "Balanced nutrition and hilling.",
       "chemical": "None needed; keep a protectant schedule if late blight is around.",
       "prevention": "Certified seed and rotation.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep a protectant spray ready if late blight is in the area", "Hill soil over tubers"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep a protectant spray ready if late blight is in the area",
+        "Hill soil over tubers"
+      ],
+      "crop_hi": "आलू",
+      "crop_gu": "બટાકા",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "आसपास पछेती झुलसा हो तो सुरक्षात्मक छिड़काव तैयार रखें",
+        "कंदों के ऊपर मिट्टी चढ़ाएं"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "આસપાસ મોડો સૂકારો હોય તો રક્ષણાત્મક છંટકાવ તૈયાર રાખો",
+        "કંદો પર માટી ચઢાવો"
+      ]
     },
     "Tomato___Bacterial_spot": {
-      "crop": "Tomato", "disease": "Bacterial spot", "type": "bacterial",
+      "crop": "Tomato",
+      "disease": "Bacterial spot",
+      "type": "bacterial",
       "symptoms": "Numerous small dark greasy spots on leaves with yellow halos; leaves scorch and drop; raised scabby spots on green fruit.",
       "organic": "Clean seed / hot-water treatment, copper + mancozeb, remove infected debris, avoid handling wet plants.",
       "chemical": "Copper hydroxide + mancozeb weekly; add Actigard (acibenzolar) in rotation where registered.",
       "prevention": "Certified transplants, 2-3 year rotation, drip irrigation, staking for airflow.",
-      "precautions": ["Never prune or tie plants when wet", "Use drip, not overhead, irrigation", "Spray copper + mancozeb weekly in warm wet spells", "Remove and bag severely spotted plants"]
+      "precautions": [
+        "Never prune or tie plants when wet",
+        "Use drip, not overhead, irrigation",
+        "Spray copper + mancozeb weekly in warm wet spells",
+        "Remove and bag severely spotted plants"
+      ],
+      "crop_hi": "टमाटर",
+      "crop_gu": "ટામેટા",
+      "disease_hi": "जीवाणु धब्बा रोग",
+      "disease_gu": "બેક્ટેરિયલ ડાઘ રોગ",
+      "precautions_hi": [
+        "पौधे गीले हों तो कभी छंटाई या बांधने का काम न करें",
+        "ऊपर से नहीं, ड्रिप सिंचाई करें",
+        "गर्म-नम मौसम में हर हफ्ते कॉपर + मैंकोज़ेब का छिड़काव करें",
+        "बुरी तरह प्रभावित पौधों को हटाकर थैले में बंद करें"
+      ],
+      "precautions_gu": [
+        "છોડ ભીના હોય ત્યારે ક્યારેય કાપણી કે બાંધવાનું કામ ન કરો",
+        "ઉપરથી નહીં, ડ્રિપ સિંચાઈ કરો",
+        "ગરમ-ભેજવાળા હવામાનમાં દર અઠવાડિયે કોપર + મેન્કોઝેબનો છંટકાવ કરો",
+        "ખરાબ રીતે અસરગ્રસ્ત છોડ કાઢીને થેલીમાં બંધ કરો"
+      ]
     },
     "Tomato___Early_blight": {
-      "crop": "Tomato", "disease": "Early blight", "type": "fungal",
+      "crop": "Tomato",
+      "disease": "Early blight",
+      "type": "fungal",
       "symptoms": "Brown target-ring spots on the oldest leaves first, yellow margins, lower-leaf defoliation; dark leathery lesions at the stem end of fruit.",
       "organic": "Strip lower affected leaves, mulch, stake for airflow, spray copper or Bacillus subtilis every 7-10 days.",
       "chemical": "Chlorothalonil or mancozeb preventively; azoxystrobin or difenoconazole on active disease.",
       "prevention": "Rotation, mulching, resistant varieties, balanced nitrogen, drip irrigation.",
-      "precautions": ["Remove the lowest affected leaves", "Mulch to stop soil splash", "Stake and prune for airflow", "Begin chlorothalonil/mancozeb at first spots"]
+      "precautions": [
+        "Remove the lowest affected leaves",
+        "Mulch to stop soil splash",
+        "Stake and prune for airflow",
+        "Begin chlorothalonil/mancozeb at first spots"
+      ],
+      "crop_hi": "टमाटर",
+      "crop_gu": "ટામેટા",
+      "disease_hi": "अगेती झुलसा रोग",
+      "disease_gu": "વહેલો સૂકારો રોગ",
+      "precautions_hi": [
+        "सबसे निचली प्रभावित पत्तियों को हटा दें",
+        "मिट्टी के छींटे रोकने के लिए मल्चिंग करें",
+        "हवा के आवागमन के लिए सहारा दें और छंटाई करें",
+        "पहले धब्बे दिखते ही क्लोरोथेलोनिल/मैंकोज़ेब शुरू करें"
+      ],
+      "precautions_gu": [
+        "સૌથી નીચલાં અસરગ્રસ્ત પાંદડાં દૂર કરો",
+        "માટીના છાંટા રોકવા મલ્ચિંગ કરો",
+        "હવાની અવરજવર માટે ટેકો આપો અને કાપણી કરો",
+        "પ્રથમ ડાઘ દેખાય કે તરત ક્લોરોથેલોનિલ/મેન્કોઝેબ શરૂ કરો"
+      ]
     },
     "Tomato___Late_blight": {
-      "crop": "Tomato", "disease": "Late blight", "type": "fungal (oomycete)",
+      "crop": "Tomato",
+      "disease": "Late blight",
+      "type": "fungal (oomycete)",
       "symptoms": "Large greasy grey-green blotches on leaves and stems, white downy growth underneath in humid weather; firm brown patches on fruit. Collapses a crop within days.",
       "organic": "Remove and bag infected plants immediately; organic control is limited once established.",
       "chemical": "Protectant mancozeb/chlorothalonil ahead of cool wet weather; on outbreak use cymoxanil+mancozeb, dimethomorph or cyazofamid every 5-7 days.",
       "prevention": "Resistant varieties, wide spacing, drip irrigation, destroy nearby volunteer tomato/potato, spray ahead of wet forecasts.",
-      "precautions": ["Act now - late blight destroys crops in days", "Remove and bag infected plants", "Spray a systemic every 5-7 days", "Keep foliage dry - drip only", "Check the weather panel and spray before wet spells"]
+      "precautions": [
+        "Act now - late blight destroys crops in days",
+        "Remove and bag infected plants",
+        "Spray a systemic every 5-7 days",
+        "Keep foliage dry - drip only",
+        "Check the weather panel and spray before wet spells"
+      ],
+      "crop_hi": "टमाटर",
+      "crop_gu": "ટામેટા",
+      "disease_hi": "पछेती झुलसा रोग",
+      "disease_gu": "મોડો સૂકારો રોગ",
+      "precautions_hi": [
+        "अभी कार्रवाई करें - पछेती झुलसा कुछ ही दिनों में फसल बर्बाद कर देता है",
+        "संक्रमित पौधों को हटाकर थैले में बंद करें",
+        "हर 5-7 दिन में सिस्टमिक दवा का छिड़काव करें",
+        "पत्तियों को सूखा रखें - केवल ड्रिप सिंचाई करें",
+        "मौसम पैनल देखें और बारिश से पहले छिड़काव करें"
+      ],
+      "precautions_gu": [
+        "હમણાં જ પગલાં લો - મોડો સૂકારો થોડા દિવસોમાં પાક બગાડી શકે છે",
+        "સંક્રમિત છોડ કાઢીને થેલીમાં બંધ કરો",
+        "દર 5-7 દિવસે સિસ્ટમિક દવાનો છંટકાવ કરો",
+        "પાંદડાં સૂકાં રાખો - ફક્ત ડ્રિપ સિંચાઈ કરો",
+        "હવામાન પેનલ જુઓ અને વરસાદ પહેલાં છંટકાવ કરો"
+      ]
     },
     "Tomato___Leaf_Mold": {
-      "crop": "Tomato", "disease": "Leaf mould", "type": "fungal",
+      "crop": "Tomato",
+      "disease": "Leaf mould",
+      "type": "fungal",
       "symptoms": "Pale green to yellow patches on the upper leaf surface with olive-green to grey velvety mould underneath; mainly a greenhouse/polyhouse problem.",
       "organic": "Increase ventilation, reduce humidity below 85%, wider spacing, remove lower leaves, copper or Bacillus sprays.",
       "chemical": "Chlorothalonil, mancozeb or difenoconazole; rotate modes of action.",
       "prevention": "Ventilate and heat polyhouses to avoid dew, resistant varieties, avoid leaf wetness, wide spacing.",
-      "precautions": ["Ventilate the polyhouse to drop humidity", "Space and prune plants for airflow", "Remove affected lower leaves", "Spray chlorothalonil or mancozeb"]
+      "precautions": [
+        "Ventilate the polyhouse to drop humidity",
+        "Space and prune plants for airflow",
+        "Remove affected lower leaves",
+        "Spray chlorothalonil or mancozeb"
+      ],
+      "crop_hi": "टमाटर",
+      "crop_gu": "ટામેટા",
+      "disease_hi": "पत्ती फफूंद रोग",
+      "disease_gu": "પાન ફૂગ રોગ",
+      "precautions_hi": [
+        "नमी कम करने के लिए पॉलीहाउस में हवा आने-जाने दें",
+        "हवा के आवागमन के लिए पौधों में दूरी रखें और छंटाई करें",
+        "प्रभावित निचली पत्तियों को हटा दें",
+        "क्लोरोथेलोनिल या मैंकोज़ेब का छिड़काव करें"
+      ],
+      "precautions_gu": [
+        "ભેજ ઘટાડવા પોલીહાઉસમાં હવાની અવરજવર રાખો",
+        "હવાની અવરજવર માટે છોડ વચ્ચે અંતર રાખો અને કાપણી કરો",
+        "અસરગ્રસ્ત નીચલાં પાંદડાં દૂર કરો",
+        "ક્લોરોથેલોનિલ અથવા મેન્કોઝેબનો છંટકાવ કરો"
+      ]
     },
     "Tomato___healthy": {
-      "crop": "Tomato", "disease": null, "type": "healthy",
+      "crop": "Tomato",
+      "disease": null,
+      "type": "healthy",
       "symptoms": "Even green leaves, no spots or mould, healthy growing tips.",
       "organic": "Mulch, drip irrigation, staking, weekly scouting.",
       "chemical": "None needed.",
       "prevention": "Rotation, resistant varieties, airflow and dry foliage keep most tomato diseases out.",
-      "precautions": ["Leaf looks healthy - no treatment needed", "Keep scouting weekly, especially after rain", "Mulch and use drip irrigation", "Stake for airflow"]
+      "precautions": [
+        "Leaf looks healthy - no treatment needed",
+        "Keep scouting weekly, especially after rain",
+        "Mulch and use drip irrigation",
+        "Stake for airflow"
+      ],
+      "crop_hi": "टमाटर",
+      "crop_gu": "ટામેટા",
+      "disease_hi": null,
+      "disease_gu": null,
+      "precautions_hi": [
+        "पत्ती स्वस्थ दिख रही है - उपचार की आवश्यकता नहीं",
+        "हर हफ्ते, खासकर बारिश के बाद जाँच करते रहें",
+        "मल्चिंग करें और ड्रिप सिंचाई अपनाएं",
+        "हवा के आवागमन के लिए सहारा दें"
+      ],
+      "precautions_gu": [
+        "પાન તંદુરસ્ત દેખાય છે - સારવારની જરૂર નથી",
+        "દર અઠવાડિયે, ખાસ કરીને વરસાદ પછી નિરીક્ષણ કરતા રહો",
+        "મલ્ચિંગ કરો અને ડ્રિપ સિંચાઈ અપનાવો",
+        "હવાની અવરજવર માટે ટેકો આપો"
+      ]
     }
   }
 }
