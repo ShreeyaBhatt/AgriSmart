@@ -108,6 +108,12 @@ export const api = {
   weatherAdvice: (b) => request("/weather/advice", { method: "POST", body: b, auth: false }),
   sustainability: (b) => request("/sustainability/score", { method: "POST", body: b, auth: false }),
   assistant: (b) => request("/assistant/ask", { method: "POST", body: b }),
+  transcribe: (audioBlob, lang) => {
+    const fd = new FormData();
+    fd.append("file", audioBlob, `voice.${audioBlob.type.includes("mp4") ? "mp4" : audioBlob.type.includes("ogg") ? "ogg" : "webm"}`);
+    if (lang) fd.append("lang", lang);
+    return request("/assistant/transcribe", { method: "POST", form: fd });
+  },
 };
 
 // Upload paths from the API are like "/uploads/...": served at the origin, not under /api.

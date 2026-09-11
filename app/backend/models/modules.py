@@ -67,3 +67,7 @@ class AssistantAnswer(BaseModel):
     grounded_on: list[str]  # disease-card ids / context keys used
     used_llm: bool
     lang: str
+
+
+class TranscribeOut(BaseModel):
+    text: str

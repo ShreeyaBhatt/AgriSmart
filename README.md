@@ -164,7 +164,7 @@ There are no admin or multi-user family roles in this build; each farmer's data 
 - **Soil-Aware Crop Recommendation** — a plot's GPS coordinates are resolved against SoilGrids 2.0 and the Soil Health Card to get real texture, pH, and N-P-K values, which then drive crop-fit and amendment suggestions.
 - **Weather Advisory** — a 3-day Open-Meteo forecast is passed through a rule engine that turns raw weather data into a specific action for the farmer.
 - **Sustainability Scoring** — each plot is scored against a published, reproducible formula, with concrete tips attached to raise the score.
-- **Farm Assistant** — a grounded RAG pipeline over a disease-card knowledge base plus the farmer's own plot data, answering in English, Hindi, or Gujarati, with voice input and output. Runs on Gemini when a key is configured, or fully offline otherwise.
+- **Farm Assistant** — a grounded RAG pipeline over a disease-card knowledge base plus the farmer's own plot data, answering in English, Hindi, or Gujarati, with voice input and output. Runs on Gemini when a key is configured, or fully offline otherwise. Voice input is transcribed locally by this backend (faster-whisper) rather than a cloud speech API, so it keeps working with no internet beyond reaching your own server.
 
 ## Disease Coverage
 
