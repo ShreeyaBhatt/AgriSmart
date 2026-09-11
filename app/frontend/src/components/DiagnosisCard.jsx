@@ -30,7 +30,7 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-bold tracking-tight text-ink">{tone.label}</h2>
           <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1", tone.chip)}>
-            {abstain ? "abstained" : healthy ? "healthy" : "disease"}
+            {abstain ? t("scan.tag.abstained") : healthy ? t("scan.tag.healthy") : t("scan.tag.disease")}
           </span>
         </div>
         {!abstain && (
@@ -46,13 +46,13 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
             {img && (
               <figure>
                 <img src={img} alt="leaf" className="aspect-square w-full rounded-lg object-cover ring-1 ring-line" />
-                <figcaption className="mt-1 text-center text-[10px] text-faint">Your photo</figcaption>
+                <figcaption className="mt-1 text-center text-[10px] text-faint">{t("scan.yourPhoto")}</figcaption>
               </figure>
             )}
             {cam && (
               <figure>
                 <img src={cam} alt="Grad-CAM" className="aspect-square w-full rounded-lg object-cover ring-1 ring-line" />
-                <figcaption className="mt-1 text-center text-[10px] text-faint">Affected area</figcaption>
+                <figcaption className="mt-1 text-center text-[10px] text-faint">{t("scan.affectedArea")}</figcaption>
               </figure>
             )}
           </div>
@@ -73,18 +73,20 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
           {!abstain && (
             <Link
               to="/assistant"
-              state={{ prefill: `Tell me more about ${prettyLabel(diagnosis.predicted_class)} and how to treat it.` }}
+              state={{
+                prefill: `${t("scan.assistantPrefillPrefix")} ${prettyLabel(diagnosis.predicted_class)} ${t("scan.assistantPrefillSuffix")}`,
+              }}
               className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
             >
               <Icon name="chat" className="h-3.5 w-3.5" />
-              Ask the assistant
+              {t("scan.askAssistant")}
             </Link>
           )}
         </div>
       </div>
 
       {diagnosis.model_version && (
-        <p className="px-5 pb-3 text-[10px] text-faint">model {diagnosis.model_version}</p>
+        <p className="px-5 pb-3 text-[10px] text-faint">{t("scan.modelLabel")} {diagnosis.model_version}</p>
       )}
     </Card>
   );

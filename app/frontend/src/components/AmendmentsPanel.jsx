@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Card from "./Card.jsx";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n/useT.js";
 
 const SEVERITY = {
   ok: { bar: "bg-brand-500", chip: "bg-brand-50 text-brand-700 ring-brand-200", icon: "check" },
@@ -20,13 +21,14 @@ const CATEGORY_ICON = {
 };
 
 export default function AmendmentsPanel({ report }) {
+  const t = useT();
   if (!report) return null;
 
   return (
     <Card className="animate-fade-up p-5">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
         <Icon name="flask" className="h-4 w-4 text-brand-600" />
-        Soil amendments
+        {t("amendments.title")}
       </h2>
 
       <ul className="mt-3 space-y-2.5">
@@ -39,10 +41,10 @@ export default function AmendmentsPanel({ report }) {
                 <div className="flex items-center gap-2">
                   <Icon name={CATEGORY_ICON[a.category] || "spark"} className="h-3.5 w-3.5 text-muted" />
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    {a.category.replace(/_/g, " ")}
+                    {CATEGORY_ICON[a.category] ? t(`amendments.category.${a.category}`) : a.category.replace(/_/g, " ")}
                   </span>
                   <span className={clsx("ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold ring-1", s.chip)}>
-                    {a.severity}
+                    {SEVERITY[a.severity] ? t(`amendments.severity.${a.severity}`) : a.severity}
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-ink/90">{a.finding}</p>
@@ -55,7 +57,7 @@ export default function AmendmentsPanel({ report }) {
 
       {report.data_gaps?.length > 0 && (
         <div className="mt-3 rounded-xl border border-dashed border-line p-3">
-          <div className="text-[11px] font-medium uppercase tracking-wide text-faint">Data gaps</div>
+          <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("amendments.dataGaps")}</div>
           <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted">
             {report.data_gaps.map((g, i) => (
               <li key={i}>{g}</li>

@@ -21,6 +21,7 @@ export default function Assistant() {
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [speak, setSpeak] = useState(true);
+  const [micError, setMicError] = useState("");
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -49,24 +50,45 @@ export default function Assistant() {
       setMessages((m) => [...m, { role: "assistant", ...res }]);
       say(res.answer);
     } catch (e) {
-      setMessages((m) => [...m, { role: "assistant", answer: `Sorry — ${e.detail || e.message}`, grounded_on: [] }]);
+      setMessages((m) => [...m, { role: "assistant", answer: `${t("assistant.errorPrefix")} ${e.detail || e.message}`, grounded_on: [] }]);
     } finally {
       setBusy(false);
     }
   };
 
+  const ERROR_KEY = {
+    "not-allowed": "assistant.micDenied",
+    "service-not-allowed": "assistant.micDenied",
+    "no-speech": "assistant.micNoSpeech",
+    "audio-capture": "assistant.micNoMic",
+    network: "assistant.micNetwork",
+  };
+
   const mic = () => {
     if (!SR) return;
+    setMicError("");
     const rec = new SR();
     rec.lang = LOCALE[lang] || "en-IN";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
     rec.onstart = () => setListening(true);
     rec.onend = () => setListening(false);
+    rec.onerror = (e) => {
+      setListening(false);
+      setMicError(t(ERROR_KEY[e.error] || "assistant.micError"));
+    };
     rec.onresult = (e) => {
-      const said = e.results[0][0].transcript;
+      const said = e.results[0]?.[0]?.transcript;
+      if (!said) return;
       setInput(said);
       send(said);
     };
-    rec.start();
+    try {
+      rec.start();
+    } catch {
+      // start() throws if a recognizer is already running (e.g. a fast double-tap)
+      setListening(false);
+    }
   };
 
   return (
@@ -80,7 +102,7 @@ export default function Assistant() {
               onChange={(e) => setPlotId(e.target.value)}
               className="rounded-lg border border-line bg-canvas/60 px-2 py-1.5 text-xs text-ink outline-none focus:border-brand-400"
             >
-              <option value="">No plot context</option>
+              <option value="">{t("assistant.noPlotContext")}</option>
               {plots.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -89,7 +111,7 @@ export default function Assistant() {
           <button
             onClick={() => setSpeak((s) => !s)}
             className={`rounded-lg border px-2 py-1.5 text-xs font-medium ${speak ? "border-brand-200 bg-brand-50 text-brand-700" : "border-line text-muted"}`}
-            title="Speak answers"
+            title={t("assistant.speakAnswers")}
           >
             <Icon name="sun" className="h-3.5 w-3.5" />
           </button>
@@ -100,8 +122,8 @@ export default function Assistant() {
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {messages.length === 0 && (
             <p className="py-10 text-center text-sm text-faint">
-              Ask about a crop disease, soil, fertiliser or spraying.
-              {SR ? " Tap the mic to speak." : ""}
+              {t("assistant.emptyHint")}
+              {SR ? ` ${t("assistant.emptyHintMic")}` : ""}
             </p>
           )}
           {messages.map((m, i) => (
@@ -116,8 +138,8 @@ export default function Assistant() {
                 {m.answer ?? m.text}
                 {m.role === "assistant" && m.grounded_on?.length > 0 && (
                   <div className="mt-1 text-[10px] text-faint">
-                    grounded on: {m.grounded_on.join(", ")}
-                    {m.used_llm ? " · Gemini" : " · knowledge base"}
+                    {t("assistant.groundedOn")} {m.grounded_on.join(", ")}
+                    {m.used_llm ? " · Gemini" : ` · ${t("assistant.knowledgeBase")}`}
                   </div>
                 )}
               </div>
@@ -131,6 +153,11 @@ export default function Assistant() {
           <div ref={endRef} />
         </div>
 
+        {micError && (
+          <p className="border-t border-line bg-rose-50 px-3 py-1.5 text-center text-xs text-rose-600">
+            {micError}
+          </p>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -138,14 +165,22 @@ export default function Assistant() {
           }}
           className="flex items-center gap-2 border-t border-line p-3"
         >
-          {SR && (
+          {SR ? (
             <button
               type="button"
               onClick={mic}
-              className={`rounded-lg border p-2 ${listening ? "border-rose-300 bg-rose-50 text-rose-600" : "border-line text-muted"}`}
+              title={t("assistant.speakQuestion")}
+              className={`rounded-lg border p-2 transition ${listening ? "animate-pulse border-rose-300 bg-rose-50 text-rose-600" : "border-line text-muted hover:bg-canvas"}`}
             >
               <Icon name="mic" className="h-4 w-4" />
             </button>
+          ) : (
+            <span
+              title={t("assistant.micUnsupported")}
+              className="cursor-not-allowed rounded-lg border border-line p-2 text-faint"
+            >
+              <Icon name="mic" className="h-4 w-4" />
+            </span>
           )}
           <input
             value={input}
