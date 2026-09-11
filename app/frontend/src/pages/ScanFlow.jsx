@@ -36,6 +36,14 @@ export default function ScanFlow() {
   useEffect(() => {
     api.listPlots().then(setPlots).catch(() => {});
   }, []);
+  // The label/precautions returned by /predict are localized server-side at
+  // request time, so they don't move with the UI when the farmer switches
+  // language afterwards — re-fetch the same diagnosis in the new language.
+  useEffect(() => {
+    if (!result) return;
+    api.getDiagnosis(result.id, lang).then(setResult).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
   useEffect(() => {
     if (!file) return setPreview(null);
     const url = URL.createObjectURL(file);
