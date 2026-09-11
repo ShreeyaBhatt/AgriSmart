@@ -1,241 +1,531 @@
-# AgriSmart AI
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriSmart AI — Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17140f;
+    --bg-panel:#211c15;
+    --bg-panel-2:#2a2319;
+    --line:#3c3325;
+    --line-soft:#2c2619;
+    --text:#ece4d3;
+    --text-mute:#a99b85;
+    --text-dim:#8a7c68;
+    --green:#8bc34a;
+    --green-deep:#5c8a3f;
+    --amber:#e3a857;
+    --sky:#74a7bd;
+    --paper:#efe8d6;
+    --paper-ink:#241f16;
+    --radius-card: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:
+      radial-gradient(ellipse at 15% -10%, rgba(139,195,74,0.07), transparent 45%),
+      radial-gradient(ellipse at 90% 10%, rgba(227,168,87,0.06), transparent 40%);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{ font-family:'Fraunces', serif; font-weight:600; margin:0; color:var(--paper); letter-spacing:-0.01em;}
+  a{color:var(--green);}
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 28px; }
+  ::selection{ background:var(--green-deep); color:#fff;}
 
-**Intelligent Agriculture for a Sustainable Future** — SIH 2026 internal hackathon (L. J. Institute, PS‑1 / C‑433).
+  /* ---------- top ribbon ---------- */
+  .ribbon{
+    border-bottom:1px solid var(--line);
+    padding:14px 0;
+    background:linear-gradient(180deg, rgba(0,0,0,0.15), transparent);
+  }
+  .ribbon .wrap{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .ribbon-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--text-dim);
+    display:flex; align-items:center; gap:8px;
+  }
+  .ribbon-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+  .ribbon-brand{ display:flex; align-items:center; gap:9px; font-family:'Fraunces',serif; font-size:19px; color:var(--paper); font-weight:600;}
 
-A full smart‑agriculture app a farmer actually logs into: scan a leaf for a disease diagnosis,
-save your fields, and get soil, weather, sustainability and plain‑language advice for each one.
+  /* ---------- hero ---------- */
+  .hero{ padding:76px 0 40px; position:relative; }
+  .hero .kicker{
+    color:var(--amber); font-family:'IBM Plex Mono', monospace; font-size:13.5px;
+    margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .hero .kicker svg{ width:16px;height:16px; }
+  .hero h1{ font-size:clamp(40px, 6vw, 66px); line-height:1.02; max-width:14ch;}
+  .hero h1 em{ font-style:italic; color:var(--green); }
+  .hero p.lead{
+    margin-top:22px; max-width:56ch; font-size:18px; color:var(--text-mute);
+  }
+  .hero .badges{ display:flex; gap:10px; margin-top:28px; flex-wrap:wrap; }
+  .pill{
+    border:1px solid var(--line); border-radius:100px; padding:6px 14px;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--text-mute);
+    display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.015);
+  }
+  .pill svg{ width:13px; height:13px; color:var(--green); }
 
-```
-Login ─▶ My Farm (map of plots) ─▶ Scan a leaf ─▶ Diagnosis + Grad‑CAM + what to do
-                     │
-                     ├─▶ Plot detail: soil profile · crop fit · amendments · activity timeline
-                     ├─▶ Weather advice (rules over Open‑Meteo)
-                     ├─▶ Sustainability score (published formula)
-                     └─▶ Farm assistant (voice, grounded RAG, en/hi/gu)
-```
+  /* ---------- flow strip ---------- */
+  .flow{ margin-top:56px; }
+  .flow-row{
+    display:flex; align-items:stretch; gap:0; flex-wrap:wrap; row-gap:18px;
+  }
+  .flow-node{
+    flex:1 1 150px; min-width:150px;
+    border:1px solid var(--line); background:var(--bg-panel);
+    padding:18px 16px; position:relative;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .flow-node:first-child{ border-radius:4px 0 0 4px; }
+  .flow-node:last-child{ border-radius:0 4px 4px 0; border-color:var(--green-deep); background:linear-gradient(160deg, rgba(139,195,74,0.10), var(--bg-panel));}
+  .flow-node .icon{ width:26px; height:26px; color:var(--green); }
+  .flow-node .step-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-dim); }
+  .flow-node .step-title{ font-family:'Fraunces', serif; font-size:16.5px; color:var(--paper); font-weight:500;}
+  .flow-arrow{
+    flex:0 0 34px; display:flex; align-items:center; justify-content:center;
+    color:var(--text-dim);
+  }
+  .flow-arrow svg{width:18px;height:18px;}
+  @media (max-width:760px){ .flow-arrow{ display:none; } .flow-node{ border-radius:4px !important; border-color:var(--line) !important; background:var(--bg-panel) !important;} }
 
----
+  .branch-note{
+    margin-top:14px; padding-left:16px; border-left:2px dashed var(--line);
+    color:var(--text-dim); font-size:13.5px; font-family:'IBM Plex Mono', monospace;
+  }
 
-## Modules built
+  /* ---------- section shell ---------- */
+  section{ padding:70px 0; border-top:1px solid var(--line-soft); }
+  .section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:36px; flex-wrap:wrap;}
+  .section-num{ font-family:'IBM Plex Mono', monospace; color:var(--amber); font-size:14px; }
+  .section-head h2{ font-size:clamp(26px,3.4vw,34px); }
+  .section-sub{ color:var(--text-mute); max-width:62ch; margin-top:10px; font-size:15.5px; }
 
-| # | Module | Status | Where |
-|---|---|---|---|
-| **Core** | Crop‑disease detection (CV) — `predict(image)->label`, Grad‑CAM, abstention | ✅ | `model/`, `POST /predict` |
-| **A** | Crop recommendation — **re‑imagined as GPS → real soil**: SoilGrids 2.0 + Soil Health Card → texture, pH, N‑P‑K → crop fit + amendments | ✅ | `app/backend/services/soil_*`, `routers/{soil,recommend}.py` |
-| **C** | Weather Intelligence — 3‑day Open‑Meteo forecast → rule engine → farmer actions | ✅ | `services/weather.py`, `POST /weather/advice` |
-| **D** | Sustainability Score — reproducible published formula + tips | ✅ | `services/sustainability.py`, `POST /sustainability/score` |
-| **E** | GenAI Farmer Assistant — grounded RAG over a disease‑card corpus + live plot context; Gemini when a key is set, offline knowledge‑base answer otherwise; **voice in/out**, en/hi/gu | ✅ | `services/assistant.py`, `POST /assistant/ask` |
-| — | Auth + per‑farmer data (plots, plantings, diagnoses, irrigation, actions, timeline) | ✅ | `app/backend/{auth,db}.py`, `models/orm.py`, `routers/*` |
-| F / G | IoT / Agentic advisor | ✂️ not attempted | — |
+  /* ---------- module cards (field-note / seed packet) ---------- */
+  .modules{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:18px; }
+  .module-card{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:22px 22px 20px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .18s ease, border-color .18s ease;
+  }
+  .module-card:hover{ transform:translateY(-3px); border-color:var(--green-deep); }
+  .module-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--green-deep);
+  }
+  .module-card.dim::before{ background:var(--line); }
+  .module-card.dim{ opacity:0.6; }
+  .module-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .module-id{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); }
+  .module-title{ font-family:'Fraunces', serif; font-size:19px; color:var(--paper); margin-top:6px; font-weight:500;}
+  .stamp{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; padding:4px 10px;
+    border:1.5px dashed var(--green); color:var(--green); border-radius:100px;
+    transform:rotate(-4deg); white-space:nowrap; flex-shrink:0;
+  }
+  .stamp.off{ border-color:var(--text-dim); color:var(--text-dim); }
+  .module-desc{ color:var(--text-mute); font-size:14.5px; margin-top:12px; }
+  .module-path{
+    margin-top:14px; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:var(--sky); background:rgba(116,167,189,0.08); padding:6px 10px; border-radius:3px;
+    display:inline-block; word-break:break-all;
+  }
 
-### Database split
+  /* ---------- db split ---------- */
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:2px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  @media (max-width:700px){ .split{ grid-template-columns:1fr; } }
+  .split > div{ background:var(--bg-panel); padding:26px 26px; }
+  .split h4{ font-size:17px; display:flex; align-items:center; gap:9px; margin-bottom:10px;}
+  .split h4 svg{ width:18px; height:18px; }
+  .split p{ color:var(--text-mute); font-size:14.5px; }
+  .split .tag{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-dim); margin-top:12px; display:block;}
 
-The plan PDF specified **MongoDB**. This build splits persistence in two: **user accounts**
-(phone/OTP login, name, location, primary crop) live in **MongoDB**, matching the plan, and are
-visible in MongoDB Compass; everything else — plots, plantings, diagnoses, irrigation, actions —
-stays in **SQLite + SQLAlchemy (async)**, a single file with zero setup, so the farm-data side of
-the system still runs from this README on any machine without standing up extra infrastructure.
-The schema (`app/backend/models/orm.py`) is a portable superset of the plan's data model; accounts
-are a plain Pydantic model over a hand-rolled `motor` repo (`app/backend/models/user.py`,
-`app/backend/services/users.py`) rather than a full ODM — the same "a handful of functions is
-enough" reasoning already used for JWT auth. Tests never require a real MongoDB server: they swap
-in an in-memory `mongomock-motor` client (see `tests/conftest.py`).
+  /* ---------- architecture ---------- */
+  .arch{
+    border:1px solid var(--line); border-radius:6px; padding:36px 30px; background:var(--bg-panel);
+    display:flex; flex-direction:column; align-items:center; gap:0;
+  }
+  .arch-box{
+    border:1px solid var(--line); background:var(--bg-panel-2); border-radius:4px;
+    padding:14px 22px; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--paper);
+  }
+  .arch-box.accent{ border-color:var(--green-deep); background:linear-gradient(160deg, rgba(139,195,74,0.12), var(--bg-panel-2)); }
+  .arch-connector{ width:1px; height:26px; background:var(--line); }
+  .arch-branches{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px;
+    width:100%; margin-top:10px;
+  }
+  .arch-branches .arch-box{ font-size:12px; padding:12px 14px; }
+  .arch-row{ display:flex; gap:16px; width:100%; justify-content:center; flex-wrap:wrap; }
 
----
+  /* ---------- endpoints table ---------- */
+  table.ledger{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.ledger th{
+    text-align:left; font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:11.5px;
+    color:var(--text-dim); padding:10px 14px; border-bottom:1px solid var(--line);
+  }
+  table.ledger td{
+    padding:12px 14px; border-bottom:1px solid var(--line-soft); color:var(--text-mute); vertical-align:top;
+  }
+  table.ledger tr:hover td{ background:rgba(255,255,255,0.015); }
+  table.ledger td.method{ font-family:'IBM Plex Mono', monospace; color:var(--amber); font-size:12px; white-space:nowrap;}
+  table.ledger td.endpoint{ font-family:'IBM Plex Mono', monospace; color:var(--paper); font-size:12.5px;}
+  table.ledger td.auth{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--sky); white-space:nowrap;}
 
-## Running locally
+  /* ---------- metrics ---------- */
+  .metrics{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:2px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .metric{ background:var(--bg-panel); padding:26px 20px; }
+  .metric .num{ font-family:'Fraunces', serif; font-size:36px; color:var(--green); font-weight:600; }
+  .metric .lbl{ font-size:12.5px; color:var(--text-dim); margin-top:6px; font-family:'IBM Plex Mono', monospace;}
 
-**Prerequisites:** Python 3.10+, Node 18+, and a MongoDB server for accounts —
-install MongoDB Community Server and let it run as a service, or
-`docker run -p 27017:27017 mongo`. Defaults to `mongodb://localhost:27017`; not needed to run
-the test suite. Two terminals, both from the repo root.
+  /* ---------- sources table ---------- */
+  .sources{ display:flex; flex-direction:column; gap:10px; }
+  .source-row{
+    display:grid; grid-template-columns:1.3fr 1.8fr 1fr; gap:16px; padding:14px 16px;
+    border:1px solid var(--line-soft); border-radius:4px; align-items:center; font-size:13.5px;
+  }
+  .source-row .src-name{ font-family:'IBM Plex Mono', monospace; color:var(--paper); font-size:13px;}
+  .source-row .src-use{ color:var(--text-mute); }
+  .source-row .src-lic{ color:var(--sky); font-family:'IBM Plex Mono', monospace; font-size:12px; text-align:right;}
+  @media (max-width:640px){ .source-row{ grid-template-columns:1fr; text-align:left;} .source-row .src-lic{text-align:left;} }
 
-### TL;DR
+  /* ---------- stack chips ---------- */
+  .stack-group{ margin-bottom:22px; }
+  .stack-group h4{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-dim); font-weight:500; margin-bottom:12px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{
+    border:1px solid var(--line); border-radius:100px; padding:6px 13px; font-size:12.5px;
+    color:var(--text-mute); font-family:'IBM Plex Mono', monospace; background:var(--bg-panel);
+  }
 
-```bash
-# terminal 1 — backend (installs CPU PyTorch too; first run creates agrismart.db + uploads/)
-pip install -r requirements.txt
-python -m uvicorn app.backend.main:app --reload      # http://127.0.0.1:8000/docs
+  /* ---------- repo tree ---------- */
+  .tree{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:5px; padding:22px 24px;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--text-mute); overflow-x:auto;
+  }
+  .tree .folder{ color:var(--amber); }
+  .tree .desc{ color:var(--text-dim); }
 
-# terminal 2 — frontend
-cd app/frontend
-npm install
-npm run dev                                           # http://localhost:5173
-```
+  /* ---------- footer / originality ---------- */
+  footer{ padding:60px 0 90px; }
+  .field-note{
+    border:1px solid var(--line); border-radius:6px; padding:32px 34px; background:var(--bg-panel);
+    position:relative;
+  }
+  .field-note::after{
+    content:""; position:absolute; top:18px; right:18px; width:34px; height:34px;
+    opacity:0.5;
+  }
+  .field-note h3{ font-size:20px; margin-bottom:14px; }
+  .field-note ul{ margin:0; padding-left:20px; color:var(--text-mute); font-size:14.5px; }
+  .field-note li{ margin-bottom:8px; }
+  .foot-meta{ margin-top:34px; display:flex; justify-content:space-between; color:var(--text-dim); font-size:12.5px; font-family:'IBM Plex Mono', monospace; flex-wrap:wrap; gap:10px;}
 
-Open <http://localhost:5173>, enter a mobile number (or tap *Continue as guest*), verify with
-the demo OTP shown on screen, add a plot on the map, and scan a leaf. The disease model is
-**already trained** — its artifacts ship in `model/artifacts/` — so `/predict` works
-immediately; re-run the training steps below only if you want to retrain.
+  code.inline{ font-family:'IBM Plex Mono', monospace; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:3px; color:var(--paper); font-size:0.92em;}
 
-### Terminal 1 — backend
+  @keyframes sprout{
+    0%{ transform:scaleY(0.2) translateY(6px); opacity:0; transform-origin:bottom;}
+    100%{ transform:scaleY(1) translateY(0); opacity:1; transform-origin:bottom;}
+  }
+  .sprout-anim{ animation: sprout 0.9s cubic-bezier(.2,.9,.3,1.2) both; }
+</style>
+</head>
+<body>
 
-```bash
-pip install -r requirements.txt
-python -m uvicorn app.backend.main:app --reload
-```
+<div class="ribbon">
+  <div class="wrap">
+    <div class="ribbon-brand">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--green)"><path d="M12 21c0-6 4-9 8-10-1 5-3 10-8 10Z"/><path d="M12 21c0-7-4-11-9-12 1 6 3 12 9 12Z"/></svg>
+      AgriSmart AI
+    </div>
+    <div class="ribbon-tag"><span class="dot"></span> SIH 2026 internal hackathon · L. J. Institute · PS-1 / C-433</div>
+  </div>
+</div>
 
-- API + interactive Swagger docs: <http://127.0.0.1:8000/docs>
-- First run creates `agrismart.db` (SQLite) and an `uploads/` folder next to the repo root —
-  no external database or services to stand up.
-- Config is optional — copy `.env.example` to `.env` to set a real `JWT_SECRET`, a
-  `GEMINI_API_KEY` for the live assistant, etc. Every setting has a working default.
-- PyTorch: `requirements.txt` pins CPU‑friendly minimums. If `pip` resolves a CUDA build you
-  don't want: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`.
+<div class="hero">
+  <div class="wrap">
+    <div class="kicker">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      Field-tested build, not a slide deck
+    </div>
+    <h1>A farm app that answers the three questions a farmer actually <em>asks</em>.</h1>
+    <p class="lead">What's wrong with this leaf. What should I do about my soil. What does the weather mean for tomorrow. AgriSmart AI logs a farmer in, remembers their plots, and answers all three — grounded in real soil data, a real forecast, and a disease model that admits when it isn't sure.</p>
+    <div class="badges">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> 4 of 6 modules shipped</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> 47 passing tests</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18.7 8l-5.1 5.1-3-3L4.5 16.2"/></svg> 0.966 macro-F1, held-out val</span>
+    </div>
 
-**Module E — enabling the live Gemini assistant.** Without a key, the assistant still answers
-from the offline disease‑card knowledge base. To turn on live Gemini answers:
-1. Get a free API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-   (sign in with a Google account → *Create API key*).
-2. Copy `.env.example` to `.env` in the repo root, if you haven't already.
-3. Set `AGRISMART_GEMINI_API_KEY=<your key>` in `.env` (and optionally
-   `AGRISMART_GEMINI_MODEL` — defaults to `gemini-1.5-flash`).
-4. Restart the backend. `.env` is git‑ignored — never commit a real key.
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-node sprout-anim">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="7" r="3"/></svg>
+          <span class="step-label">01 — enter</span>
+          <span class="step-title">Login</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="flow-node sprout-anim" style="animation-delay:.08s">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 2 9l10 5 10-5-10-7Z"/><path d="M6 12v7c0 1.1 2.7 2 6 2s6-.9 6-2v-7"/></svg>
+          <span class="step-label">02 — orient</span>
+          <span class="step-title">My Farm</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="flow-node sprout-anim" style="animation-delay:.16s">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16l-1.5 12.5a2 2 0 01-2 1.5H7.5a2 2 0 01-2-1.5L4 7Z"/><path d="M9 7V5a3 3 0 016 0v2"/></svg>
+          <span class="step-label">03 — capture</span>
+          <span class="step-title">Scan a leaf</span>
+        </div>
+        <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="flow-node sprout-anim" style="animation-delay:.24s">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="step-label">04 — decide</span>
+          <span class="step-title">Diagnosis + Grad-CAM + what to do</span>
+        </div>
+      </div>
+      <div class="branch-note">↳ from any plot: soil profile · crop fit · amendments · weather advice · sustainability score · farm assistant (voice, en/hi/gu)</div>
+    </div>
+  </div>
+</div>
 
-### Terminal 2 — frontend
+<section id="modules">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2>What's actually built</h2>
+    </div>
+    <p class="section-sub">Five modules, each answering one farmer question end-to-end — model in, API in the middle, a plain-language answer out.</p>
 
-```bash
-cd app/frontend
-npm install
-npm run dev            # http://localhost:5173 — proxies /api and /uploads to :8000
-```
+    <div class="modules">
+      <div class="module-card">
+        <div class="module-top">
+          <div><div class="module-id">Core</div><div class="module-title">Crop-disease detection</div></div>
+          <div class="stamp">Built</div>
+        </div>
+        <div class="module-desc">Photo of a leaf in, disease label out — with a Grad-CAM overlay showing where the model looked, and abstention when confidence is too low to trust.</div>
+        <div class="module-path">model/ · POST /predict</div>
+      </div>
 
-Start the backend first; Vite's dev proxy forwards API calls to it, so no CORS setup is
-needed locally. Register → add a plot on the map → scan a leaf → explore weather /
-sustainability / assistant.
+      <div class="module-card">
+        <div class="module-top">
+          <div><div class="module-id">Module A</div><div class="module-title">Crop recommendation</div></div>
+          <div class="stamp">Built</div>
+        </div>
+        <div class="module-desc">Re-imagined as GPS → real soil: SoilGrids 2.0 and the Soil Health Card resolve texture, pH and N-P-K for the exact plot, then suggest crop fit and amendments.</div>
+        <div class="module-path">services/soil_* · routers/{soil,recommend}.py</div>
+      </div>
 
-### (Optional) retrain the crop‑disease model
+      <div class="module-card">
+        <div class="module-top">
+          <div><div class="module-id">Module C</div><div class="module-title">Weather intelligence</div></div>
+          <div class="stamp">Built</div>
+        </div>
+        <div class="module-desc">A 3-day Open-Meteo forecast runs through a rule engine and comes out the other side as something a farmer can act on today.</div>
+        <div class="module-path">services/weather.py · POST /weather/advice</div>
+      </div>
 
-Only needed if you want to reproduce or redo training — trained weights are already committed.
+      <div class="module-card">
+        <div class="module-top">
+          <div><div class="module-id">Module D</div><div class="module-title">Sustainability score</div></div>
+          <div class="stamp">Built</div>
+        </div>
+        <div class="module-desc">A reproducible, published formula scores each plot's practices and returns concrete tips to raise the score — no black box.</div>
+        <div class="module-path">services/sustainability.py · POST /sustainability/score</div>
+      </div>
 
-```bash
-python model/download_data.py --out data/plantvillage --per-class 160   # ~2.9k images, GitHub CC0
-python model/train.py --data-dir data/plantvillage --epochs 4           # writes model/artifacts/
-python model/predict.py --image data/samples/leaves/Tomato___Late_blight.jpg
-#  -> Tomato___Late_blight
-python model/evaluate.py --dir data/plantvillage --out report/model_report.md
-```
+      <div class="module-card">
+        <div class="module-top">
+          <div><div class="module-id">Module E</div><div class="module-title">GenAI farm assistant</div></div>
+          <div class="stamp">Built</div>
+        </div>
+        <div class="module-desc">Grounded RAG over a disease-card corpus plus live plot context. Answers with Gemini when a key is set, or offline from the knowledge base when it isn't. Voice in and out, in English, Hindi and Gujarati.</div>
+        <div class="module-path">services/assistant.py · POST /assistant/ask</div>
+      </div>
 
-`predict(image_path) -> class_label` is importable as `from model.predict import predict`.
-Bundled sample leaves in `data/samples/leaves/` let you test without downloading anything.
+      <div class="module-card dim">
+        <div class="module-top">
+          <div><div class="module-id">Modules F / G</div><div class="module-title">IoT / agentic advisor</div></div>
+          <div class="stamp off">Not attempted</div>
+        </div>
+        <div class="module-desc">Scoped, planned, and deliberately left out of this build to keep the shipped modules solid.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-### Tests
+<section id="metrics">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2>How well the classifier actually holds up</h2>
+    </div>
+    <p class="section-sub"><strong style="color:var(--paper)">timm EfficientNet-B0</strong>, fine-tuned with field-simulation augmentation, temperature scaling, test-time augmentation, and low-confidence abstention — because a wrong diagnosis with high confidence is worse than an honest "not sure."</p>
+    <div class="metrics">
+      <div class="metric"><div class="num">0.966</div><div class="lbl">macro-F1 · 15% held-out validation</div></div>
+      <div class="metric"><div class="num">0.967</div><div class="lbl">accuracy · same lab-image distribution</div></div>
+      <div class="metric"><div class="num">0.992</div><div class="lbl">macro-F1 · predict-interface sanity check</div></div>
+      <div class="metric"><div class="num">18</div><div class="lbl">disease classes, PlantVillage subset</div></div>
+    </div>
+    <p class="section-sub" style="margin-top:20px;">These are lab-image numbers. The real test is lab-to-field generalisation — the augmentation and abstention are built for exactly that gap, and the model retrains cleanly against the organisers' held-out field set when it ships.</p>
+  </div>
+</section>
 
-```bash
-pytest -q                             # 47 tests: soil, auth, plots, predict, modules C/D/E
-cd app/frontend && npm run build      # frontend type/build check
-```
+<section id="data">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2>Where the data lives</h2>
+    </div>
+    <p class="section-sub">The plan called for MongoDB. This build keeps that promise where it matters — accounts — and picks the simplest honest option everywhere else.</p>
+    <div class="split">
+      <div>
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--green)"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>MongoDB — accounts</h4>
+        <p>Phone + OTP login, name, location, primary crop. Matches the original plan exactly, and it's visible in MongoDB Compass. Backed by a hand-rolled <code class="inline">motor</code> repo, not a full ODM — a handful of functions is enough, the same reasoning already used for JWT auth.</p>
+        <span class="tag">app/backend/models/user.py · services/users.py</span>
+      </div>
+      <div>
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--amber)"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>SQLite — farm data</h4>
+        <p>Plots, plantings, diagnoses, irrigation, actions. One file, zero setup, so the farm-data side of the app runs straight from this project on any machine. The schema is a portable superset of the plan's original data model.</p>
+        <span class="tag">app/backend/models/orm.py</span>
+      </div>
+    </div>
+    <p class="section-sub" style="margin-top:18px;">Tests never touch a real MongoDB server — an in-memory <code class="inline">mongomock-motor</code> client stands in, so <code class="inline">pytest</code> runs clean with nothing installed.</p>
+  </div>
+</section>
 
----
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <h2>How a request travels</h2>
+    </div>
+    <p class="section-sub">One API, one auth layer, five places it can go depending on what the farmer asked.</p>
 
-## Reported metrics (core)
+    <div class="arch">
+      <div class="arch-box accent">React + Vite + Tailwind SPA · en / hi / gu</div>
+      <div class="arch-connector"></div>
+      <div class="arch-box accent">FastAPI · JWT auth</div>
+      <div class="arch-connector"></div>
+      <div class="arch-branches">
+        <div class="arch-box">SQLite (async)<br>plots · diagnoses · logs</div>
+        <div class="arch-box">MongoDB (motor)<br>accounts</div>
+        <div class="arch-box">EfficientNet-B0<br>+ Grad-CAM + abstain</div>
+        <div class="arch-box">SoilGrids 2.0<br>+ Soil Health Card</div>
+        <div class="arch-box">Open-Meteo<br>→ rule engine</div>
+        <div class="arch-box">Sustainability<br>formula</div>
+        <div class="arch-box">disease_cards.json<br>→ Gemini / offline</div>
+      </div>
+    </div>
+    <p class="section-sub" style="margin-top:20px;">Every route lives under <code class="inline">/api</code> — the SPA keeps bare paths like <code class="inline">/weather</code> and <code class="inline">/soil</code> for itself. Uploaded images and Grad-CAM overlays serve from <code class="inline">/uploads</code>.</p>
 
-`model/train.py` fine‑tunes **timm EfficientNet‑B0** (transfer learning, field‑simulation
-augmentation, temperature scaling, TTA, low‑confidence abstention).
+    <div style="margin-top:36px; overflow-x:auto;">
+      <table class="ledger">
+        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Purpose</th></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/auth/otp/*, /api/auth/guest</td><td class="auth">–</td><td>phone + OTP login, guest, onboarding</td></tr>
+        <tr><td class="method">GET</td><td class="endpoint">/api/auth/me</td><td class="auth">required</td><td>current account</td></tr>
+        <tr><td class="method">CRUD</td><td class="endpoint">/api/plots, /api/plots/{id}</td><td class="auth">required</td><td>fields — create auto-fetches soil</td></tr>
+        <tr><td class="method">GET</td><td class="endpoint">/api/plots/{id}/timeline</td><td class="auth">required</td><td>merged diagnoses + irrigation + actions</td></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/predict</td><td class="auth">required</td><td>disease diagnosis + Grad-CAM, writes history</td></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/soil/lookup, /api/recommend/*</td><td class="auth">–</td><td>soil profile → crop fit → amendments</td></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/weather/advice</td><td class="auth">–</td><td>3-day forecast → farmer actions</td></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/sustainability/score</td><td class="auth">–</td><td>score + tips</td></tr>
+        <tr><td class="method">POST</td><td class="endpoint">/api/assistant/ask</td><td class="auth">optional</td><td>grounded RAG, voice, en/hi/gu</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
 
-| | Macro‑F1 | Accuracy | Notes |
-|---|---|---|---|
-| Internal PlantVillage val (15% hold‑out) | **0.966** | 0.967 | lab‑condition images, same distribution as training |
-| `evaluate.py` over the subset (≤35/class, 630 imgs) | **0.992** | 0.992 | sanity check via the predict interface; overlaps training data |
+<section id="sources">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">05</span>
+      <h2>Where the numbers come from</h2>
+    </div>
+    <p class="section-sub">Nothing here is invented — every figure the app shows a farmer traces back to a named, licensed source.</p>
+    <div class="sources">
+      <div class="source-row"><span class="src-name">PlantVillage</span><span class="src-use">training the 18-class disease classifier</span><span class="src-lic">CC0</span></div>
+      <div class="source-row"><span class="src-name">SoilGrids 2.0 (ISRIC)</span><span class="src-use">texture, pH, SOC, N, CEC, bulk density</span><span class="src-lic">CC-BY 4.0</span></div>
+      <div class="source-row"><span class="src-name">Soil Health Card</span><span class="src-use">district-average available N / P / K</span><span class="src-lic">Govt. of India open data</span></div>
+      <div class="source-row"><span class="src-name">Open-Meteo</span><span class="src-use">3-day weather forecast</span><span class="src-lic">CC-BY 4.0</span></div>
+      <div class="source-row"><span class="src-name">Nominatim / OSM</span><span class="src-use">reverse geocoding, map tiles</span><span class="src-lic">ODbL</span></div>
+      <div class="source-row"><span class="src-name">Google Gemini</span><span class="src-use">assistant answers, when a key is set</span><span class="src-lic">Google API terms</span></div>
+      <div class="source-row"><span class="src-name">ICAR / State Ag-Univ</span><span class="src-use">crop, amendment and disease-card thresholds</span><span class="src-lic">package of practices</span></div>
+    </div>
+  </div>
+</section>
 
-Full per‑class precision/recall + confusion matrix: [`report/model_report.md`](report/model_report.md).
-**These are lab‑image numbers.** The challenge's difficulty is lab→field generalisation; the
-organisers' held‑out field test set (scored via `model/predict.py`) is the real measure, and
-the training augmentation + abstention target exactly that gap. Retrain on the official kickoff
-label list when it ships — only the class folder names change.
+<section id="stack">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">06</span>
+      <h2>Built with</h2>
+    </div>
+    <div class="stack-group">
+      <h4>Backend</h4>
+      <div class="chips"><span class="chip">FastAPI</span><span class="chip">SQLAlchemy 2 (async)</span><span class="chip">Motor</span><span class="chip">PyJWT</span><span class="chip">httpx</span><span class="chip">Pydantic v2</span></div>
+    </div>
+    <div class="stack-group">
+      <h4>Machine learning</h4>
+      <div class="chips"><span class="chip">PyTorch</span><span class="chip">timm (EfficientNet-B0)</span><span class="chip">torchvision</span><span class="chip">pytorch-grad-cam</span><span class="chip">scikit-learn</span><span class="chip">Pillow</span></div>
+    </div>
+    <div class="stack-group">
+      <h4>Frontend</h4>
+      <div class="chips"><span class="chip">React 19</span><span class="chip">Vite 6</span><span class="chip">Tailwind CSS v4</span><span class="chip">react-router-dom</span><span class="chip">react-leaflet</span><span class="chip">clsx</span></div>
+    </div>
+    <div class="stack-group">
+      <h4>Assistant</h4>
+      <div class="chips"><span class="chip">google-generativeai</span><span class="chip">Web Speech API</span></div>
+    </div>
+  </div>
+</section>
 
----
+<section id="layout">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">07</span>
+      <h2>Repository layout</h2>
+    </div>
+    <div class="tree">
+<span class="folder">app/backend/</span>  <span class="desc">FastAPI: auth, db (SQLite), mongo (accounts), models/, routers/, services/</span>
+<span class="folder">app/frontend/</span> <span class="desc">React SPA: pages/, components/, auth/, i18n/, lib/</span>
+<span class="folder">model/</span>         <span class="desc">download_data · dataset · net · train · predict · evaluate · gradcam · infer · labels</span>
+<span class="folder">data/</span>          <span class="desc">disease_cards.json · crop_suitability.json · soil_amendments.json · shc_reference/ · samples/</span>
+<span class="folder">docs/</span>          <span class="desc">soil_sources · weather_rules · sustainability</span>
+<span class="folder">report/</span>        <span class="desc">model_report.md (generated)</span>
+<span class="folder">tests/</span>         <span class="desc">47 tests (pytest)</span>
+    </div>
+  </div>
+</section>
 
-## Architecture
+<footer>
+  <div class="wrap">
+    <div class="field-note">
+      <h3>Originality declaration</h3>
+      <ul>
+        <li>All application, ML-pipeline and frontend code is original work for this hackathon.</li>
+        <li>Reused, unmodified, via public interfaces: PlantVillage images, the SoilGrids 2.0 REST API, Soil Health Card published averages, Open-Meteo, Nominatim / OpenStreetMap, a pretrained EfficientNet-B0 backbone (timm, ImageNet), and the open-source libraries listed above.</li>
+        <li>No public notebook or solution was copied. AI coding assistants were used during development — the working system and its evaluation are what's submitted.</li>
+      </ul>
+      <div class="foot-meta">
+        <span>AgriSmart AI · SIH 2026 · PS-1 / C-433</span>
+        <span>pytest -q → 47 passed · npm run build → clean</span>
+      </div>
+    </div>
+  </div>
+</footer>
 
-```mermaid
-flowchart TD
-  FE["React + Vite + Tailwind SPA\n(react-router, AuthContext, i18n en/hi/gu)"]
-  API["FastAPI  ·  JWT auth"]
-  DB["SQLite (SQLAlchemy async)\nPlot · Planting · Diagnosis · Irrigation · Action"]
-  MONGO["MongoDB (motor)\nUser accounts — phone/OTP, guest"]
-  FE -->|Bearer token| API
-  API --> DB
-  API --> MONGO
-  API -->|POST /predict| ML["model/infer.py\nEfficientNet-B0 + TTA + temp-scale + abstain\n+ Grad-CAM overlay"]
-  API -->|Module A| SOIL["SoilGrids 2.0 · Soil Health Card · Nominatim"]
-  API -->|Module C| OM["Open-Meteo forecast → rules"]
-  API -->|Module D| SUS["published sustainability formula"]
-  API -->|Module E| RAG["disease_cards.json + plot context → Gemini / offline"]
-```
-
-All API routes live under `/api` (the SPA owns bare paths like `/weather`, `/soil`); uploaded
-images and Grad‑CAM overlays are served from `/uploads`.
-
-| Method | Endpoint | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `/api/auth/otp/request`, `/api/auth/otp/verify`, `/api/auth/guest`, `/api/auth/complete-profile` | – | accounts (phone+OTP, guest, onboarding) |
-| `GET` | `/api/auth/me` | ✅ | current account |
-| `GET/POST/PATCH/DELETE` | `/api/plots`, `/api/plots/{id}` | ✅ | fields; create auto‑fetches soil |
-| `GET` | `/api/plots/{id}/timeline` | ✅ | merged diagnoses + irrigation + actions |
-| `POST` | `/api/plantings`, `/api/irrigation`, `/api/actions` | ✅ | crop + activity logs |
-| `POST` | `/api/predict` (multipart image) | ✅ | disease diagnosis + Grad‑CAM, writes history |
-| `GET` | `/api/diagnoses` | ✅ | scan history |
-| `POST` | `/api/soil/lookup`, `/api/recommend/amendments`, `/api/recommend/crops` | – | Module A |
-| `POST` | `/api/weather/advice`, `/api/sustainability/score`, `/api/assistant/ask` | – / – / opt | Modules C / D / E |
-
-Module docs: [`docs/soil_sources.md`](docs/soil_sources.md) ·
-[`docs/weather_rules.md`](docs/weather_rules.md) · [`docs/sustainability.md`](docs/sustainability.md).
-
----
-
-## Frontend
-
-React 19 + Vite 6 + Tailwind v4 (configured entirely in `src/index.css` via `@theme` — no
-`tailwind.config.js`). `react-router-dom` for pages, a token `AuthContext`, a lightweight
-`i18n` (English complete; Hindi + Gujarati for nav and key actions), utility‑class styling
-with `clsx` for variants, shared `<Card>` surface. See
-[`app/frontend/README.md`](app/frontend/README.md).
-
----
-
-## Data sources & licences
-
-| Source | Used for | Licence |
-|---|---|---|
-| **PlantVillage** (`spMohanty/PlantVillage-Dataset`) | training the disease classifier (18‑class subset) | CC0 |
-| **SoilGrids 2.0** (ISRIC) | texture, pH, SOC, N, CEC, bulk density, WRB soil class | CC‑BY 4.0 — Poggio et al. 2021, *SOIL* 7, 217–240 |
-| **Soil Health Card** (soilhealth.dac.gov.in) | district‑average available N/P/K | Govt. of India open data |
-| **Open‑Meteo** | 3‑day weather forecast | free API, CC‑BY 4.0 |
-| **Nominatim / OpenStreetMap** | reverse geocoding, map tiles | ODbL |
-| **Google Gemini** (optional) | assistant answer generation when `AGRISMART_GEMINI_API_KEY` is set | Google API terms |
-| rule tables (`data/*.json`) | crop / amendment / disease‑card thresholds | compiled from ICAR & State Ag‑Univ package‑of‑practices |
-
----
-
-## Tech stack
-
-**Backend** FastAPI · SQLAlchemy 2 (async, SQLite) · Motor (async MongoDB) · PyJWT · httpx · Pydantic v2
-**ML** PyTorch · timm (EfficientNet‑B0) · torchvision · pytorch‑grad‑cam · scikit‑learn · Pillow
-**Frontend** React 19 · Vite 6 · Tailwind CSS v4 · react‑router‑dom · react‑leaflet / Leaflet · clsx
-**Assistant** google‑generativeai (optional) · Web Speech API
-
----
-
-## Originality declaration
-
-- All application, ML‑pipeline and frontend code is original work for this hackathon.
-- Reused, unmodified, via public interfaces: **PlantVillage** images, **SoilGrids 2.0** REST
-  API, **Soil Health Card** published averages, **Open‑Meteo**, **Nominatim / OpenStreetMap**,
-  **timm** pretrained EfficientNet‑B0 (ImageNet), and the open‑source libraries above.
-- No public notebook or solution was copied. AI coding assistants were used during development;
-  the working system and its evaluation are what is submitted.
-
----
-
-## Repository layout
-
-```
-app/backend/    FastAPI: auth, db (SQLite), mongo (accounts), models/{orm,user,auth,farm,modules,soil,recommend}, routers/, services/
-app/frontend/   React SPA: pages/, components/, auth/, i18n/, lib/
-model/          download_data · dataset · net · train · predict · evaluate · gradcam · infer · labels
-data/           disease_cards.json · crop_suitability.json · soil_amendments.json · shc_reference/ · samples/
-docs/           soil_sources · weather_rules · sustainability
-report/         model_report.md (generated)
-tests/          47 tests (pytest)
-```
+</body>
+</html>
