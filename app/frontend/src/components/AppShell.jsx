@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import Icon from "./Icon.jsx";
 import LanguageSwitcher from "./LanguageSwitcher.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from "../i18n/useT.js";
 
@@ -57,6 +58,7 @@ export default function AppShell({ children }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <LanguageSwitcher />
             {user && (
               <button
@@ -66,11 +68,12 @@ export default function AppShell({ children }) {
               >
                 <Icon name="logout" className="h-4 w-4" />
                 <span className="hidden items-center gap-1.5 sm:inline-flex">
-                  {user.name?.split(" ")[0] || t("action.logout")}
-                  {user.is_guest && (
+                  {user.is_guest ? (
                     <span className="rounded-full bg-earth-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-earth-600">
                       {t("nav.guestTag")}
                     </span>
+                  ) : (
+                    user.name?.split(" ")[0] || t("action.logout")
                   )}
                 </span>
               </button>

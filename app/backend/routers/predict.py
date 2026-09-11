@@ -21,7 +21,7 @@ router = APIRouter(tags=["predict"])
 _ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/bmp"}
 
 
-def _diag_out(d: Diagnosis) -> DiagnosisOut:
+def _diag_out(d: Diagnosis, predicted_label: str | None = None) -> DiagnosisOut:
     return DiagnosisOut(
         id=d.id, plot_id=d.plot_id, planting_id=d.planting_id,
         image_url=f"/uploads/{Path(d.image_path).relative_to(get_settings().uploads_dir).as_posix()}",
@@ -29,7 +29,8 @@ def _diag_out(d: Diagnosis) -> DiagnosisOut:
             f"/uploads/{Path(d.gradcam_path).relative_to(get_settings().uploads_dir).as_posix()}"
             if d.gradcam_path else None
         ),
-        predicted_class=d.predicted_class, confidence=d.confidence, abstained=d.abstained,
+        predicted_class=d.predicted_class, predicted_label=predicted_label,
+        confidence=d.confidence, abstained=d.abstained,
         precautions=d.precautions, model_version=d.model_version, created_at=d.created_at,
     )
 
@@ -39,6 +40,7 @@ async def predict(
     file: UploadFile = File(...),
     plot_id: str | None = Form(default=None),
     planting_id: str | None = Form(default=None),
+    lang: str = Form(default="en"),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
 ) -> DiagnosisOut:
@@ -61,7 +63,7 @@ async def predict(
 
     try:
         from model.infer import run_inference  # lazy: torch only loaded when scanning
-        result = run_inference(str(image_path), gradcam_out=gradcam_path)
+        result = run_inference(str(image_path), gradcam_out=gradcam_path, lang=lang)
     except FileNotFoundError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
                             f"The disease model is not trained yet. {exc}")
@@ -82,4 +84,4 @@ async def predict(
     session.add(diagnosis)
     await session.commit()
     await session.refresh(diagnosis)
-    return _diag_out(diagnosis)
+    return _diag_out(diagnosis, predicted_label=result.get("predicted_label"))
