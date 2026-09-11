@@ -1,0 +1,49 @@
+{
+  "citation": "Thresholds after ICAR soil-test rating conventions and State Agricultural University package-of-practices; lime/gypsum/FYM rates are indicative and must be confirmed by a local soil test.",
+  "ph": {
+    "strongly_acidic":   { "max": 5.5,  "finding": "Strongly acidic soil (pH {value}); phosphorus and micronutrient availability is restricted and Al/Mn toxicity is possible.", "action": "Apply agricultural lime 2-3 t/ha 4-6 weeks before sowing; re-test after one season." },
+    "acidic":            { "min": 5.5, "max": 6.5, "finding": "Slightly acidic soil (pH {value}); acceptable for most crops.", "action": "No liming needed. For acid-sensitive crops apply lime 0.5-1 t/ha." },
+    "neutral":           { "min": 6.5, "max": 7.5, "finding": "Near-neutral soil (pH {value}); good nutrient availability.", "action": "No pH amendment required." },
+    "alkaline":          { "min": 7.5, "max": 8.5, "finding": "Mildly alkaline soil (pH {value}); Fe/Zn availability may drop.", "action": "Use acidifying fertilisers (ammonium sulphate), add organic matter, foliar-spray Zn/Fe if deficiency shows." },
+    "strongly_alkaline": { "min": 8.5, "finding": "Strongly alkaline soil (pH {value}); likely sodicity and poor structure.", "action": "Apply gypsum 2-5 t/ha based on a gypsum-requirement test, leach with good-quality water, incorporate FYM/green manure." }
+  },
+  "organic_carbon_pct": {
+    "low":    { "max": 0.5,  "finding": "Low organic carbon ({value}%); poor structure, low water- and nutrient-holding capacity.", "action": "Apply FYM/compost 5-10 t/ha, include a legume in rotation, retain crop residue, avoid excess tillage." },
+    "medium": { "min": 0.5, "max": 0.75, "finding": "Medium organic carbon ({value}%).", "action": "Maintain with 2.5-5 t/ha FYM every season and residue return." },
+    "high":   { "min": 0.75, "finding": "Adequate organic carbon ({value}%).", "action": "Sustain current organic-matter practice." }
+  },
+  "cec_cmol_kg": {
+    "low":    { "max": 10, "finding": "Low CEC ({value} cmol(c)/kg); the soil holds little exchangeable nutrient and leaches easily.", "action": "Split N and K into 3+ doses, band fertiliser near roots, mulch, build organic matter." },
+    "medium": { "min": 10, "max": 25, "finding": "Moderate CEC ({value} cmol(c)/kg).", "action": "Standard split application is sufficient." },
+    "high":   { "min": 25, "finding": "High CEC ({value} cmol(c)/kg); good buffering.", "action": "Single or two-split application is fine." }
+  },
+  "available_n_kg_ha": {
+    "low":    { "max": 280, "finding": "Low available nitrogen ({value} kg/ha).", "action": "Full recommended N dose in 3 splits; add 5 t/ha FYM and a legume in rotation." },
+    "medium": { "min": 280, "max": 560, "finding": "Medium available nitrogen ({value} kg/ha).", "action": "Apply the crop's recommended N in 2-3 splits." },
+    "high":   { "min": 560, "finding": "High available nitrogen ({value} kg/ha).", "action": "Reduce N by ~25% of the recommended dose; watch for lodging." }
+  },
+  "available_p_kg_ha": {
+    "low":    { "max": 10, "finding": "Low available phosphorus ({value} kg/ha).", "action": "Apply full recommended P2O5 as basal (DAP/SSP); in acidic soil use rock phosphate + FYM." },
+    "medium": { "min": 10, "max": 25, "finding": "Medium available phosphorus ({value} kg/ha).", "action": "Apply ~75% of recommended P2O5 as basal." },
+    "high":   { "min": 25, "finding": "High available phosphorus ({value} kg/ha).", "action": "Apply ~50% of recommended P2O5 or skip for one season; monitor." }
+  },
+  "available_k_kg_ha": {
+    "low":    { "max": 120, "finding": "Low available potassium ({value} kg/ha).", "action": "Apply full recommended K2O (MOP), half basal and half at active growth." },
+    "medium": { "min": 120, "max": 280, "finding": "Medium available potassium ({value} kg/ha).", "action": "Apply ~75% of recommended K2O in 2 splits." },
+    "high":   { "min": 280, "finding": "High available potassium ({value} kg/ha).", "action": "Apply a maintenance K2O dose (~50%)." }
+  },
+  "texture_notes": {
+    "sand":            "Very low water/nutrient retention; irrigate little and often, split N heavily, mulch, prioritise organic matter.",
+    "loamy sand":      "Low retention; frequent light irrigation, 3+ N splits, add compost.",
+    "sandy loam":      "Workable but drains fast; 2-3 nutrient splits, maintain organic matter.",
+    "loam":            "Well balanced; standard irrigation and fertiliser scheduling.",
+    "silt loam":       "Good water holding but can crust; avoid working when wet, keep residue cover.",
+    "silt":            "Prone to crusting and compaction; minimise traffic, add organic matter.",
+    "sandy clay loam": "Moderate retention with some drainage risk when wet; 2 nutrient splits.",
+    "clay loam":       "High retention, slow drainage; irrigate less often and deeper, avoid tillage when wet.",
+    "silty clay loam": "High retention, poor aeration risk; ensure drainage, avoid compaction.",
+    "sandy clay":      "Hard when dry, sticky when wet; deep tillage, gypsum if sodic, organic matter.",
+    "silty clay":      "Very slow drainage; raised beds/drainage, careful irrigation scheduling.",
+    "clay":            "Very high retention, very slow drainage, cracks on drying; deep infrequent irrigation, drainage, gypsum if sodic, never work when wet."
+  }
+}

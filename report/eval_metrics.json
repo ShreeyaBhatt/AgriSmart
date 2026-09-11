@@ -1,0 +1,26 @@
+{
+  "macro_f1": 0.9919589512873858,
+  "accuracy": 0.9920634920634921,
+  "abstention_rate": 0.0,
+  "n": 630,
+  "class_distribution": {
+    "Apple___Apple_scab": 35,
+    "Apple___Black_rot": 35,
+    "Apple___healthy": 35,
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": 35,
+    "Corn_(maize)___Common_rust_": 35,
+    "Corn_(maize)___healthy": 35,
+    "Grape___Black_rot": 35,
+    "Grape___healthy": 35,
+    "Pepper,_bell___Bacterial_spot": 35,
+    "Pepper,_bell___healthy": 35,
+    "Potato___Early_blight": 35,
+    "Potato___healthy": 35,
+    "Potato___Late_blight": 35,
+    "Tomato___Bacterial_spot": 35,
+    "Tomato___Early_blight": 35,
+    "Tomato___healthy": 35,
+    "Tomato___Late_blight": 35,
+    "Tomato___Leaf_Mold": 35
+  }
+}
