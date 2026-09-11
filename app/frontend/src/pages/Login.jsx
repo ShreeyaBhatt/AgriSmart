@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import Icon from "../components/Icon.jsx";
 import OtpInput from "../components/OtpInput.jsx";
+import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
+import ThemeToggle from "../components/ThemeToggle.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from "../i18n/useT.js";
 import { KNOWN_CROPS } from "../lib/crops.js";
@@ -300,7 +302,12 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-stretch justify-center bg-canvas px-0 py-0 md:px-6 md:py-10">
+    <div className="relative flex min-h-screen items-stretch justify-center bg-canvas px-0 py-0 md:px-6 md:py-10">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full bg-surface/90 p-1 shadow-sm backdrop-blur md:right-6 md:top-6">
+        <ThemeToggle />
+        <LanguageSwitcher />
+      </div>
+
       <div className="flex w-full max-w-4xl flex-col overflow-hidden bg-surface shadow-sm md:flex-row md:rounded-3xl md:border md:border-line">
         <Hero />
 
