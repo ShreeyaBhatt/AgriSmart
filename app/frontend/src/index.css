@@ -39,6 +39,48 @@
       transform: none;
     }
   }
+
+  /* Scan screen "processing" sweep — see ScanFlow.jsx. */
+  --animate-scan-sweep: scan-sweep 2.4s linear infinite;
+  @keyframes scan-sweep {
+    0% {
+      top: -8%;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 1;
+    }
+    100% {
+      top: 108%;
+      opacity: 0;
+    }
+  }
+}
+
+/* Dark theme — overrides the neutral tokens only (brand/earth ramps stay the
+   same; they're used as self-contained chips/badges that read fine as light
+   accents on a dark page). Toggled via `.dark` on <html> — see theme/useTheme.js. */
+.dark {
+  --color-canvas: #0d1712;
+  --color-surface: #16241c;
+  --color-ink: #eef6f0;
+  --color-muted: #9fb3a5;
+  --color-faint: #6c8577;
+  --color-line: #2a3d32;
+}
+
+/* Login hero panel — a horizontal gradient (not diagonal) so its trailing
+   edge is a flat color that can match the adjacent form panel exactly in
+   dark mode, avoiding a hard seam where two very-dark, differently-tinted
+   panels would otherwise meet. */
+.login-hero {
+  background-image: linear-gradient(to right, var(--color-brand-700), var(--color-brand-900));
+}
+.dark .login-hero {
+  background-image: linear-gradient(to right, var(--color-brand-800), var(--color-surface));
 }
 
 /* Page background wash. Base layer only — every component is styled with utilities. */
@@ -51,6 +93,12 @@
       var(--color-canvas);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
+  }
+  .dark body {
+    background:
+      radial-gradient(1100px 560px at 12% -12%, rgba(69, 168, 110, 0.08) 0, transparent 58%),
+      radial-gradient(900px 480px at 102% -6%, rgba(69, 168, 110, 0.06) 0, transparent 52%),
+      var(--color-canvas);
   }
 }
 

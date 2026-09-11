@@ -9,7 +9,7 @@ import Stat from "../components/Stat.jsx";
 import { api, mediaUrl } from "../api.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { prettyLabel, isAbstain } from "../lib/labels.js";
-import { useT } from "../i18n/useT.js";
+import { useLang, useT } from "../i18n/useT.js";
 
 function greetingKey() {
   const h = new Date().getHours();
@@ -20,14 +20,15 @@ function greetingKey() {
 
 export default function Dashboard() {
   const t = useT();
+  const { lang } = useLang();
   const { user } = useAuth();
   const [plots, setPlots] = useState(null);
   const [scans, setScans] = useState([]);
 
   useEffect(() => {
     api.listPlots().then(setPlots).catch(() => setPlots([]));
-    api.listDiagnoses().then((d) => setScans(d.slice(0, 4))).catch(() => {});
-  }, []);
+    api.listDiagnoses(undefined, lang).then((d) => setScans(d.slice(0, 4))).catch(() => {});
+  }, [lang]);
 
   return (
     <div className="space-y-5">
@@ -40,7 +41,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-lg font-bold tracking-tight text-ink">
                 {t(greetingKey())}
-                {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+                {user && !user.is_guest && user.name ? `, ${user.name.split(" ")[0]}` : ""}
               </h1>
               <p className="text-sm text-muted">{t("app.tagline")}</p>
             </div>
@@ -119,7 +120,7 @@ export default function Dashboard() {
                   <div className="truncate text-xs font-semibold text-ink">
                     {s.abstained || isAbstain(s.predicted_class)
                       ? t("scan.unclear")
-                      : prettyLabel(s.predicted_class)}
+                      : s.predicted_label || prettyLabel(s.predicted_class)}
                   </div>
                   <div className="text-[11px] text-faint">
                     {new Date(s.created_at).toLocaleDateString()} · {Math.round(s.confidence * 100)}%

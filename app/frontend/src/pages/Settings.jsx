@@ -3,10 +3,17 @@ import Icon from "../components/Icon.jsx";
 import { LANGUAGES } from "../i18n/strings.js";
 import { useLang, useT } from "../i18n/useT.js";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useTheme } from "../theme/useTheme.js";
+
+const THEMES = [
+  { value: "light", icon: "sun", key: "settings.light" },
+  { value: "dark", icon: "moon", key: "settings.dark" },
+];
 
 export default function Settings() {
   const t = useT();
   const { lang, setLang } = useLang();
+  const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
 
   return (
@@ -44,6 +51,26 @@ export default function Settings() {
               }`}
             >
               {l.label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.appearance")}</div>
+        <div className="mt-2 flex gap-2">
+          {THEMES.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium ring-1 transition ${
+                theme === opt.value
+                  ? "bg-brand-600 text-white ring-brand-600"
+                  : "bg-surface text-muted ring-line hover:bg-canvas"
+              }`}
+            >
+              <Icon name={opt.icon} className="h-3.5 w-3.5" />
+              {t(opt.key)}
             </button>
           ))}
         </div>

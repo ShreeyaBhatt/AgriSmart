@@ -72,6 +72,7 @@ class DiagnosisOut(BaseModel):
     image_url: str
     gradcam_url: str | None
     predicted_class: str
+    predicted_label: str | None = None  # localized "Crop — Disease"; None for healthy/abstained
     confidence: float
     abstained: bool
     precautions: list[str] | None
