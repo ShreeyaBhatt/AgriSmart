@@ -38,7 +38,7 @@ export default function PlotDetail() {
   }, [id, loadTimeline]);
 
   const remove = async () => {
-    if (!confirm("Delete this plot and its history?")) return;
+    if (!confirm(t("plot.confirmDelete"))) return;
     await api.deletePlot(id);
     navigate("/");
   };
@@ -66,11 +66,11 @@ export default function PlotDetail() {
         <div className="flex gap-2">
           <button onClick={refreshSoil}
             className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-canvas">
-            <Icon name="refresh" className="h-3.5 w-3.5" /> Refresh soil
+            <Icon name="refresh" className="h-3.5 w-3.5" /> {t("plot.refreshSoil")}
           </button>
           <button onClick={remove}
             className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50">
-            Delete
+            {t("action.delete")}
           </button>
         </div>
       </div>

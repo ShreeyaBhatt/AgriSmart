@@ -69,7 +69,7 @@ export default function AppShell({ children }) {
                   {user.name?.split(" ")[0] || t("action.logout")}
                   {user.is_guest && (
                     <span className="rounded-full bg-earth-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-earth-600">
-                      Guest
+                      {t("nav.guestTag")}
                     </span>
                   )}
                 </span>

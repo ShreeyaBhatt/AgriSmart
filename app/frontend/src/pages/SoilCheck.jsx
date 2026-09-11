@@ -40,9 +40,7 @@ export default function SoilCheck() {
   return (
     <div>
       <h1 className="mb-1 text-lg font-bold tracking-tight text-ink">{t("nav.soil")}</h1>
-      <p className="mb-4 text-sm text-muted">
-        Any GPS point → real soil from SoilGrids &amp; Soil Health Card. No login needed.
-      </p>
+      <p className="mb-4 text-sm text-muted">{t("soil.pageHint")}</p>
 
       <div className="grid items-start gap-5 md:grid-cols-[minmax(0,360px)_1fr]">
         <div className="md:sticky md:top-20">
@@ -74,8 +72,7 @@ export default function SoilCheck() {
             </>
           )}
           {!loading && !result && !error && (
-            <EmptyState icon="layers" title="No soil analysed yet"
-              hint="Pick a farm on the map or a preset, then press Analyse soil." />
+            <EmptyState icon="layers" title={t("soil.emptyTitle")} hint={t("soil.emptyHint")} />
           )}
           {!loading && result && (
             <>

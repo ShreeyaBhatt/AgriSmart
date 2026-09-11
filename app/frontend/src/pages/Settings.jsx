@@ -31,7 +31,7 @@ export default function Settings() {
       </Card>
 
       <Card className="p-4">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">Language</div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.language")}</div>
         <div className="mt-2 flex gap-2">
           {LANGUAGES.map((l) => (
             <button

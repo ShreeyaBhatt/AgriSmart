@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-lea
 import clsx from "clsx";
 import Card from "./Card.jsx";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n/useT.js";
 
 const FIELD =
   "w-full rounded-lg border border-line bg-canvas/60 px-3 py-2 text-sm text-ink outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-300/40";
@@ -27,6 +28,7 @@ const PRESETS = [
 ];
 
 export default function LocationPicker({ lat, lon, season, onChange, onSeason, onAnalyze, loading }) {
+  const t = useT();
   const [latText, setLatText] = useState("");
   const [lonText, setLonText] = useState("");
   const [geoError, setGeoError] = useState("");
@@ -44,10 +46,10 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
 
   const useMyLocation = () => {
     setGeoError("");
-    if (!navigator.geolocation) return setGeoError("Geolocation is not available in this browser.");
+    if (!navigator.geolocation) return setGeoError(t("common.geoUnavailable"));
     navigator.geolocation.getCurrentPosition(
       (pos) => onChange(+pos.coords.latitude.toFixed(5), +pos.coords.longitude.toFixed(5)),
-      (err) => setGeoError(err.message || "Could not get your location."),
+      (err) => setGeoError(err.message || t("common.geoError")),
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
@@ -59,9 +61,9 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
       <div className="border-b border-line px-5 pt-4 pb-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
           <Icon name="location" className="h-4 w-4 text-brand-600" />
-          Farm location
+          {t("soil.farmLocation")}
         </h2>
-        <p className="mt-0.5 text-xs text-muted">Tap the map, use GPS, or type coordinates.</p>
+        <p className="mt-0.5 text-xs text-muted">{t("soil.locationHint")}</p>
       </div>
 
       <div className="h-60 sm:h-72">
@@ -104,7 +106,7 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
 
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[11px] font-medium text-faint">
-            Latitude
+            {t("common.latitude")}
             <input
               className={FIELD + " mt-1"}
               value={latText}
@@ -115,7 +117,7 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
             />
           </label>
           <label className="text-[11px] font-medium text-faint">
-            Longitude
+            {t("common.longitude")}
             <input
               className={FIELD + " mt-1"}
               value={lonText}
@@ -133,19 +135,19 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
             className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-canvas"
           >
             <Icon name="crosshair" className="h-3.5 w-3.5" />
-            Use my location
+            {t("common.useMyLocation")}
           </button>
           <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-faint">
-            Season
+            {t("common.season")}
             <select
               className="rounded-lg border border-line bg-canvas/60 px-2 py-1.5 text-xs text-ink outline-none focus:border-brand-400"
               value={season}
               onChange={(e) => onSeason(e.target.value)}
             >
-              <option value="">Any</option>
-              <option value="kharif">Kharif</option>
-              <option value="rabi">Rabi</option>
-              <option value="zaid">Zaid</option>
+              <option value="">{t("common.seasonAny")}</option>
+              <option value="kharif">{t("common.seasonKharif")}</option>
+              <option value="rabi">{t("common.seasonRabi")}</option>
+              <option value="zaid">{t("common.seasonZaid")}</option>
             </select>
           </label>
         </div>
@@ -160,12 +162,12 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
           {loading ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              Analysing soil…
+              {t("soil.analysing")}
             </>
           ) : (
             <>
               <Icon name="sprout" className="h-4 w-4" />
-              Analyse soil
+              {t("soil.analyseSoil")}
             </>
           )}
         </button>
