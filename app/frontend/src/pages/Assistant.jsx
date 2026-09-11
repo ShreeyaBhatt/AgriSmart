@@ -5,10 +5,15 @@ import Icon from "../components/Icon.jsx";
 import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
 
-const SR =
-  typeof window !== "undefined" &&
-  (window.SpeechRecognition || window.webkitSpeechRecognition);
 const LOCALE = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
+// MediaRecorder + our own backend (faster-whisper) — not the browser's
+// built-in SpeechRecognition, which always phones home to Google's cloud
+// speech service even on "localhost". This way voice input only ever needs
+// this app's own backend, so it keeps working with no internet at all.
+const MIC_SUPPORTED =
+  typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined";
+const MIC_MIME_CANDIDATES = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
+const MAX_RECORDING_MS = 15000;
 
 export default function Assistant() {
   const t = useT();
@@ -19,10 +24,14 @@ export default function Assistant() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState(location.state?.prefill || "");
   const [busy, setBusy] = useState(false);
-  const [listening, setListening] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [speak, setSpeak] = useState(true);
   const [micError, setMicError] = useState("");
   const endRef = useRef(null);
+  const recorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const stopTimerRef = useRef(null);
 
   useEffect(() => {
     api.listPlots().then(setPlots).catch(() => {});
@@ -30,6 +39,13 @@ export default function Assistant() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
+  useEffect(() => {
+    // release the mic if the user navigates away mid-recording
+    return () => {
+      if (stopTimerRef.current) clearTimeout(stopTimerRef.current);
+      if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
+    };
+  }, []);
 
   const say = (text) => {
     if (!speak || !window.speechSynthesis) return;
@@ -56,40 +72,64 @@ export default function Assistant() {
     }
   };
 
-  const ERROR_KEY = {
-    "not-allowed": "assistant.micDenied",
-    "service-not-allowed": "assistant.micDenied",
-    "no-speech": "assistant.micNoSpeech",
-    "audio-capture": "assistant.micNoMic",
-    network: "assistant.micNetwork",
+  const stopRecording = () => {
+    if (stopTimerRef.current) {
+      clearTimeout(stopTimerRef.current);
+      stopTimerRef.current = null;
+    }
+    const rec = recorderRef.current;
+    if (rec && rec.state !== "inactive") rec.stop();
   };
 
-  const mic = () => {
-    if (!SR) return;
+  const startRecording = async () => {
+    if (!MIC_SUPPORTED || recording || transcribing) return;
     setMicError("");
-    const rec = new SR();
-    rec.lang = LOCALE[lang] || "en-IN";
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onstart = () => setListening(true);
-    rec.onend = () => setListening(false);
-    rec.onerror = (e) => {
-      setListening(false);
-      setMicError(t(ERROR_KEY[e.error] || "assistant.micError"));
-    };
-    rec.onresult = (e) => {
-      const said = e.results[0]?.[0]?.transcript;
-      if (!said) return;
-      setInput(said);
-      send(said);
-    };
     try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MIC_MIME_CANDIDATES.find((c) => MediaRecorder.isTypeSupported?.(c)) || "";
+      const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((tr) => tr.stop());
+        setRecording(false);
+        const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
+        chunksRef.current = [];
+        if (blob.size < 500) return; // near-instant tap, nothing worth sending
+        setTranscribing(true);
+        try {
+          const { text } = await api.transcribe(blob, lang);
+          if (text?.trim()) {
+            setInput(text);
+            send(text);
+          } else {
+            setMicError(t("assistant.micNoSpeech"));
+          }
+        } catch (e) {
+          setMicError(e.detail || e.message || t("assistant.micError"));
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      recorderRef.current = rec;
       rec.start();
-    } catch {
-      // start() throws if a recognizer is already running (e.g. a fast double-tap)
-      setListening(false);
+      setRecording(true);
+      stopTimerRef.current = setTimeout(stopRecording, MAX_RECORDING_MS);
+    } catch (err) {
+      setRecording(false);
+      if (err.name === "NotAllowedError" || err.name === "SecurityError") {
+        setMicError(t("assistant.micDenied"));
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setMicError(t("assistant.micNoMic"));
+      } else {
+        setMicError(t("assistant.micError"));
+      }
     }
   };
+
+  const toggleMic = () => (recording ? stopRecording() : startRecording());
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col" style={{ minHeight: "70vh" }}>
@@ -123,7 +163,7 @@ export default function Assistant() {
           {messages.length === 0 && (
             <p className="py-10 text-center text-sm text-faint">
               {t("assistant.emptyHint")}
-              {SR ? ` ${t("assistant.emptyHintMic")}` : ""}
+              {MIC_SUPPORTED ? ` ${t("assistant.emptyHintMic")}` : ""}
             </p>
           )}
           {messages.map((m, i) => (
@@ -165,14 +205,25 @@ export default function Assistant() {
           }}
           className="flex items-center gap-2 border-t border-line p-3"
         >
-          {SR ? (
+          {MIC_SUPPORTED ? (
             <button
               type="button"
-              onClick={mic}
-              title={t("assistant.speakQuestion")}
-              className={`rounded-lg border p-2 transition ${listening ? "animate-pulse border-rose-300 bg-rose-50 text-rose-600" : "border-line text-muted hover:bg-canvas"}`}
+              onClick={toggleMic}
+              disabled={transcribing}
+              title={recording ? t("assistant.stopRecording") : t("assistant.speakQuestion")}
+              className={`rounded-lg border p-2 transition ${
+                recording
+                  ? "animate-pulse border-rose-300 bg-rose-50 text-rose-600"
+                  : transcribing
+                    ? "border-amber-300 bg-amber-50 text-amber-600"
+                    : "border-line text-muted hover:bg-canvas"
+              }`}
             >
-              <Icon name="mic" className="h-4 w-4" />
+              {transcribing ? (
+                <span className="block h-4 w-4 animate-spin rounded-full border-2 border-amber-300 border-t-amber-600" />
+              ) : (
+                <Icon name="mic" className="h-4 w-4" />
+              )}
             </button>
           ) : (
             <span
