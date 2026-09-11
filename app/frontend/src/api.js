@@ -1,0 +1,109 @@
+// Central API client. In dev, Vite proxies /api and /uploads to the FastAPI backend
+// (see vite.config.js). In a deployed build set VITE_API_BASE to the backend origin.
+const ORIGIN = import.meta.env.VITE_API_BASE ?? "";
+const BASE = `${ORIGIN}/api`;
+const TOKEN_KEY = "agrismart.token";
+
+export const tokenStore = {
+  get: () => {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set: (t) => {
+    try {
+      t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* ignore */
+    }
+  },
+};
+
+class ApiError extends Error {
+  constructor(status, detail) {
+    super(detail || `Request failed (${status})`);
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+async function request(path, { method = "GET", body, form, auth = true } = {}) {
+  const headers = {};
+  const token = tokenStore.get();
+  if (auth && token) headers.Authorization = `Bearer ${token}`;
+
+  let payload;
+  if (form) {
+    payload = form; // FormData — let the browser set the boundary
+  } else if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    payload = JSON.stringify(body);
+  }
+
+  const res = await fetch(`${BASE}${path}`, { method, headers, body: payload });
+  if (res.status === 401 && auth) {
+    tokenStore.set(null);
+    window.dispatchEvent(new Event("agrismart:unauthorized"));
+  }
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* keep statusText */
+    }
+    throw new ApiError(res.status, detail);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+export const api = {
+  // auth — phone + OTP, or guest
+  requestOtp: (phone) => request("/auth/otp/request", { method: "POST", body: { phone }, auth: false }),
+  verifyOtp: (phone, otp) =>
+    request("/auth/otp/verify", { method: "POST", body: { phone, otp }, auth: false }),
+  continueAsGuest: () => request("/auth/guest", { method: "POST", auth: false }),
+  completeProfile: (b) => request("/auth/complete-profile", { method: "POST", body: b }),
+  me: () => request("/auth/me"),
+
+  // plots
+  listPlots: () => request("/plots"),
+  getPlot: (id) => request(`/plots/${id}`),
+  createPlot: (b) => request("/plots", { method: "POST", body: b }),
+  updatePlot: (id, b) => request(`/plots/${id}`, { method: "PATCH", body: b }),
+  deletePlot: (id) => request(`/plots/${id}`, { method: "DELETE" }),
+  refreshSoil: (id) => request(`/plots/${id}/refresh-soil`, { method: "POST" }),
+  timeline: (id) => request(`/plots/${id}/timeline`),
+
+  // scan / diagnoses
+  predict: (file, plotId) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (plotId) fd.append("plot_id", plotId);
+    return request("/predict", { method: "POST", form: fd });
+  },
+  listDiagnoses: (plotId) =>
+    request(`/diagnoses${plotId ? `?plot_id=${plotId}` : ""}`),
+
+  // logs
+  logIrrigation: (b) => request("/irrigation", { method: "POST", body: b }),
+  logAction: (b) => request("/actions", { method: "POST", body: b }),
+
+  // module A (works without auth too)
+  soilLookup: (lat, lon) => request("/soil/lookup", { method: "POST", body: { lat, lon }, auth: false }),
+  amendments: (lat, lon) => request("/recommend/amendments", { method: "POST", body: { lat, lon }, auth: false }),
+  crops: (lat, lon, season) =>
+    request("/recommend/crops", { method: "POST", body: { lat, lon, season: season || null }, auth: false }),
+
+  // module C / D / E
+  weatherAdvice: (b) => request("/weather/advice", { method: "POST", body: b, auth: false }),
+  sustainability: (b) => request("/sustainability/score", { method: "POST", body: b, auth: false }),
+  assistant: (b) => request("/assistant/ask", { method: "POST", body: b }),
+};
+
+// Upload paths from the API are like "/uploads/...": served at the origin, not under /api.
+export const mediaUrl = (path) => (path ? `${ORIGIN}${path}` : null);
+export { ApiError };

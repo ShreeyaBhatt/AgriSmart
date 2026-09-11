@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# App database + user uploads (regenerated at runtime)
+*.db
+agrismart.db
+uploads/
+tests/_tmp/
+
+# ML dataset (large; retrain via model/train.py). Trained weights ARE committed
+# (model/artifacts/) — small enough (~16MB) that a clone works immediately.
+data/plantvillage/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

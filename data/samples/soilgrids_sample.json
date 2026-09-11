@@ -1,0 +1,103 @@
+{
+  "_comment": "Offline fallback fixture for POST /soil/lookup. Real SoilGrids v2.0 payload shape, values representative of a Vertisol (black cotton soil) near Vadodara, Gujarat (~22.31 N, 73.18 E). Only the 0-30 cm layers are included; deeper layers are omitted for brevity.",
+  "properties": {
+    "type": "Feature",
+    "geometry": { "type": "Point", "coordinates": [73.18, 22.31] },
+    "properties": {
+      "layers": [
+        {
+          "name": "clay",
+          "unit_measure": { "d_factor": 10, "mapped_units": "g/kg", "target_units": "%", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 440, "uncertainty": 24 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 450, "uncertainty": 25 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 460, "uncertainty": 26 } }
+          ]
+        },
+        {
+          "name": "sand",
+          "unit_measure": { "d_factor": 10, "mapped_units": "g/kg", "target_units": "%", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 290, "uncertainty": 30 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 280, "uncertainty": 30 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 275, "uncertainty": 31 } }
+          ]
+        },
+        {
+          "name": "silt",
+          "unit_measure": { "d_factor": 10, "mapped_units": "g/kg", "target_units": "%", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 270, "uncertainty": 22 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 270, "uncertainty": 22 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 265, "uncertainty": 23 } }
+          ]
+        },
+        {
+          "name": "phh2o",
+          "unit_measure": { "d_factor": 10, "mapped_units": "pH*10", "target_units": "-", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 77, "uncertainty": 4 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 78, "uncertainty": 4 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 79, "uncertainty": 5 } }
+          ]
+        },
+        {
+          "name": "soc",
+          "unit_measure": { "d_factor": 10, "mapped_units": "dg/kg", "target_units": "g/kg", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 78, "uncertainty": 12 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 70, "uncertainty": 11 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 62, "uncertainty": 10 } }
+          ]
+        },
+        {
+          "name": "nitrogen",
+          "unit_measure": { "d_factor": 100, "mapped_units": "cg/kg", "target_units": "g/kg", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 90, "uncertainty": 18 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 80, "uncertainty": 16 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 70, "uncertainty": 15 } }
+          ]
+        },
+        {
+          "name": "cec",
+          "unit_measure": { "d_factor": 10, "mapped_units": "mmol(c)/kg", "target_units": "cmol(c)/kg", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 310, "uncertainty": 40 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 320, "uncertainty": 42 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 330, "uncertainty": 44 } }
+          ]
+        },
+        {
+          "name": "bdod",
+          "unit_measure": { "d_factor": 100, "mapped_units": "cg/cm3", "target_units": "kg/dm3", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 138, "uncertainty": 6 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 142, "uncertainty": 6 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 146, "uncertainty": 7 } }
+          ]
+        },
+        {
+          "name": "cfvo",
+          "unit_measure": { "d_factor": 10, "mapped_units": "cm3/dm3", "target_units": "%", "uncertainty_unit": "" },
+          "depths": [
+            { "label": "0-5cm",   "range": { "top_depth": 0,  "bottom_depth": 5,  "unit_depth": "cm" }, "values": { "mean": 18, "uncertainty": 8 } },
+            { "label": "5-15cm",  "range": { "top_depth": 5,  "bottom_depth": 15, "unit_depth": "cm" }, "values": { "mean": 20, "uncertainty": 8 } },
+            { "label": "15-30cm", "range": { "top_depth": 15, "bottom_depth": 30, "unit_depth": "cm" }, "values": { "mean": 22, "uncertainty": 9 } }
+          ]
+        }
+      ]
+    }
+  },
+  "classification": {
+    "type": "Point",
+    "coordinates": [73.18, 22.31],
+    "wrb_class_name": "Vertisols",
+    "wrb_class_value": 32,
+    "wrb_class_probability": [
+      ["Vertisols", 58],
+      ["Cambisols", 14],
+      ["Luvisols", 11]
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "state": "Gujarat",
+  "source": "Soil Health Card portal (soilhealth.dac.gov.in), district average available nutrient status, 2022-24 cycle. Values are indicative district means.",
+  "units": "available N, P, K in kg/ha (P as P, K as K)",
+  "districts": {
+    "Vadodara":    { "available_n_kg_ha": 245, "available_p_kg_ha": 21, "available_k_kg_ha": 305 },
+    "Ahmedabad":   { "available_n_kg_ha": 210, "available_p_kg_ha": 18, "available_k_kg_ha": 265 },
+    "Anand":       { "available_n_kg_ha": 260, "available_p_kg_ha": 27, "available_k_kg_ha": 320 },
+    "Kheda":       { "available_n_kg_ha": 240, "available_p_kg_ha": 23, "available_k_kg_ha": 300 },
+    "Bharuch":     { "available_n_kg_ha": 255, "available_p_kg_ha": 20, "available_k_kg_ha": 340 },
+    "Surat":       { "available_n_kg_ha": 270, "available_p_kg_ha": 24, "available_k_kg_ha": 355 },
+    "Rajkot":      { "available_n_kg_ha": 195, "available_p_kg_ha": 16, "available_k_kg_ha": 250 },
+    "Junagadh":    { "available_n_kg_ha": 205, "available_p_kg_ha": 19, "available_k_kg_ha": 275 },
+    "Banaskantha": { "available_n_kg_ha": 175, "available_p_kg_ha": 14, "available_k_kg_ha": 230 },
+    "Mahesana":    { "available_n_kg_ha": 185, "available_p_kg_ha": 17, "available_k_kg_ha": 245 }
+  }
+}
