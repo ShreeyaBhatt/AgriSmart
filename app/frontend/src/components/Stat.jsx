@@ -1,7 +1,25 @@
 import clsx from "clsx";
 import { toneClasses } from "../lib/ratings.js";
+import { useT } from "../i18n/useT.js";
+
+// rating.label is plain English text from lib/ratings.js (display-only band
+// names, not user input) — mapped to i18n keys here since that's the only
+// place it's rendered.
+const RATING_KEY = {
+  low: "rating.low",
+  medium: "rating.medium",
+  high: "rating.high",
+  adequate: "rating.adequate",
+  moderate: "rating.moderate",
+  "strongly acidic": "rating.stronglyAcidic",
+  "slightly acidic": "rating.slightlyAcidic",
+  "near neutral": "rating.nearNeutral",
+  alkaline: "rating.alkaline",
+  "strongly alkaline": "rating.stronglyAlkaline",
+};
 
 export default function Stat({ label, value, unit, hint, rating }) {
+  const t = useT();
   const empty = value === null || value === undefined || value === "";
   const tone = rating ? toneClasses[rating.tone] : null;
 
@@ -13,7 +31,7 @@ export default function Stat({ label, value, unit, hint, rating }) {
         </span>
         {rating && !empty && (
           <span className={clsx("rounded-full px-1.5 py-0.5 text-[10px] font-semibold ring-1", tone.chip)}>
-            {rating.label}
+            {RATING_KEY[rating.label] ? t(RATING_KEY[rating.label]) : rating.label}
           </span>
         )}
       </div>

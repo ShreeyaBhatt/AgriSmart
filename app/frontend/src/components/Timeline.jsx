@@ -1,10 +1,12 @@
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n/useT.js";
 
 const ICON = { diagnosis: "camera", irrigation: "droplet", action: "leaf" };
 
 export default function Timeline({ entries }) {
+  const t = useT();
   if (!entries?.length) {
-    return <p className="text-xs text-faint">No activity yet.</p>;
+    return <p className="text-xs text-faint">{t("plot.noActivity")}</p>;
   }
   return (
     <ol className="space-y-3">

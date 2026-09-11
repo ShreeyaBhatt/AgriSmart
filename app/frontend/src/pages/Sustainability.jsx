@@ -13,6 +13,12 @@ const BAND = {
   fair: "text-amber-600",
   poor: "text-rose-600",
 };
+const BAND_KEY = {
+  excellent: "sustainability.band.excellent",
+  good: "sustainability.band.good",
+  fair: "sustainability.band.fair",
+  poor: "sustainability.band.poor",
+};
 
 export default function Sustainability() {
   const t = useT();
@@ -52,31 +58,29 @@ export default function Sustainability() {
     <div className="mx-auto max-w-2xl space-y-4">
       <div>
         <h1 className="text-lg font-bold tracking-tight text-ink">{t("sustainability.title")}</h1>
-        <p className="text-sm text-muted">
-          A reproducible 0–100 score from water efficiency, chemical use and crop health.
-        </p>
+        <p className="text-sm text-muted">{t("sustainability.pageHint")}</p>
       </div>
 
       <Card className="grid gap-3 p-4 sm:grid-cols-2">
-        <label className="text-[11px] font-medium text-faint">Irrigation applied this season (mm)
+        <label className="text-[11px] font-medium text-faint">{t("sustainability.waterUsed")}
           <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_used_mm} onChange={set("water_used_mm")} />
         </label>
-        <label className="text-[11px] font-medium text-faint">Crop water requirement (mm)
+        <label className="text-[11px] font-medium text-faint">{t("sustainability.waterRecommended")}
           <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_recommended_mm} onChange={set("water_recommended_mm")} />
         </label>
-        <label className="text-[11px] font-medium text-faint">Agro-chemicals used (kg/ha)
+        <label className="text-[11px] font-medium text-faint">{t("sustainability.chemUsed")}
           <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_used_kg_ha} onChange={set("chemical_used_kg_ha")} />
         </label>
-        <label className="text-[11px] font-medium text-faint">Recommended (kg/ha)
+        <label className="text-[11px] font-medium text-faint">{t("sustainability.chemRecommended")}
           <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_recommended_kg_ha} onChange={set("chemical_recommended_kg_ha")} />
         </label>
-        <label className="text-[11px] font-medium text-faint sm:col-span-2">Latest diagnosis (leave blank if healthy)
-          <input className={INPUT + " mt-1"} placeholder="e.g. Tomato___Late_blight" value={f.disease_class} onChange={set("disease_class")} />
+        <label className="text-[11px] font-medium text-faint sm:col-span-2">{t("sustainability.diseaseLabel")}
+          <input className={INPUT + " mt-1"} placeholder={t("sustainability.diseasePlaceholder")} value={f.disease_class} onChange={set("disease_class")} />
         </label>
         {error && <p className="text-xs text-rose-600 sm:col-span-2">{error}</p>}
         <button onClick={run} disabled={busy}
           className="rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint sm:col-span-2">
-          {busy ? "…" : "Calculate score"}
+          {busy ? "…" : t("sustainability.calculate")}
         </button>
       </Card>
 
@@ -86,19 +90,21 @@ export default function Sustainability() {
             <span className={clsx("text-5xl font-bold tracking-tight", BAND[result.band])}>
               {result.score}
             </span>
-            <span className={clsx("mb-1 text-sm font-semibold capitalize", BAND[result.band])}>{result.band}</span>
+            <span className={clsx("mb-1 text-sm font-semibold capitalize", BAND[result.band])}>
+              {BAND_KEY[result.band] ? t(BAND_KEY[result.band]) : result.band}
+            </span>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-canvas/60 p-2">
-              <div className="text-[10px] uppercase text-faint">Water overuse</div>
+              <div className="text-[10px] uppercase text-faint">{t("sustainability.waterOveruse")}</div>
               <div className="text-sm font-semibold text-ink">{result.water_overuse_pct}%</div>
             </div>
             <div className="rounded-lg bg-canvas/60 p-2">
-              <div className="text-[10px] uppercase text-faint">Chemical overuse</div>
+              <div className="text-[10px] uppercase text-faint">{t("sustainability.chemicalOveruse")}</div>
               <div className="text-sm font-semibold text-ink">{result.chemical_overuse_pct}%</div>
             </div>
             <div className="rounded-lg bg-canvas/60 p-2">
-              <div className="text-[10px] uppercase text-faint">Crop health</div>
+              <div className="text-[10px] uppercase text-faint">{t("sustainability.cropHealth")}</div>
               <div className="text-sm font-semibold text-ink">{result.crop_health_pct}%</div>
             </div>
           </div>

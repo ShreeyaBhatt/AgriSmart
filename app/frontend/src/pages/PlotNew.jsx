@@ -23,7 +23,7 @@ export default function PlotNew() {
   const useGps = () => {
     navigator.geolocation?.getCurrentPosition(
       (p) => setPos([+p.coords.latitude.toFixed(5), +p.coords.longitude.toFixed(5)]),
-      () => setError("Could not get your location — tap the map instead.")
+      () => setError(t("plotNew.gpsError"))
     );
   };
 
@@ -61,26 +61,26 @@ export default function PlotNew() {
         <form onSubmit={submit} className="space-y-3 p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted">
-              {pos ? `${pos[0]}, ${pos[1]}` : "Tap the map to place your field"}
+              {pos ? `${pos[0]}, ${pos[1]}` : t("plotNew.tapMap")}
             </span>
             <button
               type="button"
               onClick={useGps}
               className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-canvas"
             >
-              <Icon name="crosshair" className="h-3.5 w-3.5" /> Use my location
+              <Icon name="crosshair" className="h-3.5 w-3.5" /> {t("common.useMyLocation")}
             </button>
           </div>
           <input
             className="w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand-400"
-            placeholder="Field name (e.g. North field)"
+            placeholder={t("plotNew.fieldNamePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
           <input
             className="w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand-400"
-            placeholder="Area in hectares (optional)"
+            placeholder={t("plotNew.areaPlaceholder")}
             value={area}
             onChange={(e) => setArea(e.target.value)}
             inputMode="decimal"
@@ -90,11 +90,9 @@ export default function PlotNew() {
             disabled={!pos || !name || busy}
             className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint"
           >
-            {busy ? "Fetching soil…" : "Save plot"}
+            {busy ? t("plotNew.fetchingSoil") : t("plotNew.savePlot")}
           </button>
-          <p className="text-center text-[11px] text-faint">
-            We'll pull this field's soil profile from SoilGrids automatically.
-          </p>
+          <p className="text-center text-[11px] text-faint">{t("plotNew.autoSoilHint")}</p>
         </form>
       </Card>
     </div>

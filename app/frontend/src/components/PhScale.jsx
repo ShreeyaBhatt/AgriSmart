@@ -1,9 +1,11 @@
 import { rating, phFraction, toneClasses } from "../lib/ratings.js";
+import { useT } from "../i18n/useT.js";
 
 // pH shown on a 3.5–9.5 spectrum with a pointer at the measured value.
 export default function PhScale({ ph, uncertainty }) {
+  const t = useT();
   if (ph == null) {
-    return <div className="text-sm text-faint">pH not available</div>;
+    return <div className="text-sm text-faint">{t("soil.phUnavailable")}</div>;
   }
   const pct = phFraction(ph) * 100;
   const r = rating.ph(ph);
@@ -29,9 +31,9 @@ export default function PhScale({ ph, uncertainty }) {
       </div>
       <div className="mt-1 flex justify-between text-[10px] font-medium text-faint">
         <span>3.5</span>
-        <span>acidic</span>
+        <span>{t("soil.acidic")}</span>
         <span>6.5–7.5</span>
-        <span>alkaline</span>
+        <span>{t("soil.alkaline")}</span>
         <span>9.5</span>
       </div>
     </div>

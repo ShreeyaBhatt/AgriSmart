@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n/useT.js";
 
 export default function PlotCard({ plot }) {
+  const t = useT();
   const s = plot.soil_snapshot || {};
   return (
     <Link
@@ -14,7 +16,7 @@ export default function PlotCard({ plot }) {
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-ink">{plot.name}</div>
         <div className="truncate text-xs text-muted">
-          {s.texture_class ? `${s.texture_class}` : "soil pending"}
+          {s.texture_class ? `${s.texture_class}` : t("plot.soilPending")}
           {s.ph != null && ` · pH ${s.ph}`}
           {plot.area_ha != null && ` · ${plot.area_ha} ha`}
         </div>

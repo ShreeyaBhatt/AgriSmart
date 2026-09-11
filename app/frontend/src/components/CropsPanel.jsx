@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Card from "./Card.jsx";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n/useT.js";
 
 function ScoreRing({ score }) {
   const pct = Math.round((score ?? 0) * 100);
@@ -22,17 +23,20 @@ function ScoreRing({ score }) {
   );
 }
 
+const SEASON_KEY = { kharif: "common.seasonKharif", rabi: "common.seasonRabi", zaid: "common.seasonZaid" };
+
 export default function CropsPanel({ rec }) {
+  const t = useT();
   if (!rec) return null;
 
   return (
     <Card className="animate-fade-up p-5">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
         <Icon name="sprout" className="h-4 w-4 text-brand-600" />
-        Crop suitability
+        {t("crops.title")}
         {rec.season && (
           <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium capitalize text-brand-700 ring-1 ring-brand-200">
-            {rec.season}
+            {SEASON_KEY[rec.season] ? t(SEASON_KEY[rec.season]) : rec.season}
           </span>
         )}
       </h2>
@@ -52,7 +56,7 @@ export default function CropsPanel({ rec }) {
                 <span className="truncate text-sm font-semibold text-ink">{c.crop}</span>
                 {i === 0 && (
                   <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                    Best match
+                    {t("crops.bestMatch")}
                   </span>
                 )}
               </div>

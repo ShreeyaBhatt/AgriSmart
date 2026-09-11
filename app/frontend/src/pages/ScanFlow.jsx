@@ -69,7 +69,7 @@ export default function ScanFlow() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
                 <Icon name="image" className="h-6 w-6" />
               </div>
-              <p className="mt-2 text-sm text-muted">Drop a leaf photo here, or</p>
+              <p className="mt-2 text-sm text-muted">{t("scan.dropHint")}</p>
             </>
           )}
 
@@ -78,10 +78,10 @@ export default function ScanFlow() {
               onClick={() => fileRef.current?.click()}
               className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:bg-canvas"
             >
-              <Icon name="image" className="h-3.5 w-3.5" /> Choose file
+              <Icon name="image" className="h-3.5 w-3.5" /> {t("scan.chooseFile")}
             </button>
             <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:bg-canvas">
-              <Icon name="camera" className="h-3.5 w-3.5" /> Camera
+              <Icon name="camera" className="h-3.5 w-3.5" /> {t("scan.camera")}
               <input
                 type="file"
                 accept="image/*"
@@ -102,13 +102,13 @@ export default function ScanFlow() {
 
         {plots.length > 0 && (
           <label className="mt-3 block text-[11px] font-medium text-faint">
-            Attach to plot (optional)
+            {t("scan.attachPlot")}
             <select
               value={plotId}
               onChange={(e) => setPlotId(e.target.value)}
               className="mt-1 w-full rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
             >
-              <option value="">— none —</option>
+              <option value="">{t("common.none")}</option>
               {plots.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
