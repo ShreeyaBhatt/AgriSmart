@@ -9,11 +9,12 @@ import Timeline from "../components/Timeline.jsx";
 import LogForms from "../components/LogForms.jsx";
 import { ProfileSkeleton } from "../components/Skeleton.jsx";
 import { api } from "../api.js";
-import { useT } from "../i18n/useT.js";
+import { useLang, useT } from "../i18n/useT.js";
 
 export default function PlotDetail() {
   const { id } = useParams();
   const t = useT();
+  const { lang } = useLang();
   const navigate = useNavigate();
   const [plot, setPlot] = useState(null);
   const [amendments, setAmendments] = useState(null);
@@ -22,8 +23,8 @@ export default function PlotDetail() {
   const [error, setError] = useState("");
 
   const loadTimeline = useCallback(() => {
-    api.timeline(id).then(setTimeline).catch(() => {});
-  }, [id]);
+    api.timeline(id, lang).then(setTimeline).catch(() => {});
+  }, [id, lang]);
 
   useEffect(() => {
     let alive = true;
@@ -33,9 +34,14 @@ export default function PlotDetail() {
       api.amendments(p.lat, p.lon).then(setAmendments).catch(() => {});
       api.crops(p.lat, p.lon).then(setCrops).catch(() => {});
     }).catch((e) => setError(e.detail || e.message));
-    loadTimeline();
     return () => { alive = false; };
-  }, [id, loadTimeline]);
+  }, [id]);
+
+  // Timeline titles are localized server-side, so re-fetch it whenever the
+  // farmer switches language (loadTimeline already changes identity with lang).
+  useEffect(() => {
+    loadTimeline();
+  }, [loadTimeline]);
 
   const remove = async () => {
     if (!confirm(t("plot.confirmDelete"))) return;

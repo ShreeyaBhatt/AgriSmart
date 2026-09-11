@@ -76,7 +76,7 @@ export const api = {
   updatePlot: (id, b) => request(`/plots/${id}`, { method: "PATCH", body: b }),
   deletePlot: (id) => request(`/plots/${id}`, { method: "DELETE" }),
   refreshSoil: (id) => request(`/plots/${id}/refresh-soil`, { method: "POST" }),
-  timeline: (id) => request(`/plots/${id}/timeline`),
+  timeline: (id, lang) => request(`/plots/${id}/timeline${lang ? `?lang=${lang}` : ""}`),
 
   // scan / diagnoses
   predict: (file, plotId, lang) => {
@@ -93,6 +93,7 @@ export const api = {
     const qs = params.toString();
     return request(`/diagnoses${qs ? `?${qs}` : ""}`);
   },
+  getDiagnosis: (id, lang) => request(`/diagnoses/${id}${lang ? `?lang=${lang}` : ""}`),
 
   // logs
   logIrrigation: (b) => request("/irrigation", { method: "POST", body: b }),
