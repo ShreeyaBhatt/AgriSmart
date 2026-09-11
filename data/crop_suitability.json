@@ -1,0 +1,82 @@
+{
+  "citation": "Suitability ranges compiled from ICAR crop production guides and State Agricultural University package-of-practices. Climate suitability (temperature/rainfall) is scored by Module C, not here.",
+  "crops": [
+    {
+      "name": "Rice",
+      "textures": ["clay", "silty clay", "clay loam", "silty clay loam"],
+      "ph": [5.0, 7.5],
+      "seasons": ["kharif"],
+      "notes": "Tolerates poor drainage and standing water; best on heavy soils that hold water."
+    },
+    {
+      "name": "Wheat",
+      "textures": ["loam", "clay loam", "silt loam", "sandy clay loam"],
+      "ph": [6.0, 7.5],
+      "seasons": ["rabi"],
+      "notes": "Needs well-drained medium soils; sensitive to waterlogging and salinity."
+    },
+    {
+      "name": "Cotton",
+      "textures": ["clay", "clay loam", "sandy clay loam", "loam"],
+      "ph": [6.0, 8.0],
+      "seasons": ["kharif"],
+      "notes": "Deep black (Vertisol) soils are ideal; tolerates mild alkalinity."
+    },
+    {
+      "name": "Groundnut",
+      "textures": ["sandy loam", "loamy sand", "loam", "sandy clay loam"],
+      "ph": [6.0, 7.5],
+      "seasons": ["kharif", "zaid"],
+      "notes": "Needs loose, friable, well-drained light soil for peg penetration; add gypsum at flowering."
+    },
+    {
+      "name": "Pearl millet (Bajra)",
+      "textures": ["sandy loam", "loamy sand", "sand", "loam"],
+      "ph": [6.5, 8.5],
+      "seasons": ["kharif"],
+      "notes": "Very drought- and heat-tolerant; grows on poor light soils and mild alkalinity."
+    },
+    {
+      "name": "Sorghum (Jowar)",
+      "textures": ["loam", "clay loam", "sandy clay loam", "sandy loam"],
+      "ph": [6.0, 8.0],
+      "seasons": ["kharif", "rabi"],
+      "notes": "Wide adaptability; tolerates short drought and moderate alkalinity."
+    },
+    {
+      "name": "Chickpea (Gram)",
+      "textures": ["loam", "clay loam", "sandy loam", "sandy clay loam"],
+      "ph": [6.0, 8.0],
+      "seasons": ["rabi"],
+      "notes": "Legume; fixes N and suits residual soil moisture. Avoid waterlogging and acid soils."
+    },
+    {
+      "name": "Soybean",
+      "textures": ["loam", "clay loam", "silt loam", "sandy clay loam"],
+      "ph": [6.0, 7.5],
+      "seasons": ["kharif"],
+      "notes": "Legume; needs well-drained medium soil with good organic matter."
+    },
+    {
+      "name": "Maize",
+      "textures": ["loam", "sandy loam", "silt loam", "clay loam"],
+      "ph": [5.5, 7.5],
+      "seasons": ["kharif", "rabi"],
+      "notes": "Heavy feeder; needs fertile well-drained soil and cannot tolerate waterlogging."
+    },
+    {
+      "name": "Sugarcane",
+      "textures": ["clay loam", "loam", "silty clay loam", "sandy clay loam"],
+      "ph": [6.0, 7.7],
+      "seasons": ["kharif"],
+      "notes": "Long-duration, high water and nutrient demand; needs deep fertile soil."
+    },
+    {
+      "name": "Mustard",
+      "textures": ["loam", "sandy loam", "clay loam", "sandy clay loam"],
+      "ph": [6.0, 7.5],
+      "seasons": ["rabi"],
+      "notes": "Suited to light-to-medium soils on residual moisture; mildly salt-tolerant."
+    }
+  ]
+}
