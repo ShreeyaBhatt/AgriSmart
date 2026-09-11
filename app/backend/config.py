@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline card fallback
     gemini_model: str = "gemini-1.5-flash"
 
+    # --- Local speech-to-text for the mic button (Module E) ---
+    # "tiny"/"base"/"small" — bigger = better multilingual accuracy, slower,
+    # more RAM. Runs on this server; no audio ever reaches a cloud service.
+    whisper_model_size: str = "base"
+    whisper_compute_type: str = "int8"  # CPU-friendly; use "int8_float16" on GPU
+
     # --- Caching ---
     soil_cache_ttl_s: int = 60 * 60 * 24 * 30  # 30 days; soil properties are ~static
     soil_cache_precision: int = 4  # round lat/lon to N decimals (~11 m) for the cache key

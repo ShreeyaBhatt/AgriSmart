@@ -2,18 +2,24 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import logging
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_current_user_optional
 from ..db import get_session
-from ..models.modules import AssistantAnswer, AssistantRequest
+from ..models.modules import AssistantAnswer, AssistantRequest, TranscribeOut
 from ..models.orm import Diagnosis, Plot
 from ..models.user import User
 from ..services.assistant import answer_question
+from ..services.transcribe import transcribe
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/assistant", tags=["assistant"])
+_MAX_AUDIO_BYTES = 15 * 1024 * 1024  # a few seconds of speech is a few hundred KB; 15MB is generous
 
 
 @router.post("/ask", response_model=AssistantAnswer)
@@ -43,3 +49,23 @@ async def ask(
     return await answer_question(
         req.question, lang=req.lang, plot=plot_ctx, last_class=last_class
     )
+
+
+@router.post("/transcribe", response_model=TranscribeOut)
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    lang: str = Form(default="en"),
+) -> TranscribeOut:
+    data = await file.read()
+    if not data:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No audio received")
+    if len(data) > _MAX_AUDIO_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Recording too long")
+
+    suffix = Path(file.filename or "").suffix or ".webm"
+    try:
+        text = transcribe(data, suffix, lang)
+    except Exception as exc:  # missing model deps, corrupt audio, decode failure
+        log.exception("transcription failed")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Transcription failed: {exc}")
+    return TranscribeOut(text=text)
