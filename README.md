@@ -1,4 +1,10 @@
-# 🌱 AgriSmart AI
+<img src="./assets/hero-banner.svg" alt="AgriSmart AI" width="100%">
+
+[![Status](https://img.shields.io/badge/modules-4%20of%206%20shipped-8bc34a?style=flat-square)](#-whats-actually-built)
+[![Tests](https://img.shields.io/badge/tests-47%20passing-8bc34a?style=flat-square)](#-tests)
+[![Macro F1](https://img.shields.io/badge/macro--F1-0.966-e3a857?style=flat-square)](#-how-well-the-classifier-holds-up)
+[![Stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20React%20%C2%B7%20PyTorch-74a7bd?style=flat-square)](#-tech-stack)
+[![License data](https://img.shields.io/badge/data%20sources-all%20licensed-a99b85?style=flat-square)](#-data-sources--licences)
 
 **A farm app that answers the three questions a farmer actually asks:**
 *What's wrong with this leaf? What should I do about my soil? What does the weather mean for tomorrow?*
@@ -7,14 +13,13 @@
 
 AgriSmart AI logs a farmer in, remembers their plots, and answers all three — grounded in real soil data, a real forecast, and a disease model that admits when it isn't sure.
 
-`✅ 4 of 6 modules shipped` · `✅ 47 passing tests` · `✅ 0.966 macro‑F1 on held‑out validation`
-
 ---
 
 ## 🚶 The flow
 
+<img src="./assets/pipeline-flow.svg" alt="Login, then My Farm, then Scan a leaf, then Diagnosis" width="100%">
+
 ```
-   🔐 Login  ──▶  🗺️ My Farm (map of plots)  ──▶  📷 Scan a leaf  ──▶  🩺 Diagnosis + Grad‑CAM + what to do
                           │
                           ├──▶ 🧪 Plot detail — soil profile · crop fit · amendments · activity timeline
                           ├──▶ ☀️ Weather advice — rules over Open‑Meteo
@@ -26,18 +31,22 @@ AgriSmart AI logs a farmer in, remembers their plots, and answers all three — 
 
 ## 🧩 What's actually built
 
-| # | Module | Status | What it does | Where |
-|---|--------|:------:|---------------|-------|
-| **Core** | Crop‑disease detection | ✅ Built | Photo of a leaf in, disease label out — with a Grad‑CAM overlay showing where the model looked, and abstention when confidence is too low to trust | `model/`, `POST /predict` |
-| **A** | Crop recommendation | ✅ Built | Re‑imagined as **GPS → real soil**: SoilGrids 2.0 + Soil Health Card resolve texture, pH, N‑P‑K for the exact plot → crop fit + amendments | `services/soil_*`, `routers/{soil,recommend}.py` |
-| **C** | Weather intelligence | ✅ Built | A 3‑day Open‑Meteo forecast runs through a rule engine and comes out the other side as something a farmer can act on today | `services/weather.py`, `POST /weather/advice` |
-| **D** | Sustainability score | ✅ Built | A reproducible, **published** formula scores each plot's practices and returns concrete tips — no black box | `services/sustainability.py`, `POST /sustainability/score` |
-| **E** | GenAI farm assistant | ✅ Built | Grounded RAG over a disease‑card corpus + live plot context. Gemini when a key is set, offline knowledge‑base otherwise. Voice in/out, en/hi/gu | `services/assistant.py`, `POST /assistant/ask` |
-| **F/G** | IoT / agentic advisor | ✂️ Not attempted | Scoped and planned, deliberately left out to keep the shipped modules solid | — |
+<img src="./assets/module-status.svg" alt="Core, A, C, D, E built · F/G not attempted" width="100%">
+
+| # | Module | What it does | Where |
+|---|--------|---------------|-------|
+| **Core** | Crop‑disease detection | Photo of a leaf in, disease label out — with a Grad‑CAM overlay showing where the model looked, and abstention when confidence is too low to trust | `model/`, `POST /predict` |
+| **A** | Crop recommendation | Re‑imagined as **GPS → real soil**: SoilGrids 2.0 + Soil Health Card resolve texture, pH, N‑P‑K for the exact plot → crop fit + amendments | `services/soil_*`, `routers/{soil,recommend}.py` |
+| **C** | Weather intelligence | A 3‑day Open‑Meteo forecast runs through a rule engine and comes out the other side as something a farmer can act on today | `services/weather.py`, `POST /weather/advice` |
+| **D** | Sustainability score | A reproducible, **published** formula scores each plot's practices and returns concrete tips — no black box | `services/sustainability.py`, `POST /sustainability/score` |
+| **E** | GenAI farm assistant | Grounded RAG over a disease‑card corpus + live plot context. Gemini when a key is set, offline knowledge‑base otherwise. Voice in/out, en/hi/gu | `services/assistant.py`, `POST /assistant/ask` |
+| **F/G** | IoT / agentic advisor | ✂️ Scoped and planned, deliberately left out to keep the shipped modules solid | — |
 
 ---
 
 ## 📊 How well the classifier holds up
+
+<img src="./assets/metrics-gauges.svg" alt="Macro-F1 0.966, accuracy 0.967, 47 tests passed" width="100%">
 
 **timm EfficientNet‑B0**, fine‑tuned with field‑simulation augmentation, temperature scaling, test‑time augmentation, and low‑confidence abstention — because a wrong diagnosis with high confidence is worse than an honest "not sure."
 
@@ -95,7 +104,8 @@ EfficientNet-B0 + TTA + temp-scale + abstain
 
 All API routes live under `/api` (the SPA keeps bare paths like `/weather`, `/soil` for itself). Uploaded images and Grad‑CAM overlays serve from `/uploads`.
 
-### API reference
+<details>
+<summary><strong>API reference</strong> — click to expand the full endpoint table</summary>
 
 | Method | Endpoint | Auth | Purpose |
 |--------|----------|:----:|---------|
@@ -108,6 +118,8 @@ All API routes live under `/api` (the SPA keeps bare paths like `/weather`, `/so
 | `GET` | `/api/diagnoses` | ✅ | scan history |
 | `POST` | `/api/soil/lookup`, `/api/recommend/amendments`, `/api/recommend/crops` | – | Module A |
 | `POST` | `/api/weather/advice`, `/api/sustainability/score`, `/api/assistant/ask` | –/–/opt | Modules C / D / E |
+
+</details>
 
 Module docs: [`docs/soil_sources.md`](docs/soil_sources.md) · [`docs/weather_rules.md`](docs/weather_rules.md) · [`docs/sustainability.md`](docs/sustainability.md)
 
@@ -132,14 +144,20 @@ npm run dev                                           # http://localhost:5173
 
 Open `http://localhost:5173`, enter a mobile number (or *Continue as guest*), verify with the demo OTP shown on screen, add a plot on the map, and scan a leaf. The disease model **ships already trained** in `model/artifacts/` — `/predict` works immediately.
 
-### Backend detail
+<details>
+<summary><strong>Backend detail</strong> — Swagger docs, config, PyTorch notes</summary>
+<br>
 
 - API + Swagger docs: `http://127.0.0.1:8000/docs`
 - First run creates `agrismart.db` (SQLite) and an `uploads/` folder — no external services required.
 - Config is optional — copy `.env.example` → `.env` for a real `JWT_SECRET`, a `GEMINI_API_KEY`, etc. Every setting has a working default.
 - CPU PyTorch: if `pip` resolves a CUDA build you don't want, run `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`.
 
-### Enabling the live Gemini assistant (Module E)
+</details>
+
+<details>
+<summary><strong>Enabling the live Gemini assistant</strong> — Module E</summary>
+<br>
 
 Without a key, the assistant still answers from the offline disease‑card knowledge base.
 
@@ -148,7 +166,11 @@ Without a key, the assistant still answers from the offline disease‑card knowl
 3. Set `AGRISMART_GEMINI_API_KEY=<your key>` (optionally `AGRISMART_GEMINI_MODEL`, defaults to `gemini-1.5-flash`).
 4. Restart the backend. `.env` is git‑ignored — never commit a real key.
 
-### Frontend detail
+</details>
+
+<details>
+<summary><strong>Frontend detail</strong> — dev proxy, CORS</summary>
+<br>
 
 ```bash
 cd app/frontend
@@ -158,7 +180,11 @@ npm run dev            # http://localhost:5173 — proxies /api and /uploads to 
 
 Start the backend first; Vite's dev proxy forwards API calls, so no CORS setup is needed locally.
 
-### (Optional) retrain the crop‑disease model
+</details>
+
+<details>
+<summary><strong>(Optional) retrain the crop‑disease model</strong></summary>
+<br>
 
 Only needed to reproduce or redo training — trained weights are already committed.
 
@@ -171,6 +197,8 @@ python model/evaluate.py --dir data/plantvillage --out report/model_report.md
 ```
 
 `predict(image_path) -> class_label` is importable as `from model.predict import predict`. Bundled sample leaves in `data/samples/leaves/` let you test without downloading anything.
+
+</details>
 
 ### Tests
 
@@ -203,10 +231,26 @@ React 19 + Vite 6 + Tailwind v4 (configured entirely in `src/index.css` via `@th
 
 ## 🛠️ Tech stack
 
-- **Backend** — FastAPI · SQLAlchemy 2 (async, SQLite) · Motor (async MongoDB) · PyJWT · httpx · Pydantic v2
-- **ML** — PyTorch · timm (EfficientNet‑B0) · torchvision · pytorch‑grad‑cam · scikit‑learn · Pillow
-- **Frontend** — React 19 · Vite 6 · Tailwind CSS v4 · react‑router‑dom · react‑leaflet / Leaflet · clsx
-- **Assistant** — google‑generativeai (optional) · Web Speech API
+![FastAPI](https://img.shields.io/badge/-FastAPI-211c15?style=flat-square&logo=fastapi&logoColor=8bc34a)
+![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy%202-211c15?style=flat-square)
+![Motor](https://img.shields.io/badge/-Motor%20(MongoDB)-211c15?style=flat-square&logo=mongodb&logoColor=8bc34a)
+![PyJWT](https://img.shields.io/badge/-PyJWT-211c15?style=flat-square)
+![httpx](https://img.shields.io/badge/-httpx-211c15?style=flat-square)
+![Pydantic](https://img.shields.io/badge/-Pydantic%20v2-211c15?style=flat-square)
+
+![PyTorch](https://img.shields.io/badge/-PyTorch-211c15?style=flat-square&logo=pytorch&logoColor=e3a857)
+![timm](https://img.shields.io/badge/-timm%20(EfficientNet--B0)-211c15?style=flat-square)
+![torchvision](https://img.shields.io/badge/-torchvision-211c15?style=flat-square)
+![Grad-CAM](https://img.shields.io/badge/-pytorch--grad--cam-211c15?style=flat-square)
+![scikit-learn](https://img.shields.io/badge/-scikit--learn-211c15?style=flat-square&logo=scikitlearn&logoColor=e3a857)
+
+![React](https://img.shields.io/badge/-React%2019-211c15?style=flat-square&logo=react&logoColor=74a7bd)
+![Vite](https://img.shields.io/badge/-Vite%206-211c15?style=flat-square&logo=vite&logoColor=74a7bd)
+![Tailwind](https://img.shields.io/badge/-Tailwind%20v4-211c15?style=flat-square&logo=tailwindcss&logoColor=74a7bd)
+![Leaflet](https://img.shields.io/badge/-react--leaflet-211c15?style=flat-square&logo=leaflet&logoColor=74a7bd)
+
+![Gemini](https://img.shields.io/badge/-google--generativeai-211c15?style=flat-square)
+![Web Speech](https://img.shields.io/badge/-Web%20Speech%20API-211c15?style=flat-square)
 
 ---
 
@@ -228,4 +272,9 @@ data/           disease_cards.json · crop_suitability.json · soil_amendments.j
 docs/           soil_sources · weather_rules · sustainability
 report/         model_report.md (generated)
 tests/          47 tests (pytest)
+assets/         hero-banner.svg · pipeline-flow.svg · metrics-gauges.svg · module-status.svg (this README's animations)
 ```
+
+---
+
+<sub>💡 The banner, flow diagram, gauges, and module strip above are self-contained animated SVGs in `assets/` — no external services, no tracking pixels. Keep the `assets/` folder next to this file (same relative path) so the animations render on GitHub, GitLab, or any local Markdown previewer that supports inline images. If your viewer strips SVG animation, the images still display fine as static.</sub>
