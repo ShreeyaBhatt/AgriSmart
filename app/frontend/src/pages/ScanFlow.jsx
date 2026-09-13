@@ -34,14 +34,14 @@ export default function ScanFlow() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    api.listPlots().then(setPlots).catch(() => {});
+    api.listPlots().then(setPlots).catch(() => { });
   }, []);
   // The label/precautions returned by /predict are localized server-side at
   // request time, so they don't move with the UI when the farmer switches
   // language afterwards — re-fetch the same diagnosis in the new language.
   useEffect(() => {
     if (!result) return;
-    api.getDiagnosis(result.id, lang).then(setResult).catch(() => {});
+    api.getDiagnosis(result.id, lang).then(setResult).catch(() => { });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function ScanFlow() {
             pick(e.dataTransfer.files?.[0]);
           }}
           className={clsx(
-            "relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed px-4 py-10 text-center transition-colors",
+            "relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed px-4 py-14 sm:py-20 text-center transition-colors",
             dragOver ? "border-brand-400 bg-brand-500/5" : "border-line bg-canvas/40"
           )}
         >
@@ -100,12 +100,12 @@ export default function ScanFlow() {
             {preview ? (
               <img src={preview} alt={t("scan.yourPhoto")} className="max-h-64 rounded-lg object-contain ring-2 ring-line" />
             ) : (
-              <>
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-2 ring-line">
-                  <Icon name="image" className="h-7 w-7" />
+              <div className="p-8">
+                <div className="mx-auto flex h-18 w-18 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-2 ring-line">
+                  <Icon name="image" className="h-9 w-9" />
                 </div>
                 <p className="mt-3 text-sm font-medium text-muted">{t("scan.dropHint")}</p>
-              </>
+              </div>
             )}
             <ViewfinderCorners />
             {busy && (

@@ -93,6 +93,11 @@ export default function Sustainability() {
             <span className={clsx("mb-1 text-sm font-semibold capitalize", BAND[result.band])}>
               {BAND_KEY[result.band] ? t(BAND_KEY[result.band]) : result.band}
             </span>
+            {result.ai_validated && (
+              <span className="mb-1 ml-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-semibold text-brand-700 ring-1 ring-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800">
+                <Icon name="spark" className="h-3 w-3" /> AI Verified
+              </span>
+            )}
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-canvas/60 p-2">
@@ -108,9 +113,15 @@ export default function Sustainability() {
               <div className="text-sm font-semibold text-ink">{result.crop_health_pct}%</div>
             </div>
           </div>
+          {result.ai_notes && (
+            <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800">
+              <Icon name="alert" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>{result.ai_notes}</span>
+            </div>
+          )}
           <ul className="mt-3 space-y-1.5">
             {result.tips.map((tip, i) => (
-              <li key={i} className="flex gap-2 text-sm text-ink/90">
+              <li key={i} className="flex gap-2 text-sm text-muted">
                 <Icon name="spark" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" /> {tip}
               </li>
             ))}
