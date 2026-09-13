@@ -10,11 +10,15 @@ import LogForms from "../components/LogForms.jsx";
 import { ProfileSkeleton } from "../components/Skeleton.jsx";
 import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
+import { useLandUnit } from "../units/useLandUnit.js";
+import { LAND_UNITS, formatArea } from "../units/convert.js";
 
 export default function PlotDetail() {
   const { id } = useParams();
   const t = useT();
   const { lang } = useLang();
+  const { unit, bighaRegion } = useLandUnit();
+  const unitLabel = t(LAND_UNITS.find((u) => u.code === unit)?.key ?? "unit.ha");
   const navigate = useNavigate();
   const [plot, setPlot] = useState(null);
   const [amendments, setAmendments] = useState(null);
@@ -56,6 +60,8 @@ export default function PlotDetail() {
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
   if (!plot) return <ProfileSkeleton />;
 
+  const area = formatArea(plot.area_ha, unit, bighaRegion);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -66,7 +72,7 @@ export default function PlotDetail() {
           <h1 className="text-lg font-bold tracking-tight text-ink">{plot.name}</h1>
           <p className="text-xs text-muted">
             {plot.lat.toFixed(4)}, {plot.lon.toFixed(4)}
-            {plot.area_ha != null && ` · ${plot.area_ha} ha`}
+            {area != null && ` · ${area} ${unitLabel}`}
           </p>
         </div>
         <div className="flex gap-2">

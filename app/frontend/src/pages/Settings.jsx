@@ -8,6 +8,8 @@ import { useLang, useT } from "../i18n/useT.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "../theme/useTheme.js";
 import { KNOWN_CROPS } from "../lib/crops.js";
+import { useLandUnit } from "../units/useLandUnit.js";
+import { LAND_UNITS, BIGHA_REGIONS } from "../units/convert.js";
 
 const THEMES = [
   { value: "light", icon: "sun", key: "settings.light" },
@@ -226,6 +228,7 @@ export default function Settings() {
   const t = useT();
   const { lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
+  const { unit, setUnit, bighaRegion, setBighaRegion } = useLandUnit();
   const { user, logout } = useAuth();
   // Kept separate from user.is_guest — linking flips that to false right
   // away, which would hide this card before its own success message showed.
@@ -280,6 +283,46 @@ export default function Settings() {
             </button>
           ))}
         </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.landUnit")}</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {LAND_UNITS.map((u) => (
+            <button
+              key={u.code}
+              onClick={() => setUnit(u.code)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ring-1 transition ${
+                unit === u.code
+                  ? "bg-brand-600 text-white ring-brand-600"
+                  : "bg-surface text-muted ring-line hover:bg-canvas"
+              }`}
+            >
+              {t(u.key)}
+            </button>
+          ))}
+        </div>
+        {unit === "bigha" && (
+          <div className="mt-3 border-t border-line pt-3">
+            <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.bighaRegion")}</div>
+            <p className="mt-1 text-xs text-muted">{t("settings.bighaRegionHint")}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {BIGHA_REGIONS.map((r) => (
+                <button
+                  key={r.code}
+                  onClick={() => setBighaRegion(r.code)}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium ring-1 transition ${
+                    bighaRegion === r.code
+                      ? "bg-brand-600 text-white ring-brand-600"
+                      : "bg-surface text-muted ring-line hover:bg-canvas"
+                  }`}
+                >
+                  {t(r.key)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="p-4">

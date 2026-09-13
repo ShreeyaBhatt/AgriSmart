@@ -5,6 +5,8 @@ import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
+import { useLandUnit } from "../units/useLandUnit.js";
+import { LAND_UNITS, toHectares } from "../units/convert.js";
 
 function ClickMarker({ pos, setPos }) {
   useMapEvents({ click: (e) => setPos([+e.latlng.lat.toFixed(5), +e.latlng.lng.toFixed(5)]) });
@@ -14,6 +16,8 @@ function ClickMarker({ pos, setPos }) {
 export default function PlotNew() {
   const t = useT();
   const navigate = useNavigate();
+  const { unit, bighaRegion } = useLandUnit();
+  const unitLabel = t(LAND_UNITS.find((u) => u.code === unit)?.key ?? "unit.ha");
   const [pos, setPos] = useState(null);
   const [name, setName] = useState("");
   const [area, setArea] = useState("");
@@ -92,7 +96,7 @@ export default function PlotNew() {
         name,
         lat: pos[0],
         lon: pos[1],
-        area_ha: area ? Number(area) : null,
+        area_ha: toHectares(area, unit, bighaRegion),
       });
       navigate(`/plots/${plot.id}`);
     } catch (err) {
@@ -168,7 +172,7 @@ export default function PlotNew() {
           />
           <input
             className="w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand-400"
-            placeholder={t("plotNew.areaPlaceholder")}
+            placeholder={t("plotNew.areaPlaceholder").replace("{unit}", unitLabel)}
             value={area}
             onChange={(e) => setArea(e.target.value)}
             inputMode="decimal"

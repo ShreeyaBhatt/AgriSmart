@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
 import { useT } from "../i18n/useT.js";
+import { useLandUnit } from "../units/useLandUnit.js";
+import { LAND_UNITS, formatArea } from "../units/convert.js";
 
 export default function PlotCard({ plot }) {
   const t = useT();
+  const { unit, bighaRegion } = useLandUnit();
+  const unitLabel = t(LAND_UNITS.find((u) => u.code === unit)?.key ?? "unit.ha");
+  const area = formatArea(plot.area_ha, unit, bighaRegion);
   const s = plot.soil_snapshot || {};
   return (
     <Link
@@ -18,7 +23,7 @@ export default function PlotCard({ plot }) {
         <div className="truncate text-xs text-muted">
           {s.texture_class ? `${s.texture_class}` : t("plot.soilPending")}
           {s.ph != null && ` · pH ${s.ph}`}
-          {plot.area_ha != null && ` · ${plot.area_ha} ha`}
+          {area != null && ` · ${area} ${unitLabel}`}
         </div>
       </div>
       <Icon name="chevronRight" className="h-4 w-4 text-faint" />

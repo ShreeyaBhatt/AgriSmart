@@ -11,6 +11,7 @@ import App from "./App.jsx";
 import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import { LanguageProvider } from "./i18n/useT.js";
 import { ThemeProvider } from "./theme/useTheme.js";
+import { LandUnitProvider } from "./units/useLandUnit.js";
 
 // Fix Leaflet's default marker asset paths under bundlers.
 L.Marker.prototype.options.icon = L.icon({
@@ -32,13 +33,15 @@ function LangBridge({ children }) {
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <LangBridge>
-            <App />
-          </LangBridge>
-        </AuthProvider>
-      </BrowserRouter>
+      <LandUnitProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <LangBridge>
+              <App />
+            </LangBridge>
+          </AuthProvider>
+        </BrowserRouter>
+      </LandUnitProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

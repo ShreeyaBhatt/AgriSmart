@@ -4,6 +4,7 @@ import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
+import { useLandUnit } from "../units/useLandUnit.js";
 
 const LOCALE = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
 // MediaRecorder + our own backend (faster-whisper) — not the browser's
@@ -18,6 +19,7 @@ const MAX_RECORDING_MS = 15000;
 export default function Assistant() {
   const t = useT();
   const { lang } = useLang();
+  const { unit: landUnit, bighaRegion } = useLandUnit();
   const location = useLocation();
   const [plots, setPlots] = useState([]);
   const [plotId, setPlotId] = useState("");
@@ -75,7 +77,13 @@ export default function Assistant() {
     setInput("");
     setBusy(true);
     try {
-      const res = await api.assistant({ question: q, plot_id: plotId || null, lang });
+      const res = await api.assistant({
+        question: q,
+        plot_id: plotId || null,
+        lang,
+        land_unit: landUnit,
+        bigha_region: landUnit === "bigha" ? bighaRegion : null,
+      });
       setMessages((m) => [...m, { role: "assistant", ...res }]);
       say(res.answer);
     } catch (e) {
