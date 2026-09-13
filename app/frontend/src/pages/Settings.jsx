@@ -91,6 +91,19 @@ function CropCard({ t, user }) {
   );
 }
 
+const isValidPhone = (phone) => {
+  const digits = (phone || "").replace(/[\s\-()]/g, "").replace(/^\+/, "");
+  return /^\d{10,15}$/.test(digits);
+};
+
+const formatAuthError = (err) => {
+  const msg = err?.detail || err?.message || "";
+  if (msg.includes("Value error") || msg.toLowerCase().includes("valid mobile number")) {
+    return "Please enter a valid 10-digit mobile number.";
+  }
+  return msg;
+};
+
 /** Guest-only card for attaching a phone number to the current account, so
  * plots/scans survive a logout or a new device. */
 function GuestUpgradeCard({ t, onLinked }) {
@@ -104,6 +117,10 @@ function GuestUpgradeCard({ t, onLinked }) {
 
   const sendOtp = async (e) => {
     e.preventDefault();
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -112,7 +129,7 @@ function GuestUpgradeCard({ t, onLinked }) {
       setOtp("");
       setStep("otp");
     } catch (err) {
-      setError(err.detail || err.message);
+      setError(formatAuthError(err));
     } finally {
       setBusy(false);
     }
@@ -128,7 +145,7 @@ function GuestUpgradeCard({ t, onLinked }) {
     } catch (err) {
       // 409 = phone already belongs to a different account — worth a plain-
       // language message instead of the raw backend string.
-      setError(err.status === 409 ? t("settings.guestUpgradePhoneTaken") : err.detail || err.message);
+      setError(err.status === 409 ? t("settings.guestUpgradePhoneTaken") : formatAuthError(err));
     } finally {
       setBusy(false);
     }
