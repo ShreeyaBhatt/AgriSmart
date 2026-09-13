@@ -5,6 +5,7 @@ enrich -> cache -> offline fallback).
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -214,24 +215,35 @@ async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) 
     call yields no usable data, the bundled sample fixture stands in for the
     physical/chemical values (``source = "sample (offline)"``) while any
     classification and SHC data that *did* resolve are still used.
+
+    All external calls (properties, classification, reverse geocode) run
+    concurrently to minimise wall time.
     """
     key = _cache_key(lat, lon)
     if use_cache and (cached := _cache.get(key)) is not None:
         return cached
 
-    try:
-        properties_payload: dict[str, Any] | None = await fetch_properties(lat, lon)
-    except SoilGridsError as exc:
-        log.warning("SoilGrids properties unavailable for (%s, %s): %s", lat, lon, exc)
-        properties_payload = None
+    # --- Run all external calls concurrently ---
+    async def _safe_properties():
+        try:
+            return await fetch_properties(lat, lon)
+        except SoilGridsError as exc:
+            log.warning("SoilGrids properties unavailable for (%s, %s): %s", lat, lon, exc)
+            return None
 
-    try:
-        classification_payload = await fetch_classification(lat, lon)
-    except SoilGridsError as exc:
-        log.warning("SoilGrids classification unavailable for (%s, %s): %s", lat, lon, exc)
-        classification_payload = {}
+    async def _safe_classification():
+        try:
+            return await fetch_classification(lat, lon)
+        except SoilGridsError as exc:
+            log.warning("SoilGrids classification unavailable for (%s, %s): %s", lat, lon, exc)
+            return {}
 
-    admin = await reverse_admin(lat, lon)
+    properties_payload, classification_payload, admin = await asyncio.gather(
+        _safe_properties(),
+        _safe_classification(),
+        reverse_admin(lat, lon),
+    )
+
     shc = shc_lookup(admin.district)
 
     if properties_payload is None:

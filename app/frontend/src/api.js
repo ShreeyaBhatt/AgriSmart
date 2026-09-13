@@ -50,7 +50,13 @@ async function request(path, { method = "GET", body, form, auth = true } = {}) {
   if (!res.ok) {
     let detail = res.statusText;
     try {
-      detail = (await res.json()).detail ?? detail;
+      const body = await res.json();
+      // FastAPI returns 422 validation errors as {detail: [{loc, msg, type}, ...]}
+      if (Array.isArray(body.detail)) {
+        detail = body.detail.map((e) => e.msg || e.message || JSON.stringify(e)).join("; ");
+      } else {
+        detail = body.detail ?? detail;
+      }
     } catch {
       /* keep statusText */
     }

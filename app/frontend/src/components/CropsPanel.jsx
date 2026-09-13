@@ -47,7 +47,7 @@ export default function CropsPanel({ rec }) {
             key={c.crop}
             className={clsx(
               "flex items-center gap-3 rounded-xl border p-3",
-              i === 0 ? "border-brand-200 bg-brand-50/60" : "border-line bg-canvas/40"
+              i === 0 ? "border-brand-200 bg-brand-50/60 dark:border-brand-800 dark:bg-brand-900/30" : "border-line bg-canvas/40"
             )}
           >
             <ScoreRing score={c.score} />
