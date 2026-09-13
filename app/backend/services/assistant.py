@@ -19,9 +19,21 @@ from ..models.modules import AssistantAnswer
 
 log = logging.getLogger(__name__)
 _WORD = re.compile(r"[a-z]{3,}")
-_STOP = {"the", "and", "for", "with", "how", "what", "why", "when", "should", "does",
-         "can", "are", "was", "were", "this", "that", "have", "has", "from", "into",
-         "leaf", "leaves", "plant", "crop", "disease", "farm", "help", "please"}
+# Expanded stop words to reduce retrieval bias. Generic crop and disease terms
+# that appear in *many* cards should not drive retrieval — they'd give
+# artificially high match scores to cards that simply mention them often
+# (e.g. "Maize — Common Rust" was always winning because "common" and "rust"
+# are generic words).
+_STOP = {
+    "the", "and", "for", "with", "how", "what", "why", "when", "should", "does",
+    "can", "are", "was", "were", "this", "that", "have", "has", "from", "into",
+    "leaf", "leaves", "plant", "crop", "disease", "farm", "help", "please",
+    "about", "tell", "more", "treat", "treatment", "cure", "cause", "prevent",
+    "control", "spray", "apply", "use", "much", "often", "which", "best",
+    "common", "affected", "infection", "infected", "damage", "damaged",
+    "problem", "issue", "solution", "remedy", "organic", "chemical",
+    "fungicide", "pesticide", "fertilizer", "fertiliser", "soil", "water",
+}
 
 
 @lru_cache
@@ -45,16 +57,34 @@ def _retrieve(question: str, last_class: str | None) -> list[tuple[str, dict]]:
     else:
         picked = []
     qk = _keywords(question)
+    if not qk:
+        # All tokens were stop words — fall back to the last-class card or nothing
+        return picked[:2]
     scored = []
     for key, card in cards.items():
-        hay = f"{key} {card.get('crop','')} {card.get('disease','')} {card.get('symptoms','')}"
-        score = len(qk & _keywords(hay))
-        if score:
-            scored.append((score, key, card))
+        hay = f"{key} {card.get('crop','')} {card.get('disease','')}"
+        hay_kw = _keywords(hay)
+        # Require at least one keyword match in the card name / crop / disease
+        name_score = len(qk & hay_kw)
+        if not name_score:
+            continue
+        # Bonus from symptom text, but capped to avoid symptom text dominating
+        symptom_kw = _keywords(card.get("symptoms", ""))
+        symptom_bonus = min(len(qk & symptom_kw), 2)
+        total = name_score + symptom_bonus
+        scored.append((total, key, card))
     scored.sort(reverse=True)
+
+    # Deduplicate: avoid picking two cards from the same crop unless they're
+    # clearly different diseases
+    crops_seen: dict[str, int] = {}
     for _, key, card in scored:
         if all(key != k for k, _ in picked):
+            crop = card.get("crop", "").lower()
+            if crops_seen.get(crop, 0) >= 1 and len(picked) >= 1:
+                continue  # skip second card from the same crop
             picked.append((key, card))
+            crops_seen[crop] = crops_seen.get(crop, 0) + 1
         if len(picked) >= 2:
             break
     return picked[:2]
@@ -68,27 +98,95 @@ def _plot_context(plot: dict | None) -> str:
     if s.get("texture_class"):
         bits.append(f"soil: {s['texture_class']}, pH {s.get('ph')}, "
                     f"organic carbon {s.get('organic_carbon_pct')}%")
+        try:
+            from .recommend import recommend_crops
+            from ..models.soil import SoilProfile
+            sp = SoilProfile(**s)
+            rec = recommend_crops(sp, season="Any")
+            if rec and rec.ranked:
+                top_crops = [c.crop for c in rec.ranked[:3]]
+                bits.append(f"best crops to grow here: {', '.join(top_crops)}")
+        except Exception as e:
+            log.warning("Could not add crops to context: %s", e)
     return "; ".join(bits)
 
 
-def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: str) -> str:
+# Localized fallback answer templates for when Gemini is unavailable
+_FALLBACK_TEMPLATES = {
+    "en": {
+        "no_card": (
+            "I don't have a specific card for that yet. In general: scout your crop "
+            "weekly, keep foliage dry, rotate crops, and match fertiliser to a soil test. "
+            "Scan an affected leaf for a specific diagnosis."
+        ),
+        "signs": "Signs",
+        "organic": "Organic control",
+        "chemical": "Chemical control",
+        "prevention": "Prevention",
+        "plot_advice": "For your plot ({ctx}) follow the soil advice in the plot page too.",
+        "crops_answer": "Based on your soil profile, the best crops to grow here are: {crops}. {plot_advice}",
+    },
+    "hi": {
+        "no_card": (
+            "इसके लिए मेरे पास अभी कोई विशेष जानकारी नहीं है। सामान्य सुझाव: हर हफ्ते फसल की जांच करें, "
+            "पत्तियां सूखी रखें, फसल चक्र अपनाएं, और मिट्टी परीक्षण के अनुसार खाद डालें। "
+            "सटीक निदान के लिए प्रभावित पत्ती को स्कैन करें।"
+        ),
+        "signs": "लक्षण",
+        "organic": "जैविक नियंत्रण",
+        "chemical": "रासायनिक नियंत्रण",
+        "prevention": "रोकथाम",
+        "plot_advice": "आपके खेत ({ctx}) के लिए, प्लॉट पेज पर मिट्टी की सलाह भी देखें।",
+        "crops_answer": "आपकी मिट्टी के अनुसार, यहाँ उगाने के लिए सबसे अच्छी फसलें हैं: {crops}। {plot_advice}",
+    },
+    "gu": {
+        "no_card": (
+            "આ માટે મારી પાસે હજુ સુધી કોઈ ચોક્કસ માહિતી નથી. સામાન્ય સૂચનાઓ: દર અઠવાડિયે "
+            "પાકની તપાસ કરો, પાંદડા સૂકા રાખો, પાક ફેરફાર કરો, અને માટી પરીક્ષણ પ્રમાણે ખાતર નાખો. "
+            "ચોક્કસ નિદાન માટે અસરગ્રસ્ત પાંદડાને સ્કેન કરો."
+        ),
+        "signs": "લક્ષણો",
+        "organic": "જૈવિક નિયંત્રણ",
+        "chemical": "રાસાયણિક નિયંત્રણ",
+        "prevention": "નિવારણ",
+        "plot_advice": "તમારા ખેતર ({ctx}) માટે, પ્લોટ પેજ પર માટી સલાહ પણ જુઓ.",
+        "crops_answer": "તમારી માટી પ્રમાણે, અહીં ઉગાડવા માટે શ્રેષ્ઠ પાક છે: {crops}. {plot_advice}",
+    },
+}
+
+
+def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: str, lang: str = "en") -> str:
+    tmpl = _FALLBACK_TEMPLATES.get(lang, _FALLBACK_TEMPLATES["en"])
+    
     if not picked:
-        return ("I don't have a specific card for that yet. In general: scout your crop "
-                "weekly, keep foliage dry, rotate crops, and match fertiliser to a soil test. "
-                "Scan an affected leaf for a specific diagnosis.")
+        q_low = question.lower()
+        import re
+        en_match = re.search(r"\b(what|which|best|suggest|recommend|suitable|top)\s+(crop|plant|seed)s?\b|\bwhat\s+to\s+(grow|plant|sow)\b|\bbest\s+(crop|plant)s?\s+to\s+(grow|plant)\b", q_low)
+        hi_match = re.search(r"(कौन\s*सी|क्या|सबसे\s*अच्छी|सुझाव).*(फसल|उगा|लगा)", q_low)
+        gu_match = re.search(r"(કયો|કઈ|શું|શ્રેષ્ઠ|સૂચન).*(પાક|વાવ|ઉગાડ)", q_low)
+        disease_match = re.search(r"\b(not|isnt|isn't|arent|aren't|dying|sick|disease|pest|bug|yellow|rot|problem)\b|रोग|बीमारी|खराब|રોગ|જીવાત", q_low)
+        
+        asking_crops = (en_match or hi_match or gu_match) and not disease_match
+
+        if asking_crops and plot_ctx and "best crops to grow here: " in plot_ctx:
+            crops = plot_ctx.split("best crops to grow here: ")[-1]
+            base_plot = plot_ctx.split(";")[0]
+            plot_advice = tmpl["plot_advice"].format(ctx=base_plot)
+            return tmpl["crops_answer"].format(crops=crops, plot_advice=plot_advice)
+        return tmpl["no_card"]
     key, c = picked[0]
-    name = c.get("disease") or f"healthy {c.get('crop','crop')}"
-    lines = [f"{c.get('crop','')} — {name}".strip(" —")]
+    name = c.get("disease") or f"healthy {c.get('crop', 'crop')}"
+    lines = [f"{c.get('crop', '')} — {name}".strip(" —")]
     if c.get("symptoms"):
-        lines.append(f"Signs: {c['symptoms']}")
+        lines.append(f"{tmpl['signs']}: {c['symptoms']}")
     if c.get("organic"):
-        lines.append(f"Organic control: {c['organic']}")
+        lines.append(f"{tmpl['organic']}: {c['organic']}")
     if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
-        lines.append(f"Chemical control: {c['chemical']}")
+        lines.append(f"{tmpl['chemical']}: {c['chemical']}")
     if c.get("prevention"):
-        lines.append(f"Prevention: {c['prevention']}")
+        lines.append(f"{tmpl['prevention']}: {c['prevention']}")
     if plot_ctx:
-        lines.append(f"For your plot ({plot_ctx}) follow the soil advice in the plot page too.")
+        lines.append(tmpl["plot_advice"].format(ctx=plot_ctx))
     return "\n\n".join(lines)
 
 
@@ -99,10 +197,10 @@ async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
         import google.generativeai as genai
 
         genai.configure(api_key=s.gemini_api_key)
-        model = genai.GenerativeModel(s.gemini_model)
+        model = genai.GenerativeModel("gemini-flash-latest")
         prompt = (
             "You are a careful, practical agricultural advisor for small farmers in India. "
-            "Answer ONLY using the CONTEXT below. If the context does not cover it, say so briefly. "
+            "Use the CONTEXT below to ground your answer if relevant. If the context does not cover it, provide general, safe agronomic advice based on your own knowledge. "
             f"Reply in {lang_name}, in plain language, 4-6 short sentences, no markdown headings.\n\n"
             f"CONTEXT:\n{context}\n\nQUESTION: {question}"
         )
@@ -132,5 +230,5 @@ async def answer_question(
         llm = await _gemini_answer(question, context, lang)
         if llm:
             return AssistantAnswer(answer=llm, grounded_on=grounded_on, used_llm=True, lang=lang)
-    answer = _fallback_answer(question, picked, plot_ctx)
+    answer = _fallback_answer(question, picked, plot_ctx, lang)
     return AssistantAnswer(answer=answer, grounded_on=grounded_on, used_llm=used_llm, lang=lang)
