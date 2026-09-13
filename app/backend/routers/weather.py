@@ -19,5 +19,5 @@ async def weather_advice(req: WeatherAdviceRequest) -> WeatherAdvice:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Weather service unavailable: {exc}")
     return build_advice(
         req.lat, req.lon, forecast,
-        last_disease=req.last_disease, crop=req.crop, stage=req.stage,
+        last_disease=req.last_disease, crop=req.crop, stage=req.stage, lang=req.lang,
     )
