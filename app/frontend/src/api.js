@@ -84,6 +84,7 @@ export const api = {
   updatePlot: (id, b) => request(`/plots/${id}`, { method: "PATCH", body: b }),
   deletePlot: (id) => request(`/plots/${id}`, { method: "DELETE" }),
   refreshSoil: (id) => request(`/plots/${id}/refresh-soil`, { method: "POST" }),
+  getSoilStatus: (id) => request(`/plots/${id}/soil-status`),
   timeline: (id, lang) => request(`/plots/${id}/timeline${lang ? `?lang=${lang}` : ""}`),
 
   // scan / diagnoses

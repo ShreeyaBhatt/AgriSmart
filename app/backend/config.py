@@ -25,12 +25,11 @@ class Settings(BaseSettings):
     # a couple of retries usually lands real data before the offline fallback.
     soilgrids_max_retries: int = 3
     # Hard ceiling on the whole SoilGrids phase of a lookup (properties +
-    # classification, retries included) — profiled a real cold lookup at
-    # 50-60s+ during an ISRIC slowdown (single requests took 20-30s each,
-    # sometimes timing out, then multiplied by retries). Past this, give up
-    # and use the offline sample rather than let one request's retries run
-    # unbounded; see soil_offline_cache_ttl_s below for why that's fast too.
-    soilgrids_deadline_s: float = 18.0
+    # classification, retries included). ISRIC's API can be slow — observed
+    # ~27s on a normal day from South Asia; set comfortably above that.
+    # Past this, give up and use the offline sample rather than let one
+    # request's retries run unbounded; see soil_offline_cache_ttl_s below.
+    soilgrids_deadline_s: float = 45.0
 
     # --- Nominatim (reverse geocode -> district for SHC enrichment) ---
     nominatim_base_url: str = "https://nominatim.openstreetmap.org"
