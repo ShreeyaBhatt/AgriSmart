@@ -154,7 +154,7 @@ Copy `.env.example` to `.env` in the repo root and populate the values you need 
 | Type | Scope |
 |---|---|
 | **Registered Farmer** | Signs in with phone + OTP. Plots, scans, and activity logs are saved to their account and persist across sessions. |
-| **Guest** | Explores the app — scan a leaf, check weather advice, ask the assistant — without creating an account. Nothing is saved beyond the session. |
+| **Guest** | Explores the app — scan a leaf, check weather advice, ask the assistant — without creating an account. Plots, scans, and logs are saved just like a registered farmer's, but reachable only through the login token held in that browser; clearing site data or switching devices loses access to them. Adding a phone number from Settings at any time attaches that same data to a proper phone-verified account instead of losing it. |
 
 There are no admin or multi-user family roles in this build; each farmer's data is private to their own account.
 
@@ -162,9 +162,11 @@ There are no admin or multi-user family roles in this build; each farmer's data 
 
 - **Crop-Disease Detection** — a photo of a leaf returns a disease label, a Grad-CAM overlay showing where the model focused, and an explicit "not confident" result when the prediction falls below threshold, rather than a forced guess.
 - **Soil-Aware Crop Recommendation** — a plot's GPS coordinates are resolved against SoilGrids 2.0 and the Soil Health Card to get real texture, pH, and N-P-K values, which then drive crop-fit and amendment suggestions.
-- **Weather Advisory** — a 3-day Open-Meteo forecast is passed through a rule engine that turns raw weather data into a specific action for the farmer.
+- **Weather Advisory** — a 3-day Open-Meteo forecast is passed through a rule engine that turns raw weather data into a specific action for the farmer, from irrigation timing to wind/rain warnings to proactive "good weather window" tips.
 - **Sustainability Scoring** — each plot is scored against a published, reproducible formula, with concrete tips attached to raise the score.
 - **Farm Assistant** — a grounded RAG pipeline over a disease-card knowledge base plus the farmer's own plot data, answering in English, Hindi, or Gujarati, with voice input and output. Runs on Gemini when a key is configured, or fully offline otherwise. Voice input is transcribed locally by this backend (faster-whisper) rather than a cloud speech API, so it keeps working with no internet beyond reaching your own server.
+- **Multilingual, Theme-Aware UI** — navigation, weather advice, sustainability tips, disease/diagnosis labels, and the plot activity timeline all work in English, Hindi, or Gujarati, with a language switcher and light/dark theme toggle available from the login screen and Settings.
+- **Guest → Registered, No Data Loss** — a guest isn't stuck choosing between trying the app and keeping their data: adding a phone number from Settings at any point attaches it to their *existing* account in place, so every plot, scan, and log they already have stays exactly where it was.
 
 ## Disease Coverage
 
