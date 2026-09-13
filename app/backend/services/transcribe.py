@@ -10,6 +10,7 @@ import for the disease-scan model).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import tempfile
 from functools import lru_cache
@@ -80,3 +81,16 @@ def transcribe(audio_bytes: bytes, suffix: str, lang: str = "en") -> str:
         return text
     finally:
         Path(path).unlink(missing_ok=True)
+
+
+async def warm_up() -> None:
+    """Loads the Whisper model at server startup instead of on whoever's
+    first recording — profiled at 100+ seconds on a machine with no local
+    model cache yet (a real download, not just a load-into-memory), which
+    is exactly the kind of wait the mic button shouldn't ever produce for
+    a real user. Best-effort: a failure here just means the first real
+    recording pays the load cost instead, same as before this existed."""
+    try:
+        await asyncio.to_thread(_model)
+    except Exception as exc:
+        log.warning("Whisper warm-up skipped (voice input will still work, just slower on the first use): %s", exc)

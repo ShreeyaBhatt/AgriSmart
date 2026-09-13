@@ -194,14 +194,25 @@ def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: st
     return "\n\n".join(lines)
 
 
-async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
+@lru_cache
+def _gemini_model():
+    """Configuring the SDK and building the model object turns out to carry
+    most of the "why is voice assistance slow" cost — profiling showed a
+    fresh process paying ~9-10s here on its *first* call alone, separate
+    from actual generation time (measured ~4-6s). Caching this means that
+    cost is paid once (ideally at server startup via warm_up() below), not
+    on whichever request happens to be first."""
+    import google.generativeai as genai
+
     s = get_settings()
+    genai.configure(api_key=s.gemini_api_key)
+    return genai.GenerativeModel(s.gemini_model)
+
+
+async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
     lang_name = {"en": "English", "hi": "Hindi", "gu": "Gujarati"}.get(lang, "English")
     try:
-        import google.generativeai as genai
-
-        genai.configure(api_key=s.gemini_api_key)
-        model = genai.GenerativeModel("gemini-flash-latest")
+        model = _gemini_model()
         prompt = (
             "You are a careful, practical agricultural advisor for small farmers in India. "
             "Use the CONTEXT below to ground your answer if relevant. If the context does not cover it, provide general, safe agronomic advice based on your own knowledge. "
@@ -238,3 +249,20 @@ async def answer_question(
             return AssistantAnswer(answer=llm, grounded_on=grounded_on, used_llm=True, lang=lang)
     answer = _fallback_answer(question, picked, plot_ctx, lang)
     return AssistantAnswer(answer=answer, grounded_on=grounded_on, used_llm=used_llm, lang=lang)
+
+
+async def warm_up() -> None:
+    """Pays the one-time google-generativeai import + gRPC-channel-setup
+    cost — profiled at roughly 9-15s on a cold process, separate from the
+    ~4-6s actual generation time — at server startup instead of on
+    whichever farmer's question happens to arrive first. A missing/invalid
+    key or a flaky network just means this is skipped; that's not fatal,
+    it only means the *first* real question pays the tax this was meant
+    to avoid, same as before this existed."""
+    if not get_settings().gemini_api_key:
+        return
+    try:
+        model = _gemini_model()
+        await model.generate_content_async("Reply with one word: ready")
+    except Exception as exc:
+        log.warning("Gemini warm-up skipped (assistant will still work, just slower on the first question): %s", exc)
