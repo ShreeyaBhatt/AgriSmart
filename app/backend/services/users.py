@@ -75,6 +75,19 @@ async def create_guest() -> User:
     return _to_user(doc)
 
 
+async def link_phone(user_id: str, phone: str) -> User:
+    """Attach a phone number to an existing (guest) user in place, rather than
+    creating a second account — the guest's id doesn't change, so every plot/
+    diagnosis/log already keyed to it stays attached with no data migration."""
+    await users_collection.update_one(
+        {"_id": user_id},
+        {"$set": {"phone": phone, "is_guest": False}},
+    )
+    user = await get_by_id(user_id)
+    assert user is not None  # just written above
+    return user
+
+
 async def complete_profile(user_id: str, *, name: str, location_label: str, primary_crop: str) -> User:
     await users_collection.update_one(
         {"_id": user_id},
