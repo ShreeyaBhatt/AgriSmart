@@ -94,6 +94,10 @@ class Settings(BaseSettings):
     def crop_suitability_path(self) -> Path:
         return self.data_dir / "crop_suitability.json"
 
+    @property
+    def frontend_dist_dir(self) -> Path:
+        return REPO_ROOT / "app" / "frontend" / "dist"
+
 
 @lru_cache
 def get_settings() -> Settings:

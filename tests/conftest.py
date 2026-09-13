@@ -14,7 +14,7 @@ _TMP.mkdir(exist_ok=True)
 _DB = _TMP / "test.db"
 os.environ["AGRISMART_DATABASE_URL"] = f"sqlite+aiosqlite:///{_DB.as_posix()}"
 os.environ["AGRISMART_UPLOADS_DIR"] = str(_TMP / "uploads")
-os.environ["AGRISMART_JWT_SECRET"] = "test-secret"
+os.environ["AGRISMART_JWT_SECRET"] = "test-secret-at-least-32-chars-long-for-hmac-sha256"
 os.environ["AGRISMART_GEMINI_API_KEY"] = ""  # force the offline assistant path
 os.environ["AGRISMART_MONGO_URL"] = "mongomock://localhost"  # in-memory fake, no real server
 
