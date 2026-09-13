@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from .soil import SoilProfile
@@ -11,6 +13,7 @@ class RecommendRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lon: float = Field(..., ge=-180, le=180)
     season: str | None = Field(None, description="kharif | rabi | zaid (optional)")
+    lang: Literal["en", "hi", "gu"] = "en"
 
 
 class Amendment(BaseModel):
