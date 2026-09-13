@@ -7,6 +7,7 @@ C (weather), D (sustainability), E (GenAI assistant).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -18,6 +19,8 @@ from fastapi.staticfiles import StaticFiles
 from .config import get_settings
 from .db import init_db
 from .mongo import init_mongo_indexes
+from .services import assistant as assistant_service
+from .services import transcribe as transcribe_service
 from .routers import (
     assistant,
     auth,
@@ -41,6 +44,11 @@ async def lifespan(_: FastAPI):
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
     await init_db()
     await init_mongo_indexes()
+    # Both pay a real one-time cost (Whisper model load, Gemini SDK/channel
+    # setup) on whichever request happens to be first otherwise — see the
+    # docstrings on warm_up() in each service. Run together since they're
+    # independent, so startup pays max(whisper, gemini), not their sum.
+    await asyncio.gather(transcribe_service.warm_up(), assistant_service.warm_up())
     yield
 
 
