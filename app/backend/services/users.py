@@ -101,3 +101,16 @@ async def complete_profile(user_id: str, *, name: str, location_label: str, prim
     user = await get_by_id(user_id)
     assert user is not None  # just written above
     return user
+
+
+async def update_profile(user_id: str, **fields: str) -> User:
+    """Partial update for editing profile fields after signup — unlike
+    complete_profile, only sets what's actually passed and never touches
+    onboarding_complete. Fields with a None value are dropped, so callers
+    can pass a fully-optional request body straight through."""
+    changes = {k: v for k, v in fields.items() if v is not None}
+    if changes:
+        await users_collection.update_one({"_id": user_id}, {"$set": changes})
+    user = await get_by_id(user_id)
+    assert user is not None
+    return user

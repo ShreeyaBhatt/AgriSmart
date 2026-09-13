@@ -71,7 +71,7 @@ AgriSmart-AI/
 ├── data/            disease_cards.json · crop_suitability.json · soil_amendments.json · samples/
 ├── docs/            soil_sources · weather_rules · sustainability
 ├── report/          model_report.md (generated)
-└── tests/           47 tests (pytest)
+└── tests/           51 tests (pytest)
 ```
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:4C7A3D,100:E3A857&height=3&width=100%25" alt="divider"/>
@@ -130,7 +130,7 @@ python model/evaluate.py --dir data/plantvillage --out report/model_report.md
 ## Testing
 
 ```bash
-# Backend — pytest, 47 tests covering soil, auth, plots, predict, and modules C/D/E.
+# Backend — pytest, 51 tests covering soil, auth, plots, predict, and modules C/D/E.
 # MongoDB calls are swapped for an in-memory mongomock-motor client, so no real
 # database is required to run the suite.
 pytest -q
@@ -178,7 +178,7 @@ For evaluation, results are reported at two levels: **per-class** precision/reca
 |---|---|---|
 | Macro-F1 (15% held-out validation) | **0.966** | lab-condition images, same distribution as training |
 | Accuracy (15% held-out validation) | **0.967** | " |
-| Tests passing | **47 / 47** | `pytest -q` |
+| Tests passing | **51 / 51** | `pytest -q` |
 
 These are lab-image numbers; the real benchmark is lab-to-field generalisation, which is what the training augmentation and abstention logic are built for.
 

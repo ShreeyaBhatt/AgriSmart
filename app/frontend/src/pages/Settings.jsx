@@ -1,4 +1,5 @@
 import { useState } from "react";
+import clsx from "clsx";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import OtpInput from "../components/OtpInput.jsx";
@@ -6,6 +7,7 @@ import { LANGUAGES } from "../i18n/strings.js";
 import { useLang, useT } from "../i18n/useT.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "../theme/useTheme.js";
+import { KNOWN_CROPS } from "../lib/crops.js";
 
 const THEMES = [
   { value: "light", icon: "sun", key: "settings.light" },
@@ -17,6 +19,77 @@ const FIELD =
 
 const BUTTON =
   "rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint";
+
+/** Sets/edits the primary crop shown on the dashboard. Signup only ever
+ * offered one shot at this for phone users, and a guest never saw the
+ * picker at all — this is the only place either can set or change it now. */
+function CropCard({ t, user }) {
+  const { updateProfile } = useAuth();
+  const known = user?.primary_crop && KNOWN_CROPS.includes(user.primary_crop);
+  const [crop, setCrop] = useState(user?.primary_crop ? (known ? user.primary_crop : t("login.cropOther")) : "");
+  const [cropOther, setCropOther] = useState(known ? "" : user?.primary_crop || "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const value = crop === t("login.cropOther") ? cropOther : crop;
+  const dirty = Boolean(value) && value !== (user?.primary_crop || "");
+
+  const save = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      await updateProfile({ primary_crop: value });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setError(err.detail || err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="p-4">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("login.cropLabel")}</div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {[...KNOWN_CROPS, t("login.cropOther")].map((c) => {
+          const active = crop === c;
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCrop(c)}
+              className={clsx(
+                "rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition",
+                active
+                  ? "bg-brand-600 text-white ring-brand-600"
+                  : "bg-surface text-muted ring-line hover:bg-brand-50 hover:text-brand-700"
+              )}
+            >
+              {c}
+            </button>
+          );
+        })}
+      </div>
+      {crop === t("login.cropOther") && (
+        <input
+          className={FIELD + " mt-2"}
+          placeholder={t("login.cropOtherPlaceholder")}
+          value={cropOther}
+          onChange={(e) => setCropOther(e.target.value)}
+        />
+      )}
+      {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
+      <div className="mt-3 flex items-center gap-2">
+        <button onClick={save} disabled={busy || !dirty} className={BUTTON}>
+          {busy ? "…" : t("action.save")}
+        </button>
+        {saved && <Icon name="check" className="h-4 w-4 text-brand-600" />}
+      </div>
+    </Card>
+  );
+}
 
 /** Guest-only card for attaching a phone number to the current account, so
  * plots/scans survive a logout or a new device. */
@@ -161,6 +234,8 @@ export default function Settings() {
           </div>
         </div>
       </Card>
+
+      <CropCard t={t} user={user} />
 
       {user?.is_guest && <GuestUpgradeCard t={t} onLinked={setLinkedPhone} />}
 

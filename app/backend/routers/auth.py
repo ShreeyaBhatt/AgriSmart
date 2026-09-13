@@ -12,6 +12,7 @@ from ..models.auth import (
     OtpRequestOut,
     OtpVerifyRequest,
     TokenResponse,
+    UpdateProfileRequest,
     UserOut,
 )
 from ..models.user import User
@@ -72,6 +73,22 @@ async def complete_profile(
     body: CompleteProfileRequest, user: User = Depends(get_current_user)
 ) -> UserOut:
     updated = await users_repo.complete_profile(
+        user.id,
+        name=body.name,
+        location_label=body.location_label,
+        primary_crop=body.primary_crop,
+    )
+    return UserOut.model_validate(updated, from_attributes=True)
+
+
+@router.patch("/profile", response_model=UserOut)
+async def update_profile(
+    body: UpdateProfileRequest, user: User = Depends(get_current_user)
+) -> UserOut:
+    """Edit profile fields after signup — complete-profile is one-shot at
+    onboarding, this is the only way to change them afterward, and the only
+    way a guest (who skips onboarding entirely) ever gets a primary_crop."""
+    updated = await users_repo.update_profile(
         user.id,
         name=body.name,
         location_label=body.location_label,

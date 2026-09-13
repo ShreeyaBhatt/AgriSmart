@@ -28,6 +28,7 @@ export default function Assistant() {
   const [transcribing, setTranscribing] = useState(false);
   const [speak, setSpeak] = useState(true);
   const [micError, setMicError] = useState("");
+  const [voiceWarning, setVoiceWarning] = useState("");
   const endRef = useRef(null);
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -49,8 +50,20 @@ export default function Assistant() {
 
   const say = (text) => {
     if (!speak || !window.speechSynthesis) return;
+    const target = LOCALE[lang] || "en-IN";
+    // getVoices() can legitimately come back empty before the browser has
+    // finished loading its voice list (no voiceschanged listener here to
+    // keep this simple) — only treat an actually-populated list with no
+    // match as "this device has nothing for Hindi/Gujarati", not a load race.
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0 && !voices.some((v) => v.lang === target || v.lang.startsWith(target.slice(0, 2)))) {
+      setVoiceWarning(t("assistant.noVoiceForLang"));
+      return;
+    }
+    setVoiceWarning("");
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = LOCALE[lang] || "en-IN";
+    u.lang = target;
+    u.onerror = () => setVoiceWarning(t("assistant.noVoiceForLang"));
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   };
@@ -202,6 +215,11 @@ export default function Assistant() {
         {micError && (
           <p className="border-t border-line bg-rose-50 px-3 py-1.5 text-center text-xs text-rose-600">
             {micError}
+          </p>
+        )}
+        {voiceWarning && (
+          <p className="border-t border-line bg-earth-400/10 px-3 py-1.5 text-center text-xs text-earth-600">
+            {voiceWarning}
           </p>
         )}
         <form

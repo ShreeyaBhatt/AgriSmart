@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from pathlib import Path
@@ -63,7 +64,10 @@ async def predict(
 
     try:
         from model.infer import run_inference  # lazy: torch only loaded when scanning
-        result = run_inference(str(image_path), gradcam_out=gradcam_path, lang=lang)
+        # run_inference is a synchronous, CPU-bound torch forward pass — off the
+        # event loop so one person's scan doesn't stall every other request
+        # (weather, soil, everything) for its whole duration.
+        result = await asyncio.to_thread(run_inference, str(image_path), gradcam_out=gradcam_path, lang=lang)
     except FileNotFoundError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
                             f"The disease model is not trained yet. {exc}")

@@ -32,6 +32,10 @@ except ImportError:  # run as a script
 
 ARTIFACTS_DIR = Path(os.getenv("AGRISMART_MODEL_ARTIFACTS_DIR",
                                str(Path(__file__).resolve().parent / "artifacts")))
+# Single global cutoff for every class alike. Confident-wrong predictions
+# have been reported in the field (see team notes) — worth investigating
+# per-class thresholds and validating temperature scaling against a held-out
+# calibration set rather than tuning this one number further.
 TAU = float(os.getenv("AGRISMART_ABSTAIN_TAU", "0.40"))
 
 _MODEL = None

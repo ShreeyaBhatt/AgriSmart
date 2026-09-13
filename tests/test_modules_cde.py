@@ -35,22 +35,37 @@ def test_weather_fungal_plus_humidity_triggers_spray():
     assert any("fungal" in a.headline.lower() and a.severity == "act" for a in adv.actions)
 
 
-def test_weather_quiet_forecast_is_info_only():
+def test_weather_good_conditions_get_a_proactive_recommendation():
+    # Calm, dry, moderate weather hits all three "good window" conditions at
+    # once (ideal for spraying, weeding/sowing, and harvesting) — the rule
+    # engine leads with that positive nudge rather than a bland "nothing to
+    # do", so this isn't the info-only case.
     adv = build_advice(1, 2, _forecast())
+    assert len(adv.actions) == 1 and adv.actions[0].severity == "recommend"
+    assert adv.actions[0].headline == "Good weather — take action"
+
+
+def test_weather_mediocre_forecast_is_info_only():
+    # Nothing bad enough to warn about, but not clearly good either (cool and
+    # a bit breezy) — no rule fires either way, so this is the actual
+    # info-only fallback.
+    adv = build_advice(1, 2, _forecast(tmax=15, wind=20))
     assert len(adv.actions) == 1 and adv.actions[0].severity == "info"
 
 
 # --- Module D -------------------------------------------------------------
-def test_sustainability_perfect_practice_scores_high():
-    s = compute_score(SustainabilityRequest(
+@pytest.mark.asyncio
+async def test_sustainability_perfect_practice_scores_high():
+    s = await compute_score(SustainabilityRequest(
         water_used_mm=300, water_recommended_mm=300,
         chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
     assert s.score == 100.0 and s.band == "excellent"
     assert s.water_overuse_pct == 0 and s.crop_health_pct == 100
 
 
-def test_sustainability_overuse_and_disease_drag_score_down():
-    s = compute_score(SustainabilityRequest(
+@pytest.mark.asyncio
+async def test_sustainability_overuse_and_disease_drag_score_down():
+    s = await compute_score(SustainabilityRequest(
         water_used_mm=600, water_recommended_mm=300,
         chemical_used_kg_ha=100, chemical_recommended_kg_ha=50,
         disease_class="Tomato___Late_blight"))

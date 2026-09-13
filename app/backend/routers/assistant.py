@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from pathlib import Path
 
@@ -64,7 +65,10 @@ async def transcribe_audio(
 
     suffix = Path(file.filename or "").suffix or ".webm"
     try:
-        text = transcribe(data, suffix, lang)
+        # transcribe() is a synchronous faster-whisper call (plus a blocking
+        # model load on the very first request) — off the event loop so it
+        # doesn't stall other requests for its duration.
+        text = await asyncio.to_thread(transcribe, data, suffix, lang)
     except Exception as exc:  # missing model deps, corrupt audio, decode failure
         log.exception("transcription failed")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Transcription failed: {exc}")
