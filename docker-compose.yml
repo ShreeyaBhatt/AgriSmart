@@ -1,0 +1,46 @@
+services:
+  agrismart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: agrismart-ai:latest
+    container_name: agrismart-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - AGRISMART_MONGO_URL=mongodb://mongo:27017
+      - AGRISMART_DATABASE_URL=sqlite+aiosqlite:////app/data_store/agrismart.db
+      - AGRISMART_UPLOADS_DIR=/app/uploads
+      - AGRISMART_JWT_SECRET=${AGRISMART_JWT_SECRET:-production-jwt-secret-replace-in-env-with-32-chars}
+      - AGRISMART_GEMINI_API_KEY=${AGRISMART_GEMINI_API_KEY:-}
+      - AGRISMART_GEMINI_MODEL=${AGRISMART_GEMINI_MODEL:-gemini-flash-latest}
+    volumes:
+      - agrismart_db:/app/data_store
+      - agrismart_uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:7-jammy
+    container_name: agrismart-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  agrismart_db:
+    driver: local
+  agrismart_uploads:
+    driver: local
+  mongo_data:
+    driver: local

@@ -84,7 +84,23 @@ AgriSmart-AI/
 - Node.js 18+
 - MongoDB (local instance, or `docker run -p 27017:27017 mongo`) — needed for accounts, not for the test suite
 
-### 1. Backend (FastAPI)
+### 1. Run with Docker (Fastest — Zero Setup)
+
+Anyone can immediately run the application with a single command:
+
+```bash
+# Option A: Standalone Docker (Runs app + in-memory store on port 8000)
+docker run -p 8000:8000 ghcr.io/shreeyabhatt/agrismart:latest
+
+# Option B: Full Stack with persistent MongoDB via Docker Compose
+docker compose up -d
+```
+
+Visit `http://localhost:8000` to access the full UI and API documentation at `http://localhost:8000/docs`.
+
+### 2. Manual Local Setup
+
+#### Backend (FastAPI)
 
 ```bash
 cd .
@@ -94,7 +110,7 @@ python -m uvicorn app.backend.main:app --reload   # http://127.0.0.1:8000/docs
 
 First run creates `agrismart.db` (SQLite) and an `uploads/` folder — no extra setup required. The disease model ships already trained in `model/artifacts/`, so `/predict` works immediately.
 
-### 2. Frontend (React)
+#### Frontend (React Dev Server)
 
 ```bash
 cd app/frontend
