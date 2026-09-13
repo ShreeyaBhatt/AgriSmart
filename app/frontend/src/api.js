@@ -73,6 +73,7 @@ export const api = {
     request("/auth/otp/verify", { method: "POST", body: { phone, otp }, auth: false }),
   continueAsGuest: () => request("/auth/guest", { method: "POST", auth: false }),
   completeProfile: (b) => request("/auth/complete-profile", { method: "POST", body: b }),
+  linkPhone: (phone, otp) => request("/auth/link-phone", { method: "POST", body: { phone, otp } }),
   me: () => request("/auth/me"),
 
   // plots

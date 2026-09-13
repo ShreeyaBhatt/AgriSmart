@@ -64,10 +64,14 @@ export default function Dashboard() {
       </Card>
 
       {user?.is_guest && (
-        <div className="flex items-center gap-2.5 rounded-xl bg-earth-400/10 px-4 py-2.5 text-sm text-earth-600 ring-1 ring-earth-400/20">
+        <Link
+          to="/settings"
+          className="flex items-center gap-2.5 rounded-xl bg-earth-400/10 px-4 py-2.5 text-sm text-earth-600 ring-1 ring-earth-400/20 transition hover:bg-earth-400/15"
+        >
           <Icon name="alert" className="h-4 w-4 shrink-0" />
-          {t("dashboard.guestBanner")}
-        </div>
+          <span className="flex-1">{t("dashboard.guestBanner")}</span>
+          <Icon name="chevronRight" className="h-4 w-4 shrink-0" />
+        </Link>
       )}
 
       {plots !== null && plots.length > 0 && (
