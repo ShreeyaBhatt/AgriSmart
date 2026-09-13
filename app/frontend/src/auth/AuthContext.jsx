@@ -50,6 +50,13 @@ export function AuthProvider({ children }) {
       setUser(updated);
       return updated;
     },
+    // Attaches a phone to the current guest account in place — same user id,
+    // so nothing they scanned/saved as a guest needs to move anywhere.
+    linkPhone: async (phone, otp) => {
+      const updated = await api.linkPhone(phone, otp);
+      setUser(updated);
+      return updated;
+    },
     logout: () => {
       tokenStore.set(null);
       setUser(null);
