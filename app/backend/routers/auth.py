@@ -52,6 +52,22 @@ async def continue_as_guest() -> TokenResponse:
     return _token_response(user, is_new=False)
 
 
+@router.post("/link-phone", response_model=UserOut)
+async def link_phone(body: OtpVerifyRequest, user: User = Depends(get_current_user)) -> UserOut:
+    """Lets a guest add a phone number to their *existing* account instead of
+    losing it — the alternative, verifying that phone through /otp/verify,
+    would look up-or-create a different user and silently orphan everything
+    the guest already saved."""
+    if not user.is_guest:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "This account already has a phone number")
+    if body.otp != get_settings().otp_demo_code:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect OTP")
+    if await users_repo.get_by_phone(body.phone) is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "This phone number is already registered — log in with it instead")
+    updated = await users_repo.link_phone(user.id, body.phone)
+    return UserOut.model_validate(updated, from_attributes=True)
+
+
 @router.post("/complete-profile", response_model=UserOut)
 async def complete_profile(
     body: CompleteProfileRequest, user: User = Depends(get_current_user)
