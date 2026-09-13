@@ -125,7 +125,20 @@ const PATHS = {
     </>
   ),
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
+  arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   refresh: <path d="M20 11a8 8 0 1 0-2.3 5.6M20 5v5h-5" />,
+  checkCircle: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 12 2.5 2.5 4-4.5" />
+    </>
+  ),
+  warning: (
+    <>
+      <path d="M12 3 2 20h20L12 3Z" />
+      <path d="M12 10v4M12 17h.01" />
+    </>
+  ),
   volume: (
     <>
       <path d="M11 5 6 9H3v6h3l5 4V5Z" />

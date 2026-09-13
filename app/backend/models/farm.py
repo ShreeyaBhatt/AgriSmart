@@ -16,11 +16,13 @@ class PlotCreate(BaseModel):
     lat: float = Field(ge=-90, le=90)
     lon: float = Field(ge=-180, le=180)
     area_ha: float | None = Field(default=None, ge=0)
+    main_crop: str | None = Field(default=None, max_length=120)
 
 
 class PlotUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     area_ha: float | None = Field(default=None, ge=0)
+    main_crop: str | None = Field(default=None, max_length=120)
 
 
 class PlotOut(BaseModel):
@@ -29,8 +31,10 @@ class PlotOut(BaseModel):
     lat: float
     lon: float
     area_ha: float | None
+    main_crop: str | None
     soil_snapshot: dict[str, Any] | None
     soil_fetched_at: datetime | None
+    soil_status: str  # pending | ready | failed
     created_at: datetime
 
 
