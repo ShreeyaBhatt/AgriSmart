@@ -16,6 +16,7 @@ class WeatherAdviceRequest(BaseModel):
     crop: str | None = None
     stage: str | None = None
     last_disease: str | None = None
+    lang: Literal["en", "hi", "gu"] = "en"
 
 
 class WeatherAction(BaseModel):
@@ -41,6 +42,7 @@ class SustainabilityRequest(BaseModel):
     chemical_used_kg_ha: float = Field(ge=0, description="fertiliser + pesticide active, kg/ha")
     chemical_recommended_kg_ha: float = Field(gt=0)
     disease_class: str | None = Field(default=None, description="latest diagnosis, or null if healthy")
+    lang: Literal["en", "hi", "gu"] = "en"
 
 
 class SustainabilityScore(BaseModel):
