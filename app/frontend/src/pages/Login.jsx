@@ -118,7 +118,7 @@ function OtpStep({ t, phone, demoOtp, otp, setOtp, busy, error, onVerify, onChan
         <OtpInput value={otp} onChange={setOtp} />
         {error && <p className="text-center text-xs text-rose-600">{error}</p>}
         <button
-          disabled={busy || otp.length < 4}
+          disabled={busy || otp.length !== 6}
           className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
         >
           {busy ? "…" : t("login.verify")}

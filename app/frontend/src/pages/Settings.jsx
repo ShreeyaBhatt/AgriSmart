@@ -192,7 +192,7 @@ function GuestUpgradeCard({ t, onLinked }) {
                   >
                     {t("login.changeNumber")}
                   </button>
-                  <button disabled={busy || otp.length < 4} className={BUTTON}>
+                  <button disabled={busy || otp.length !== 6} className={BUTTON}>
                     {busy ? "…" : t("login.verify")}
                   </button>
                 </div>
