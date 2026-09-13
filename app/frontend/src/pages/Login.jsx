@@ -224,6 +224,19 @@ function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
   );
 }
 
+const isValidPhone = (phone) => {
+  const digits = (phone || "").replace(/[\s\-()]/g, "").replace(/^\+/, "");
+  return /^\d{10,15}$/.test(digits);
+};
+
+const formatAuthError = (err) => {
+  const msg = err?.detail || err?.message || "";
+  if (msg.includes("Value error") || msg.toLowerCase().includes("valid mobile number")) {
+    return "Please enter a valid 10-digit mobile number.";
+  }
+  return msg;
+};
+
 export default function Login() {
   const t = useT();
   const { requestOtp, verifyOtp, continueAsGuest, completeProfile } = useAuth();
@@ -241,6 +254,10 @@ export default function Login() {
 
   const sendOtp = async (e) => {
     e.preventDefault();
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -249,7 +266,7 @@ export default function Login() {
       setOtp("");
       setStep("otp");
     } catch (err) {
-      setError(err.detail || err.message);
+      setError(formatAuthError(err));
     } finally {
       setBusy(false);
     }
@@ -267,7 +284,7 @@ export default function Login() {
         navigate(dest, { replace: true });
       }
     } catch (err) {
-      setError(err.detail || err.message);
+      setError(formatAuthError(err));
     } finally {
       setBusy(false);
     }
