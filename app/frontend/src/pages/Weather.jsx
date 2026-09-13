@@ -7,9 +7,10 @@ import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
 
 const SEV = {
-  act: { chip: "bg-rose-50 text-rose-700 ring-rose-200", dot: "bg-rose-500" },
-  watch: { chip: "bg-amber-50 text-amber-700 ring-amber-200", dot: "bg-amber-500" },
-  info: { chip: "bg-brand-50 text-brand-700 ring-brand-200", dot: "bg-brand-500" },
+  act: { chip: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:ring-rose-800", dot: "bg-rose-500" },
+  watch: { chip: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:ring-amber-800", dot: "bg-amber-500" },
+  info: { chip: "bg-brand-50 text-brand-700 ring-brand-200 dark:bg-brand-950 dark:text-brand-300 dark:ring-brand-800", dot: "bg-brand-500" },
+  recommend: { chip: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-800", dot: "bg-emerald-500" },
 };
 
 export default function Weather() {
@@ -73,10 +74,10 @@ export default function Weather() {
         )}
         {!plotId && (
           <div className="grid grid-cols-2 gap-2">
-            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm outline-none focus:border-brand-400"
+            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
               placeholder={t("common.latitude")} inputMode="decimal"
               value={coords.lat} onChange={(e) => setCoords({ ...coords, lat: e.target.value })} />
-            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm outline-none focus:border-brand-400"
+            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
               placeholder={t("common.longitude")} inputMode="decimal"
               value={coords.lon} onChange={(e) => setCoords({ ...coords, lon: e.target.value })} />
           </div>
@@ -108,7 +109,7 @@ export default function Weather() {
                       {SEV[a.severity] ? t(`weather.severity.${a.severity}`) : a.severity}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-sm text-ink/90">{a.detail}</p>
+                  <p className="mt-1.5 text-sm text-muted">{a.detail}</p>
                 </Card>
               );
             })}

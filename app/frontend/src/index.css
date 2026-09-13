@@ -123,3 +123,8 @@
 .leaflet-container .leaflet-control-attribution {
   font-size: 10px;
 }
+
+/* Location search dropdown — above the Leaflet map's z-index */
+.location-search-dropdown {
+  z-index: 9999;
+}
