@@ -64,6 +64,8 @@ class AssistantRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     plot_id: str | None = None
     lang: Literal["en", "hi", "gu"] = "en"
+    land_unit: Literal["ha", "acre", "bigha", "guntha"] = "ha"
+    bigha_region: str | None = None  # only meaningful when land_unit == "bigha"
 
 
 class AssistantAnswer(BaseModel):

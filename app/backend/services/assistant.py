@@ -16,6 +16,7 @@ from typing import Any
 
 from ..config import get_settings
 from ..models.modules import AssistantAnswer
+from .units import describe_area
 
 log = logging.getLogger(__name__)
 _WORD = re.compile(r"[a-z]{3,}")
@@ -90,11 +91,14 @@ def _retrieve(question: str, last_class: str | None) -> list[tuple[str, dict]]:
     return picked[:2]
 
 
-def _plot_context(plot: dict | None) -> str:
+def _plot_context(plot: dict | None, land_unit: str = "ha", bigha_region: str | None = None) -> str:
     if not plot:
         return ""
     s = plot.get("soil_snapshot") or {}
     bits = [f"Plot '{plot.get('name')}' at {plot.get('lat')},{plot.get('lon')}"]
+    area_label = describe_area(plot.get("area_ha"), land_unit, bigha_region)
+    if area_label:
+        bits.append(f"size: {area_label}")
     if s.get("texture_class"):
         bits.append(f"soil: {s['texture_class']}, pH {s.get('ph')}, "
                     f"organic carbon {s.get('organic_carbon_pct')}%")
@@ -201,6 +205,7 @@ async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
         prompt = (
             "You are a careful, practical agricultural advisor for small farmers in India. "
             "Use the CONTEXT below to ground your answer if relevant. If the context does not cover it, provide general, safe agronomic advice based on your own knowledge. "
+            "If you mention this plot's size, use the figure and unit given in the context as-is — don't convert it to a different unit. "
             f"Reply in {lang_name}, in plain language, 4-6 short sentences, no markdown headings.\n\n"
             f"CONTEXT:\n{context}\n\nQUESTION: {question}"
         )
@@ -212,10 +217,11 @@ async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
 
 
 async def answer_question(
-    question: str, *, lang: str = "en", plot: dict | None = None, last_class: str | None = None
+    question: str, *, lang: str = "en", plot: dict | None = None, last_class: str | None = None,
+    land_unit: str = "ha", bigha_region: str | None = None,
 ) -> AssistantAnswer:
     picked = _retrieve(question, last_class)
-    plot_ctx = _plot_context(plot)
+    plot_ctx = _plot_context(plot, land_unit, bigha_region)
     grounded_on = [k for k, _ in picked] + (["plot"] if plot_ctx else [])
 
     context_parts = []

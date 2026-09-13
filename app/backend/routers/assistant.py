@@ -37,7 +37,7 @@ async def ask(
         if plot and plot.owner_id == user.id:
             plot_ctx = {
                 "name": plot.name, "lat": plot.lat, "lon": plot.lon,
-                "soil_snapshot": plot.soil_snapshot,
+                "area_ha": plot.area_ha, "soil_snapshot": plot.soil_snapshot,
             }
             last = await session.scalar(
                 select(Diagnosis)
@@ -48,7 +48,8 @@ async def ask(
                 last_class = last.predicted_class
 
     return await answer_question(
-        req.question, lang=req.lang, plot=plot_ctx, last_class=last_class
+        req.question, lang=req.lang, plot=plot_ctx, last_class=last_class,
+        land_unit=req.land_unit, bigha_region=req.bigha_region,
     )
 
 
