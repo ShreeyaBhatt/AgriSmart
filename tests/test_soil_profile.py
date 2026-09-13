@@ -1,5 +1,6 @@
 """Normalisation, SHC enrichment, and the offline fallback of the soil pipeline."""
 
+import asyncio
 import json
 
 import pytest
@@ -176,3 +177,54 @@ async def test_build_soil_profile_uses_cache(monkeypatch, sample_doc):
     await sp.build_soil_profile(19.0, 73.0)
     await sp.build_soil_profile(19.0, 73.0)
     assert calls["n"] == 1
+
+
+async def test_build_soil_profile_caches_offline_fallback(monkeypatch, sample_doc):
+    """Regression test: the offline-sample result wasn't cached at all before
+    — every request for a location SoilGrids was failing on independently
+    paid the full retry cost, even the exact same coordinates twice in a
+    row. A second call for the same spot must not re-hit fetch_properties."""
+    calls = {"n": 0}
+
+    async def counting_boom(lat, lon):
+        calls["n"] += 1
+        raise SoilGridsError("network down / all-null payload")
+
+    async def fake_class(lat, lon, number_classes=3):
+        return sample_doc["classification"]
+
+    async def fake_admin(lat, lon):
+        return Admin(None, None, None)
+
+    monkeypatch.setattr(sp, "fetch_properties", counting_boom)
+    monkeypatch.setattr(sp, "fetch_classification", fake_class)
+    monkeypatch.setattr(sp, "reverse_admin", fake_admin)
+
+    p1 = await sp.build_soil_profile(21.0, 74.0)
+    p2 = await sp.build_soil_profile(21.0, 74.0)
+    assert calls["n"] == 1
+    assert p1.source == p2.source == "sample (offline)"
+
+
+async def test_build_soil_profile_respects_deadline(monkeypatch, sample_doc):
+    """A single lookup must never hang past soilgrids_deadline_s, no matter
+    how long the underlying calls take (profiled a real ISRIC slowdown at
+    50-60s+ for one lookup before this existed)."""
+    monkeypatch.setattr(get_settings(), "soilgrids_deadline_s", 0.05)
+
+    async def hangs_forever(lat, lon):
+        await asyncio.sleep(10)
+        return sample_doc["properties"]
+
+    async def fake_class(lat, lon, number_classes=3):
+        return sample_doc["classification"]
+
+    async def fake_admin(lat, lon):
+        return Admin(None, None, None)
+
+    monkeypatch.setattr(sp, "fetch_properties", hangs_forever)
+    monkeypatch.setattr(sp, "fetch_classification", fake_class)
+    monkeypatch.setattr(sp, "reverse_admin", fake_admin)
+
+    profile = await sp.build_soil_profile(21.0, 74.0, use_cache=False)
+    assert profile.source == "sample (offline)"

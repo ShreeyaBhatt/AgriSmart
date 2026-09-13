@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     # ISRIC's REST service is often slow / returns transient all-null payloads;
     # a couple of retries usually lands real data before the offline fallback.
     soilgrids_max_retries: int = 3
+    # Hard ceiling on the whole SoilGrids phase of a lookup (properties +
+    # classification, retries included) — profiled a real cold lookup at
+    # 50-60s+ during an ISRIC slowdown (single requests took 20-30s each,
+    # sometimes timing out, then multiplied by retries). Past this, give up
+    # and use the offline sample rather than let one request's retries run
+    # unbounded; see soil_offline_cache_ttl_s below for why that's fast too.
+    soilgrids_deadline_s: float = 18.0
 
     # --- Nominatim (reverse geocode -> district for SHC enrichment) ---
     nominatim_base_url: str = "https://nominatim.openstreetmap.org"
@@ -69,6 +76,14 @@ class Settings(BaseSettings):
     # --- Caching ---
     soil_cache_ttl_s: int = 60 * 60 * 24 * 30  # 30 days; soil properties are ~static
     soil_cache_precision: int = 4  # round lat/lon to N decimals (~11 m) for the cache key
+    # Profiling found the offline-sample fallback was never cached — only a
+    # *successful* SoilGrids fetch was — so every request during an ISRIC
+    # slowdown independently paid the full retry-and-timeout cost, with zero
+    # relief even for the exact same coordinates queried twice in a row.
+    # Short TTL because unlike real soil data this isn't something that
+    # should be pinned for a month — worth retrying again soon in case
+    # SoilGrids has recovered.
+    soil_offline_cache_ttl_s: int = 60 * 5  # 5 min
 
     # --- Data files ---
     data_dir: Path = REPO_ROOT / "data"
