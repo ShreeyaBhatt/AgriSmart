@@ -47,22 +47,21 @@ def properties_have_values(payload: dict[str, Any]) -> bool:
 
 
 class _Throttle:
-    """Serialises callers and enforces a minimum gap between outbound requests."""
+    """Serialises callers to enforce a minimum gap between outbound requests,
+    without holding the lock during the actual network request.
+    """
 
     def __init__(self, min_interval_s: float) -> None:
         self._min_interval_s = min_interval_s
         self._lock = asyncio.Lock()
         self._last = 0.0
 
-    async def __aenter__(self) -> None:
-        await self._lock.acquire()
-        wait = self._min_interval_s - (time.monotonic() - self._last)
-        if wait > 0:
-            await asyncio.sleep(wait)
-
-    async def __aexit__(self, *exc: object) -> None:
-        self._last = time.monotonic()
-        self._lock.release()
+    async def wait(self) -> None:
+        async with self._lock:
+            wait = self._min_interval_s - (time.monotonic() - self._last)
+            if wait > 0:
+                await asyncio.sleep(wait)
+            self._last = time.monotonic()
 
 
 _throttle: _Throttle | None = None
@@ -80,8 +79,8 @@ async def _get(client: httpx.AsyncClient, url: str, params: Any) -> dict[str, An
     last_exc: Exception | None = None
     for attempt in range(1, settings.soilgrids_max_retries + 1):
         try:
-            async with _get_throttle():
-                resp = await client.get(url, params=params)
+            await _get_throttle().wait()
+            resp = await client.get(url, params=params)
             if resp.status_code == 429 or resp.status_code >= 500:
                 raise httpx.HTTPStatusError("retryable", request=resp.request, response=resp)
             resp.raise_for_status()
@@ -96,18 +95,6 @@ async def _get(client: httpx.AsyncClient, url: str, params: Any) -> dict[str, An
     raise SoilGridsError(f"SoilGrids request failed after retries: {last_exc}") from last_exc
 
 
-_client: httpx.AsyncClient | None = None
-
-def _get_client() -> httpx.AsyncClient:
-    global _client
-    if _client is None:
-        settings = get_settings()
-        _client = httpx.AsyncClient(
-            timeout=settings.soilgrids_timeout_s,
-            headers={"User-Agent": settings.http_user_agent, "Accept": "application/json"},
-        )
-    return _client
-
 async def fetch_properties(lat: float, lon: float) -> dict[str, Any]:
     """Return the raw ``/properties/query`` GeoJSON Feature for a point.
 
@@ -119,15 +106,27 @@ async def fetch_properties(lat: float, lon: float) -> dict[str, Any]:
     params += [("property", p) for p in PROPERTIES]
     params += [("depth", d) for d in DEPTHS]
     url = f"{settings.soilgrids_base_url}/properties/query"
-    client = _get_client()
-    for attempt in range(1, settings.soilgrids_max_retries + 1):
-        payload = await _get(client, url, params)
-        if properties_have_values(payload):
-            return payload
-        log.warning("SoilGrids returned an all-null payload for (%s, %s) "
-                    "(attempt %d/%d)", lat, lon, attempt, settings.soilgrids_max_retries)
-        if attempt < settings.soilgrids_max_retries:
-            await asyncio.sleep(1.5 * attempt)
+    # Use a fresh client per call — the global singleton accumulates stale
+    # keep-alive connections that cause reads to hang until the timeout fires.
+    timeout = httpx.Timeout(
+        connect=10.0,                       # fail fast if the TCP handshake hangs
+        read=settings.soilgrids_timeout_s,  # full budget for the actual data transfer
+        write=10.0,
+        pool=5.0,
+    )
+    async with httpx.AsyncClient(
+        timeout=timeout,
+        headers={"User-Agent": settings.http_user_agent, "Accept": "application/json"},
+        http2=False,   # avoids h2 package requirement + HTTP/2 negotiation hangs on ISRIC
+    ) as client:
+        for attempt in range(1, settings.soilgrids_max_retries + 1):
+            payload = await _get(client, url, params)
+            if properties_have_values(payload):
+                return payload
+            log.warning("SoilGrids returned an all-null payload for (%s, %s) "
+                        "(attempt %d/%d)", lat, lon, attempt, settings.soilgrids_max_retries)
+            if attempt < settings.soilgrids_max_retries:
+                await asyncio.sleep(1.5 * attempt)
     raise SoilGridsError(f"SoilGrids has no usable data for ({lat}, {lon}) after retries")
 
 
@@ -135,5 +134,10 @@ async def fetch_classification(lat: float, lon: float, number_classes: int = 3) 
     """Return the raw ``/classification/query`` payload (WRB soil group) for a point."""
     settings = get_settings()
     params = {"lon": lon, "lat": lat, "number_classes": number_classes}
-    client = _get_client()
-    return await _get(client, f"{settings.soilgrids_base_url}/classification/query", params)
+    timeout = httpx.Timeout(connect=10.0, read=settings.soilgrids_timeout_s, write=10.0, pool=5.0)
+    async with httpx.AsyncClient(
+        timeout=timeout,
+        headers={"User-Agent": settings.http_user_agent, "Accept": "application/json"},
+        http2=False,
+    ) as client:
+        return await _get(client, f"{settings.soilgrids_base_url}/classification/query", params)
