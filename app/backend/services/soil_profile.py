@@ -195,6 +195,8 @@ class _TTLCache:
 
 
 _cache = _TTLCache(get_settings().soil_cache_ttl_s)
+# Separate, short-TTL cache for offline-fallback results — see build_soil_profile.
+_offline_cache = _TTLCache(get_settings().soil_offline_cache_ttl_s)
 
 
 def _cache_key(lat: float, lon: float) -> str:
@@ -217,10 +219,16 @@ async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) 
     classification and SHC data that *did* resolve are still used.
 
     All external calls (properties, classification, reverse geocode) run
-    concurrently to minimise wall time.
+    concurrently to minimise wall time, capped by ``soilgrids_deadline_s`` —
+    profiling during an ISRIC slowdown measured single requests taking
+    20-30s each, sometimes timing out, compounding through retries into
+    50-60s+ for one lookup. Past the deadline this gives up and falls back
+    rather than let a farmer's plot-creation flow hang on it indefinitely.
     """
     key = _cache_key(lat, lon)
     if use_cache and (cached := _cache.get(key)) is not None:
+        return cached
+    if use_cache and (cached := _offline_cache.get(key)) is not None:
         return cached
 
     # --- Run all external calls concurrently ---
@@ -238,11 +246,16 @@ async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) 
             log.warning("SoilGrids classification unavailable for (%s, %s): %s", lat, lon, exc)
             return {}
 
-    properties_payload, classification_payload, admin = await asyncio.gather(
-        _safe_properties(),
-        _safe_classification(),
-        reverse_admin(lat, lon),
-    )
+    try:
+        properties_payload, classification_payload, admin = await asyncio.wait_for(
+            asyncio.gather(_safe_properties(), _safe_classification(), reverse_admin(lat, lon)),
+            timeout=get_settings().soilgrids_deadline_s,
+        )
+    except asyncio.TimeoutError:  # asyncio.TimeoutError, not the builtin — README targets Python 3.10+,
+        # where they're still distinct classes (aliased together only from 3.11)
+        log.warning("SoilGrids phase exceeded the %ss deadline for (%s, %s); using offline sample",
+                    get_settings().soilgrids_deadline_s, lat, lon)
+        properties_payload, classification_payload, admin = None, {}, Admin(None, None, None)
 
     shc = shc_lookup(admin.district)
 
@@ -264,8 +277,16 @@ async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) 
     )
     if source_prefix == "SoilGrids v2.0":
         _cache.set(key, profile)
+    else:
+        # Short TTL: without this, every request for a location SoilGrids is
+        # currently failing on pays the full retry-and-possibly-timeout cost
+        # again, even the same coordinates queried twice in a row — this is
+        # what actually made repeated lookups slow during an outage, not
+        # just the one-off cold cost.
+        _offline_cache.set(key, profile)
     return profile
 
 
 def clear_cache() -> None:
     _cache.clear()
+    _offline_cache.clear()
