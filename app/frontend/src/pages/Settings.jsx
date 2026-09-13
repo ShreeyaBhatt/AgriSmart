@@ -268,7 +268,7 @@ export default function Settings() {
 
       <Card className="p-4">
         <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.language")}</div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
@@ -327,7 +327,7 @@ export default function Settings() {
 
       <Card className="p-4">
         <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.appearance")}</div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {THEMES.map((opt) => (
             <button
               key={opt.value}

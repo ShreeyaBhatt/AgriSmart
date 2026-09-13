@@ -99,11 +99,13 @@ export default function Dashboard() {
           }
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-          <Card className="overflow-hidden">
-            <PlotsMap plots={plots} height="20rem" />
-          </Card>
-          <div className="space-y-2">
+        <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="sticky top-6">
+            <Card className="overflow-hidden">
+              <PlotsMap plots={plots} height="24rem" />
+            </Card>
+          </div>
+          <div className="space-y-2 lg:max-h-[24rem] lg:overflow-y-auto lg:pr-1 custom-scrollbar">
             {plots.map((p) => (
               <PlotCard key={p.id} plot={p} />
             ))}
