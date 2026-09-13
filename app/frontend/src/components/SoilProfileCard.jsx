@@ -30,8 +30,8 @@ export default function SoilProfileCard({ profile: p }) {
   const loc = [p.shc_district, p.shc_state].filter(Boolean).join(", ");
 
   return (
-    <Card className="animate-fade-up overflow-hidden">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-b from-brand-50/60 to-transparent px-5 pt-4 pb-4">
+    <Card className="animate-fade-up overflow-clip">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-b from-brand-50/60 to-transparent dark:from-brand-900/30 dark:to-transparent px-5 pt-4 pb-4">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-brand-700">
             <Icon name="layers" className="h-4 w-4" />

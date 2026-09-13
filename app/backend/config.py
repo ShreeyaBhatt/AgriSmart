@@ -12,7 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="AGRISMART_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="AGRISMART_", env_file=str(REPO_ROOT / ".env"), extra="ignore")
 
     # --- SoilGrids ---
     soilgrids_base_url: str = "https://rest.isric.org/soilgrids/v2.0"
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Courtesy gap between outbound SoilGrids requests. Kept small so an
     # interactive lookup stays snappy; raise it (env: AGRISMART_SOILGRIDS_MIN_INTERVAL_S)
     # for batch jobs to respect ISRIC fair-use.
-    soilgrids_min_interval_s: float = 2.0
+    soilgrids_min_interval_s: float = 0.5
     # ISRIC's REST service is often slow / returns transient all-null payloads;
     # a couple of retries usually lands real data before the offline fallback.
     soilgrids_max_retries: int = 3
@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # --- GenAI assistant (Module E) ---
     gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline card fallback
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-flash-latest"
 
     # --- Local speech-to-text for the mic button (Module E) ---
     # "tiny"/"base"/"small" — bigger = better multilingual accuracy, slower,
