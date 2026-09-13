@@ -60,7 +60,10 @@ class Settings(BaseSettings):
     # --- Local speech-to-text for the mic button (Module E) ---
     # "tiny"/"base"/"small" — bigger = better multilingual accuracy, slower,
     # more RAM. Runs on this server; no audio ever reaches a cloud service.
-    whisper_model_size: str = "base"
+    # "base" is too weak for Gujarati/Hindi (it can hallucinate transcripts into
+    # an unrelated script); "small" is the practical minimum for reliable
+    # Indic-language accuracy.
+    whisper_model_size: str = "small"
     whisper_compute_type: str = "int8"  # CPU-friendly; use "int8_float16" on GPU
 
     # --- Caching ---
