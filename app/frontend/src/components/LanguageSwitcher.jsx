@@ -10,11 +10,11 @@ export default function LanguageSwitcher() {
       <select
         value={lang}
         onChange={(e) => setLang(e.target.value)}
-        className="bg-transparent text-xs font-medium text-ink outline-none"
+        className="bg-surface text-xs font-medium text-ink outline-none cursor-pointer rounded"
         aria-label="Language"
       >
         {LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code}>
+          <option key={l.code} value={l.code} className="bg-surface text-ink">
             {l.label}
           </option>
         ))}

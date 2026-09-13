@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import clsx from "clsx";
 import Card from "./Card.jsx";
@@ -27,16 +27,73 @@ const PRESETS = [
   { name: "Thrissur", lat: 10.5, lon: 76.2 },
 ];
 
+// Debounced Nominatim search
+function useLocationSearch() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!query.trim() || query.trim().length < 2) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}&limit=5&addressdetails=1`;
+        const resp = await fetch(url, {
+          headers: { "User-Agent": "AgriSmart-AI/0.1 (SIH-2026 hackathon)" },
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setResults(
+            data.map((r) => ({
+              display: r.display_name,
+              lat: parseFloat(r.lat),
+              lon: parseFloat(r.lon),
+            }))
+          );
+        }
+      } catch {
+        // Silently fail — user can still use manual input
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [query]);
+
+  return { query, setQuery, results, setResults, searching };
+}
+
 export default function LocationPicker({ lat, lon, season, onChange, onSeason, onAnalyze, loading }) {
   const t = useT();
   const [latText, setLatText] = useState("");
   const [lonText, setLonText] = useState("");
   const [geoError, setGeoError] = useState("");
+  const { query, setQuery, results, setResults, searching } = useLocationSearch();
+  const searchRef = useRef(null);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     setLatText(lat ?? "");
     setLonText(lon ?? "");
   }, [lat, lon]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const commitText = () => {
     const la = parseFloat(latText);
@@ -54,6 +111,13 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
     );
   };
 
+  const pickSearchResult = (r) => {
+    onChange(+r.lat.toFixed(5), +r.lon.toFixed(5));
+    setQuery(r.display.split(",")[0]); // show short name
+    setShowResults(false);
+    setResults([]);
+  };
+
   const hasPoint = lat != null && lon != null;
 
   return (
@@ -64,6 +128,39 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
           {t("soil.farmLocation")}
         </h2>
         <p className="mt-0.5 text-xs text-muted">{t("soil.locationHint")}</p>
+      </div>
+
+      {/* Search bar */}
+      <div className="relative px-5 py-3.5" ref={searchRef}>
+        <div className="relative">
+          <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+          <input
+            className="w-full rounded-lg border border-line bg-surface px-3 py-2 pl-9 pr-8 text-xs text-ink outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-300/40"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setShowResults(true); }}
+            onFocus={() => results.length > 0 && setShowResults(true)}
+            placeholder={t("soil.searchPlaceholder")}
+          />
+          {searching && (
+            <span className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-faint/40 border-t-brand-500" />
+          )}
+        </div>
+        {showResults && results.length > 0 && (
+          <ul className="location-search-dropdown absolute inset-x-5 z-[9999] mt-1 max-h-52 overflow-y-auto rounded-xl border border-line bg-surface shadow-xl">
+            {results.map((r, i) => (
+              <li key={i}>
+                <button
+                  type="button"
+                  onClick={() => pickSearchResult(r)}
+                  className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs text-ink transition hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30"
+                >
+                  <Icon name="location" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted" />
+                  <span className="line-clamp-2">{r.display}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="h-60 sm:h-72">
@@ -95,7 +192,7 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
                   "rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition",
                   active
                     ? "bg-brand-600 text-white ring-brand-600"
-                    : "bg-white text-muted ring-line hover:bg-brand-50 hover:text-brand-700"
+                    : "bg-surface text-muted ring-line hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30"
                 )}
               >
                 {p.name}
@@ -132,7 +229,7 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={useMyLocation}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-canvas"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-canvas"
           >
             <Icon name="crosshair" className="h-3.5 w-3.5" />
             {t("common.useMyLocation")}
