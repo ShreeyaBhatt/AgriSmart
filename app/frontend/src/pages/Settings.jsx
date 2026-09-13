@@ -18,9 +18,8 @@ const FIELD =
 const BUTTON =
   "rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint";
 
-/** Guest-only card: lets a guest attach a phone number to their *existing*
- * account so their plots/scans survive a logout or a new device, instead of
- * only ever finding out too late that guest data had nowhere to go. */
+/** Guest-only card for attaching a phone number to the current account, so
+ * plots/scans survive a logout or a new device. */
 function GuestUpgradeCard({ t, onLinked }) {
   const { requestOtp, linkPhone } = useAuth();
   const [step, setStep] = useState("idle"); // idle | phone | otp
@@ -138,9 +137,8 @@ export default function Settings() {
   const { lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
-  // Tracked separately from user.is_guest: the moment linking succeeds the
-  // context flips is_guest to false and the upgrade card would vanish before
-  // its own success message ever got shown.
+  // Kept separate from user.is_guest — linking flips that to false right
+  // away, which would hide this card before its own success message showed.
   const [linkedPhone, setLinkedPhone] = useState(null);
 
   return (

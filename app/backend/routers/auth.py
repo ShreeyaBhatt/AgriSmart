@@ -54,10 +54,9 @@ async def continue_as_guest() -> TokenResponse:
 
 @router.post("/link-phone", response_model=UserOut)
 async def link_phone(body: OtpVerifyRequest, user: User = Depends(get_current_user)) -> UserOut:
-    """Lets a guest add a phone number to their *existing* account instead of
-    losing it — the alternative, verifying that phone through /otp/verify,
-    would look up-or-create a different user and silently orphan everything
-    the guest already saved."""
+    """Attaches a phone to the caller's own (guest) row. Routing this through
+    /otp/verify instead would look up-or-create a *different* user and
+    orphan everything the guest already saved."""
     if not user.is_guest:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "This account already has a phone number")
     if body.otp != get_settings().otp_demo_code:
