@@ -9,7 +9,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 _PHONE_RE = re.compile(r"^\d{10,15}$")
-Language = Literal["en", "hi", "gu"]
+Language = Literal["en", "hi", "gu", "mr", "ta", "te", "pa"]
 
 
 def _normalize_phone(v: str) -> str:

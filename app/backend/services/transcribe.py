@@ -20,17 +20,23 @@ from ..config import get_settings
 
 log = logging.getLogger(__name__)
 
-# Whisper's language codes happen to match ours for en/hi/gu.
-_SUPPORTED = {"en", "hi", "gu"}
+# Whisper's language codes happen to match ours for all seven.
+_SUPPORTED = {"en", "hi", "gu", "mr", "ta", "te", "pa"}
 
 # Unicode letter blocks for the Indic languages we force Whisper into. Even
-# with language="gu"/"hi" forced, a weak/uncertain model can still hallucinate
-# a transcript in an unrelated script (seen in practice as Perso-Arabic-looking
-# output for Gujarati) — that garbled text is worse than no text, since it gets
-# shown as the user's own message and forwarded to the LLM as their question.
+# with language="gu"/"hi"/etc. forced, a weak/uncertain model can still
+# hallucinate a transcript in an unrelated script (seen in practice as
+# Perso-Arabic-looking output for Gujarati) — that garbled text is worse than
+# no text, since it gets shown as the user's own message and forwarded to the
+# LLM as their question. Marathi shares Devanagari with Hindi, so a wrong-script
+# check can't tell them apart — that's fine, both are legitimate here.
 _SCRIPT_RANGES = {
     "gu": (0x0A80, 0x0AFF),  # Gujarati
     "hi": (0x0900, 0x097F),  # Devanagari
+    "mr": (0x0900, 0x097F),  # Devanagari (shared with Hindi)
+    "ta": (0x0B80, 0x0BFF),  # Tamil
+    "te": (0x0C00, 0x0C7F),  # Telugu
+    "pa": (0x0A00, 0x0A7F),  # Gurmukhi
 }
 
 

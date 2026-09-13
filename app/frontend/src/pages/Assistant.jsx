@@ -6,7 +6,7 @@ import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
 import { useLandUnit } from "../units/useLandUnit.js";
 
-const LOCALE = { en: "en-IN", hi: "hi-IN", gu: "gu-IN" };
+const LOCALE = { en: "en-IN", hi: "hi-IN", gu: "gu-IN", mr: "mr-IN", ta: "ta-IN", te: "te-IN", pa: "pa-IN" };
 // MediaRecorder + our own backend (faster-whisper) — not the browser's
 // built-in SpeechRecognition, which always phones home to Google's cloud
 // speech service even on "localhost". This way voice input only ever needs
