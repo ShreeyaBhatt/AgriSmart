@@ -12,4 +12,4 @@ router = APIRouter(prefix="/sustainability", tags=["sustainability"])
 
 @router.post("/score", response_model=SustainabilityScore)
 async def sustainability_score(req: SustainabilityRequest) -> SustainabilityScore:
-    return compute_score(req)
+    return await compute_score(req)

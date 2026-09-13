@@ -66,12 +66,14 @@ def build_advice(
 
     rain_prob = s["rain_prob_24h_pct"] or 0
     rain_24h = s["rain_sum_24h_mm"] or 0
+    rain_3d = s["rain_sum_3d_mm"] or 0
     humidity = s["humidity_mean_24h_pct"] or 0
     tmax = s["temp_max_c"]
     tmin = s["temp_min_c"]
     wind = s["wind_max_kmh"] or 0
     fungal = bool(last_disease) and any(k in last_disease.lower() for k in _FUNGAL)
 
+    # --- Alert / Watch rules ---
     if rain_prob >= 60 or rain_24h >= 5:
         actions.append(WeatherAction(
             severity="act", headline="Delay irrigation",
@@ -112,10 +114,57 @@ def build_advice(
             detail=f"Gusts up to {wind:.0f} km/h will cause spray drift. Spray on a calmer day.",
         ))
 
-    if not actions:
+    # --- Wind + rain combined ---
+    if wind >= 25 and (rain_24h >= 5 or rain_prob >= 50):
         actions.append(WeatherAction(
-            severity="info", headline="No weather action needed",
-            detail="The next 3 days look steady for your farm. Carry on with your normal schedule.",
+            severity="watch", headline="Secure crops and structures",
+            detail=f"Windy ({wind:.0f} km/h) with rain expected. Stake tall crops, "
+                   "secure poly tunnels, and ensure drains are clear.",
         ))
+
+    # --- Dry spell advisory ---
+    if rain_3d < 2 and tmax is not None and tmax > 30 and rain_prob < 20:
+        actions.append(WeatherAction(
+            severity="watch", headline="Dry spell ahead",
+            detail=f"Less than 2 mm rain forecast over 3 days with highs of {tmax:.0f}°C. "
+                   "Consider deep watering and apply mulch to conserve soil moisture.",
+        ))
+
+    # --- High humidity + warm but not extreme ---
+    if 75 <= humidity < 85 and tmax is not None and 25 <= tmax < 38:
+        actions.append(WeatherAction(
+            severity="recommend", headline="Improve crop ventilation",
+            detail=f"Warm ({tmax:.0f}°C) with moderate-to-high humidity (~{humidity:.0f}%). "
+                   "Avoid overhead irrigation, prune dense canopy, and improve row spacing where possible.",
+        ))
+
+    # --- Proactive positive recommendations ---
+    if not actions:
+        # Good weather window
+        recs: list[str] = []
+        if rain_prob < 30 and wind < 20:
+            recs.append("Conditions are ideal for spraying — calm and dry.")
+        if tmax is not None and 20 <= tmax <= 33 and humidity < 75:
+            recs.append("Great weather for weeding, sowing, or transplanting.")
+        if rain_3d < 3 and wind < 15:
+            recs.append("Good window for harvesting or drying produce in the sun.")
+        if recs:
+            actions.append(WeatherAction(
+                severity="recommend", headline="Good weather — take action",
+                detail=" ".join(recs),
+            ))
+        else:
+            actions.append(WeatherAction(
+                severity="info", headline="No weather action needed",
+                detail="The next 3 days look steady for your farm. Carry on with your normal schedule.",
+            ))
+    else:
+        # Even when there are warnings, add one positive recommendation if weather has good windows
+        if rain_prob < 40 and wind < 25 and tmax is not None and tmax < 38:
+            actions.append(WeatherAction(
+                severity="recommend", headline="Plan ahead",
+                detail="Between weather events, use calm windows for field maintenance, "
+                       "scouting for pests, and preparing inputs for the next application.",
+            ))
 
     return WeatherAdvice(lat=lat, lon=lon, summary=s, actions=actions)

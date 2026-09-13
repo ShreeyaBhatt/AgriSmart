@@ -126,6 +126,24 @@ const PATHS = {
   ),
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
   refresh: <path d="M20 11a8 8 0 1 0-2.3 5.6M20 5v5h-5" />,
+  volume: (
+    <>
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+      <path d="M15.5 8a5 5 0 0 1 0 8M19 6a9 9 0 0 1 0 12" />
+    </>
+  ),
+  volumeOff: (
+    <>
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+      <path d="M23 9l-6 6M17 9l6 6" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m16 16 5 5" />
+    </>
+  ),
 };
 
 export default function Icon({ name, className = "h-5 w-5", strokeWidth = 1.75 }) {

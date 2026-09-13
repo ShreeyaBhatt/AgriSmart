@@ -149,11 +149,17 @@ export default function Assistant() {
             </select>
           )}
           <button
-            onClick={() => setSpeak((s) => !s)}
-            className={`rounded-lg border px-2 py-1.5 text-xs font-medium ${speak ? "border-brand-200 bg-brand-50 text-brand-700" : "border-line text-muted"}`}
-            title={t("assistant.speakAnswers")}
+            onClick={() => {
+              setSpeak((s) => {
+                const next = !s;
+                if (!next && window.speechSynthesis) window.speechSynthesis.cancel();
+                return next;
+              });
+            }}
+            className={`rounded-lg border px-2 py-1.5 text-xs font-medium ${speak ? "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-300" : "border-line text-muted"}`}
+            title={speak ? t("assistant.muteAnswers") : t("assistant.speakAnswers")}
           >
-            <Icon name="sun" className="h-3.5 w-3.5" />
+            <Icon name={speak ? "volume" : "volumeOff"} className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
