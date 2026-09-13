@@ -12,7 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Language = Literal["en", "hi", "gu"]
+Language = Literal["en", "hi", "gu", "mr", "ta", "te", "pa"]
 
 
 class User(BaseModel):

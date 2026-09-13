@@ -13,7 +13,7 @@ class RecommendRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lon: float = Field(..., ge=-180, le=180)
     season: str | None = Field(None, description="kharif | rabi | zaid (optional)")
-    lang: Literal["en", "hi", "gu"] = "en"
+    lang: Literal["en", "hi", "gu", "mr", "ta", "te", "pa"] = "en"
 
 
 class Amendment(BaseModel):
