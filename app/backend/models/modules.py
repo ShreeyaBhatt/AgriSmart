@@ -20,7 +20,7 @@ class WeatherAdviceRequest(BaseModel):
 
 
 class WeatherAction(BaseModel):
-    severity: Literal["info", "watch", "act"]
+    severity: Literal["info", "watch", "act", "recommend"]
     headline: str
     detail: str
 
@@ -53,6 +53,8 @@ class SustainabilityScore(BaseModel):
     crop_health_pct: float
     formula: str
     tips: list[str]
+    ai_validated: bool = False
+    ai_notes: str | None = None
 
 
 # --------------------------------------------------------------------------- #
