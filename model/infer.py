@@ -15,14 +15,12 @@ import torch
 from PIL import Image, ImageOps
 
 try:
-    from .predict import ARTIFACTS_DIR, TAU, predict_detailed
-    from .net import load_trained
+    from .predict import ARTIFACTS_DIR, TAU, _model, predict_detailed
     from .labels import ABSTAIN_LABEL
     from .dataset import eval_transform
     from .gradcam import overlay
 except ImportError:
-    from predict import ARTIFACTS_DIR, TAU, predict_detailed
-    from net import load_trained
+    from predict import ARTIFACTS_DIR, TAU, _model, predict_detailed
     from labels import ABSTAIN_LABEL
     from dataset import eval_transform
     from gradcam import overlay
@@ -119,7 +117,7 @@ def run_inference(image_path: str, gradcam_out: Path | None = None, lang: str = 
 
     if gradcam_out is not None and not result["abstained"]:
         try:
-            tm = load_trained(ARTIFACTS_DIR)
+            tm = _model()  # reuse predict.py's cached singleton, not a fresh disk load
             img_size = _meta().get("img_size", 192)
             img = Image.open(image_path).convert("RGB")
             tf = eval_transform(img_size)

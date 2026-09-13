@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     # --- Weather (Module C) ---
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
     open_meteo_timeout_s: float = 15.0
+    weather_cache_ttl_s: int = 60 * 15  # 15 min; forecasts don't move much faster than this
+    weather_cache_precision: int = 3  # round lat/lon to N decimals (~110 m) for the cache key
 
     # --- GenAI assistant (Module E) ---
     gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline card fallback

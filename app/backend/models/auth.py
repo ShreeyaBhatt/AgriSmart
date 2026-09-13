@@ -49,6 +49,16 @@ class CompleteProfileRequest(BaseModel):
     primary_crop: str = Field(min_length=1, max_length=80)
 
 
+class UpdateProfileRequest(BaseModel):
+    """Same fields as CompleteProfileRequest, all optional — for editing
+    after signup rather than the one-shot initial fill-in. A guest never
+    goes through complete-profile at all, so this is also the only way a
+    guest ever gets a primary_crop set."""
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    location_label: str | None = Field(default=None, min_length=1, max_length=200)
+    primary_crop: str | None = Field(default=None, min_length=1, max_length=80)
+
+
 class UserOut(BaseModel):
     id: str
     phone: str | None

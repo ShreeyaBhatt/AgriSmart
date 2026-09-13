@@ -74,6 +74,7 @@ export const api = {
   continueAsGuest: () => request("/auth/guest", { method: "POST", auth: false }),
   completeProfile: (b) => request("/auth/complete-profile", { method: "POST", body: b }),
   linkPhone: (phone, otp) => request("/auth/link-phone", { method: "POST", body: { phone, otp } }),
+  updateProfile: (b) => request("/auth/profile", { method: "PATCH", body: b }),
   me: () => request("/auth/me"),
 
   // plots

@@ -7,6 +7,7 @@ rule engine over it. Rules are documented in ``docs/weather_rules.md``.
 from __future__ import annotations
 
 import logging
+import time
 
 import httpx
 
@@ -191,18 +192,51 @@ _DAILY = (
 )
 
 
+_client: httpx.AsyncClient | None = None
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None:
+        settings = get_settings()
+        _client = httpx.AsyncClient(
+            timeout=settings.open_meteo_timeout_s,
+            headers={"User-Agent": settings.http_user_agent},
+        )
+    return _client
+
+
+# Raw forecast dicts, keyed by rounded lat/lon — every open of the Weather
+# tab was re-doing a full TLS handshake + Open-Meteo round trip even for the
+# same spot a minute apart. A short TTL keeps forecasts fresh (Open-Meteo's
+# own data doesn't update much faster than this) while collapsing repeat
+# lookups within a browsing session.
+_forecast_cache: dict[str, tuple[float, dict]] = {}
+
+
+def _forecast_cache_key(lat: float, lon: float) -> str:
+    p = get_settings().weather_cache_precision
+    return f"{round(lat, p)},{round(lon, p)}"
+
+
 async def fetch_forecast(lat: float, lon: float) -> dict:
     s = get_settings()
+    key = _forecast_cache_key(lat, lon)
+    hit = _forecast_cache.get(key)
+    if hit is not None:
+        ts, forecast = hit
+        if time.monotonic() - ts <= s.weather_cache_ttl_s:
+            return forecast
+        _forecast_cache.pop(key, None)
+
     params = {
         "latitude": lat, "longitude": lon, "hourly": _HOURLY, "daily": _DAILY,
         "forecast_days": 3, "timezone": "auto",
     }
-    async with httpx.AsyncClient(
-        timeout=s.open_meteo_timeout_s, headers={"User-Agent": s.http_user_agent}
-    ) as client:
-        resp = await client.get(s.open_meteo_base_url, params=params)
-        resp.raise_for_status()
-        return resp.json()
+    resp = await _get_client().get(s.open_meteo_base_url, params=params)
+    resp.raise_for_status()
+    forecast = resp.json()
+    _forecast_cache[key] = (time.monotonic(), forecast)
+    return forecast
 
 
 def _summarise(fc: dict) -> dict:
