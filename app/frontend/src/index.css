@@ -124,6 +124,15 @@
   font-size: 10px;
 }
 
+/* Leaflet's zoom/attribution controls default to z-index:1000, which is
+   high enough to float above our sticky header/bottom-nav (z-20) once the
+   page scrolls the map into their area. Cap it so map chrome never covers
+   app navigation. */
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10;
+}
+
 /* Location search dropdown — above the Leaflet map's z-index */
 .location-search-dropdown {
   z-index: 9999;
