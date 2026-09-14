@@ -1,5 +1,5 @@
-﻿import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
@@ -7,37 +7,13 @@ import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
 import { useLandUnit } from "../units/useLandUnit.js";
 import { LAND_UNITS, toHectares } from "../units/convert.js";
+import { usePlotSoil } from "../lib/PlotSoilContext.jsx";
 
 function ClickMarker({ pos, setPos }) {
   useMapEvents({ click: (e) => setPos([+e.latlng.lat.toFixed(5), +e.latlng.lng.toFixed(5)]) });
   return pos ? <Marker position={pos} /> : null;
 }
 
-// Soil status banner shown after plot is saved
-function SoilBanner({ status, t }) {
-  if (status === "ready") {
-    return (
-      <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-        <Icon name="checkCircle" className="h-4 w-4 shrink-0" />
-        <span className="font-medium">{t("plotNew.soilReady")}</span>
-      </div>
-    );
-  }
-  if (status === "failed") {
-    return (
-      <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-        <Icon name="warning" className="h-4 w-4 shrink-0" />
-        <span>{t("plotNew.soilFailed")}</span>
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 dark:border-brand-800 dark:bg-brand-900/20">
-      <span className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-brand-300 border-t-brand-600" />
-      <span className="text-sm text-brand-700 dark:text-brand-300">{t("plotNew.soilFetchingBg")}</span>
-    </div>
-  );
-}
 
 export default function PlotNew() {
   const t = useT();
@@ -58,9 +34,7 @@ export default function PlotNew() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [savedPlotId, setSavedPlotId] = useState(null);
-  const [soilStatus, setSoilStatus] = useState("pending");
-  const [patching, setPatching] = useState(false);
+  const { startPolling } = usePlotSoil();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -118,26 +92,6 @@ export default function PlotNew() {
     );
   };
 
-  // Poll soil status every 3 s after save
-  useEffect(() => {
-    if (!savedPlotId || soilStatus !== "pending") return;
-    const interval = setInterval(async () => {
-      try {
-        const status = await api.getSoilStatus(savedPlotId);
-        if (status.ready) {
-          setSoilStatus("ready");
-          clearInterval(interval);
-          setTimeout(() => navigate(`/plots/${savedPlotId}`), 1200);
-        } else if (status.failed) {
-          setSoilStatus("failed");
-          clearInterval(interval);
-        }
-      } catch {
-        // Ignore transient poll errors
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [savedPlotId, soilStatus, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -152,11 +106,9 @@ export default function PlotNew() {
         area_ha: toHectares(area, unit, bighaRegion),
         main_crop: mainCrop.trim() || null,
       });
-      setSavedPlotId(plot.id);
-      setSoilStatus(plot.soil_status ?? "pending");
-      if (plot.soil_status === "ready") {
-        navigate(`/plots/${plot.id}`);
-      }
+      // Hand off polling to the global context, then go straight to the plot.
+      startPolling(plot);
+      navigate(`/plots/${plot.id}`);
     } catch (err) {
       setError(err.detail || err.message);
     } finally {
@@ -164,95 +116,8 @@ export default function PlotNew() {
     }
   };
 
-  const patchDetails = async () => {
-    if (!savedPlotId || patching) return;
-    setPatching(true);
-    try {
-      await api.updatePlot(savedPlotId, {
-        area_ha: toHectares(area, unit, bighaRegion),
-        main_crop: mainCrop.trim() || null,
-      });
-    } catch {
-      // Non-critical
-    } finally {
-      setPatching(false);
-    }
-  };
 
-  const skipToPlot = async () => {
-    await patchDetails();
-    navigate(`/plots/${savedPlotId}`);
-  };
-
-  // Phase B: plot saved, soil fetching in background
-  if (savedPlotId) {
-    return (
-      <div className="mx-auto max-w-xl space-y-4">
-        <h1 className="text-lg font-bold tracking-tight text-ink">{t("action.addPlot")}</h1>
-
-        <SoilBanner status={soilStatus} t={t} />
-
-        {soilStatus === "pending" && (
-          <Card className="space-y-4 p-5">
-            <p className="text-sm font-semibold text-ink">{t("plotNew.whileYouWait")}</p>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted">
-                {t("plotNew.areaPlaceholder").replace("{unit}", unitLabel)}
-              </label>
-              <input
-                className="w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand-400"
-                placeholder={t("plotNew.areaPlaceholder").replace("{unit}", unitLabel)}
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                onBlur={patchDetails}
-                inputMode="decimal"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted">
-                {t("plotNew.mainCropPlaceholder")}
-              </label>
-              <input
-                className="w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand-400"
-                placeholder={t("plotNew.mainCropPlaceholder")}
-                value={mainCrop}
-                onChange={(e) => setMainCrop(e.target.value)}
-                onBlur={patchDetails}
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-[11px] text-faint">{t("plotNew.autoSoilHint")}</p>
-              <button
-                type="button"
-                onClick={skipToPlot}
-                className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
-              >
-                {t("plotNew.skipToPlot")}
-                <Icon name="arrowRight" className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </Card>
-        )}
-
-        {soilStatus === "failed" && (
-          <div className="flex justify-center">
-            <Link
-              to={`/plots/${savedPlotId}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
-            >
-              {t("plotNew.skipToPlot")}
-              <Icon name="arrowRight" className="h-4 w-4" />
-            </Link>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Phase A: initial create form
+  // Phase A: initial create form (only phase now — soil polling handled globally)
   return (
     <div className="mx-auto max-w-xl space-y-4">
       <h1 className="text-lg font-bold tracking-tight text-ink">{t("action.addPlot")}</h1>
