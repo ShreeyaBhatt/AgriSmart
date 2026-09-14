@@ -8,7 +8,7 @@ import { rating } from "../lib/ratings.js";
 import { useT } from "../i18n/useT.js";
 
 function SourceBadge({ source, t }) {
-  const offline = source?.startsWith("sample");
+  const offline = source?.includes("offline");
   return (
     <span
       className={clsx(
@@ -23,24 +23,59 @@ function SourceBadge({ source, t }) {
   );
 }
 
-export default function SoilProfileCard({ profile: p }) {
+export default function SoilProfileCard({ profile: p, onTextureOverride }) {
   const t = useT();
   if (!p) return null;
   const u = p.uncertainty || {};
   const loc = [p.shc_district, p.shc_state].filter(Boolean).join(", ");
+  const offline = p.source?.includes("offline");
+
+  const handleTextureChange = (e) => {
+    if (onTextureOverride) onTextureOverride(e.target.value);
+  };
 
   return (
     <Card className="animate-fade-up overflow-clip">
+      {offline && (
+        <div className="flex items-center gap-2 bg-amber-50 px-5 py-2.5 text-xs font-semibold text-amber-800 border-b border-amber-200">
+          <Icon name="alert" className="h-4 w-4 shrink-0" /> 
+          {t("soil.offlineWarning")}
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-b from-brand-50/60 to-transparent dark:from-brand-900/30 dark:to-transparent px-5 pt-4 pb-4">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-brand-700">
             <Icon name="layers" className="h-4 w-4" />
             {t("plot.soil")}
           </div>
-          <h2 className="mt-1 text-2xl font-bold capitalize tracking-tight text-ink">
-            {p.texture_class || t("soil.unknownTexture")}
-          </h2>
-          <p className="text-xs text-muted">
+          <div className="mt-1 flex items-center gap-2">
+            <h2 className="text-2xl font-bold capitalize tracking-tight text-ink">
+              {p.texture_class || t("soil.unknownTexture")}
+            </h2>
+            {onTextureOverride && (
+              <select
+                className="rounded-md border-line bg-canvas px-2 py-1 text-xs text-ink focus:border-brand-500 focus:ring-brand-500"
+                value={p.texture_class || ""}
+                onChange={handleTextureChange}
+                title="Manual Override"
+              >
+                <option value="" disabled>Override...</option>
+                <option value="sand">Sand</option>
+                <option value="loamy sand">Loamy sand</option>
+                <option value="sandy loam">Sandy loam</option>
+                <option value="loam">Loam</option>
+                <option value="silt loam">Silt loam</option>
+                <option value="silt">Silt</option>
+                <option value="sandy clay loam">Sandy clay loam</option>
+                <option value="clay loam">Clay loam</option>
+                <option value="silty clay loam">Silty clay loam</option>
+                <option value="sandy clay">Sandy clay</option>
+                <option value="silty clay">Silty clay</option>
+                <option value="clay">Clay</option>
+              </select>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-muted">
             {p.wrb_class ? `${p.wrb_class} (WRB)` : t("soil.wrbNA")}
             {p.wrb_probability != null && (
               <span className="text-faint"> · p={p.wrb_probability}</span>
