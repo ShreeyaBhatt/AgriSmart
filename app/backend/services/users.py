@@ -8,8 +8,21 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+from pymongo.errors import DuplicateKeyError
+
 from ..models.user import User
 from ..mongo import users_collection
+
+
+class DuplicatePhoneError(Exception):
+    """Raised when a write would attach a phone number that's already on
+    another account — surfaces a race the caller's own pre-check can't fully
+    close (check-then-write is never atomic), so the unique index catches it
+    instead of an unhandled 500 reaching the farmer."""
+
+    def __init__(self, phone: str) -> None:
+        self.phone = phone
+        super().__init__(f"phone {phone} already registered")
 
 
 def _uuid() -> str:
@@ -54,7 +67,10 @@ async def create_from_phone(phone: str) -> User:
         "onboarding_complete": False,
         "created_at": datetime.now(timezone.utc),
     }
-    await users_collection.insert_one(_omit_none(doc))
+    try:
+        await users_collection.insert_one(_omit_none(doc))
+    except DuplicateKeyError as exc:
+        raise DuplicatePhoneError(phone) from exc
     return _to_user(doc)
 
 
@@ -79,10 +95,13 @@ async def link_phone(user_id: str, phone: str) -> User:
     """Attach a phone number to an existing guest user in place. Keeps the
     same id, so every plot/diagnosis/log already keyed to this user stays
     attached — no data migration needed."""
-    await users_collection.update_one(
-        {"_id": user_id},
-        {"$set": {"phone": phone, "is_guest": False}},
-    )
+    try:
+        await users_collection.update_one(
+            {"_id": user_id},
+            {"$set": {"phone": phone, "is_guest": False}},
+        )
+    except DuplicateKeyError as exc:
+        raise DuplicatePhoneError(phone) from exc
     user = await get_by_id(user_id)
     assert user is not None  # just written above
     return user

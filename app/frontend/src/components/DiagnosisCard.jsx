@@ -7,9 +7,18 @@ import { mediaUrl } from "../api.js";
 import { isAbstain, isHealthy, prettyLabel } from "../lib/labels.js";
 import { useT } from "../i18n/useT.js";
 
-// 3-tier status derived only from fields the API actually returns
-// (abstained / healthy / confidence) — no fabricated severity score.
-// Reuses ConfidenceBar's own >=0.5 threshold rather than inventing a new one.
+// Status derived only from fields the API actually returns (abstained /
+// healthy) — no fabricated severity score. "critical" is defined for a
+// future real per-class severity signal (e.g. from sustainability.py's
+// _SEVERITY table, not currently exposed on DiagnosisOut) but is not
+// selected today: it used to be picked by `confidence >= 0.5`, which
+// backwards from ConfidenceBar's own coloring just below it (there, LOW
+// confidence is the rose/concerning state — the model being unsure, not
+// the disease being severe) — a confidently-identified mild issue got a
+// scary red "CRITICAL" banner while an uncertain guess at a severe disease
+// only got "WARNING", and the two widgets visually contradicted each
+// other. Every real (non-healthy, non-abstained) detection is "warning"
+// until a genuine severity signal is wired through.
 const TIER = {
   healthy: {
     labelKey: "scan.tag.healthy",
@@ -48,7 +57,7 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
       ? t("scan.healthy")
       : diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class);
 
-  const tierKey = abstain ? "abstained" : healthy ? "healthy" : diagnosis.confidence >= 0.5 ? "critical" : "warning";
+  const tierKey = abstain ? "abstained" : healthy ? "healthy" : "warning";
   const tier = TIER[tierKey];
 
   const img = originalUrl || mediaUrl(diagnosis.image_url);

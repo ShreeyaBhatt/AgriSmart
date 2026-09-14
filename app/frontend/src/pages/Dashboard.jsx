@@ -41,7 +41,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-lg font-bold tracking-tight text-ink">
                 {t(greetingKey())}
-                {user && !user.is_guest && user.name ? `, ${user.name.split(" ")[0]}` : ""}
+                {user && !user.is_guest && user.name?.trim() ? `, ${user.name.trim().split(" ")[0]}` : ""}
               </h1>
               <p className="text-sm text-muted">{t("app.tagline")}</p>
             </div>

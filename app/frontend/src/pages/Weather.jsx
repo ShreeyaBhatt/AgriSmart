@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import clsx from "clsx";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import Stat from "../components/Stat.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import LocationPicker from "../components/LocationPicker.jsx";
 import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
@@ -16,7 +18,9 @@ const SEV = {
 
 export default function Weather() {
   const t = useT();
-  const [plots, setPlots] = useState([]);
+  // null = still loading; [] = confirmed no plots yet — kept distinct so the
+  // "no plots" empty state doesn't flash before the list has even loaded.
+  const [plots, setPlots] = useState(null);
   const [plotId, setPlotId] = useState("");
   const [coords, setCoords] = useState({ lat: "", lon: "" });
   const [busy, setBusy] = useState(false);
@@ -24,7 +28,7 @@ export default function Weather() {
   const [advice, setAdvice] = useState(null);
 
   useEffect(() => {
-    api.listPlots().then(setPlots).catch(() => {});
+    api.listPlots().then(setPlots).catch(() => setPlots([]));
   }, []);
 
   const run = async () => {
@@ -32,11 +36,17 @@ export default function Weather() {
     let lon = Number(coords.lon);
     let lastDisease = null;
     if (plotId) {
-      const p = plots.find((x) => x.id === plotId);
+      const p = (plots || []).find((x) => x.id === plotId);
+      if (!p) {
+        // The selected plot vanished from the list (e.g. deleted in another
+        // tab) between mount and click — bail out cleanly instead of
+        // throwing on p.lat/p.lon.
+        setError(t("weather.chooseError"));
+        setPlotId("");
+        return;
+      }
       lat = p.lat;
       lon = p.lon;
-      const scans = await api.listDiagnoses(plotId).catch(() => []);
-      lastDisease = scans.find((s) => !s.abstained)?.predicted_class || null;
     }
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       setError(t("weather.chooseError"));
@@ -45,6 +55,10 @@ export default function Weather() {
     setBusy(true);
     setError("");
     try {
+      if (plotId) {
+        const scans = await api.listDiagnoses(plotId).catch(() => []);
+        lastDisease = scans.find((s) => !s.abstained)?.predicted_class || null;
+      }
       setAdvice(await api.weatherAdvice({ lat, lon, last_disease: lastDisease }));
     } catch (e) {
       setError(e.detail || e.message);
@@ -57,8 +71,22 @@ export default function Weather() {
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="text-lg font-bold tracking-tight text-ink">{t("weather.title")}</h1>
 
-      <Card className="space-y-3 p-4">
-        {plots.length > 0 && (
+      {plots === null ? null : plots.length === 0 ? (
+        <EmptyState
+          icon="sun"
+          title={t("weather.noPlotsTitle")}
+          hint={t("weather.noPlotsHint")}
+          action={
+            <Link
+              to="/plots/new"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white"
+            >
+              <Icon name="plus" className="h-4 w-4" /> {t("action.addPlot")}
+            </Link>
+          }
+        />
+      ) : (
+        <Card className="space-y-3 p-4">
           <label className="block text-[11px] font-medium text-faint">
             {t("weather.plotLabel")}
             <select
@@ -72,17 +100,17 @@ export default function Weather() {
               ))}
             </select>
           </label>
-        )}
-        {plotId && (
-          <>
-            {error && <p className="text-xs text-rose-600">{error}</p>}
-            <button onClick={run} disabled={busy}
-              className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint">
-              {busy ? t("weather.checking") : t("weather.analyse")}
-            </button>
-          </>
-        )}
-      </Card>
+          {plotId && (
+            <>
+              {error && <p className="text-xs text-rose-600">{error}</p>}
+              <button onClick={run} disabled={busy}
+                className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint">
+                {busy ? t("weather.checking") : t("weather.analyse")}
+              </button>
+            </>
+          )}
+        </Card>
+      )}
 
       {!plotId && (
         <LocationPicker

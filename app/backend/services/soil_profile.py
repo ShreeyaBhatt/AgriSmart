@@ -60,7 +60,10 @@ def _depth_weighted(layer: dict[str, Any], key: str) -> float | None:
 
 def _d_factor(layer: dict[str, Any], name: str) -> float:
     raw = (layer.get("unit_measure") or {}).get("d_factor")
-    return float(raw) if raw else float(_FALLBACK_D_FACTOR[name])
+    # `if raw` treated a genuine d_factor of 0 the same as "absent" and
+    # silently substituted the fallback divisor instead — check for
+    # None specifically so an explicit, present value is always honored.
+    return float(raw) if raw is not None else float(_FALLBACK_D_FACTOR[name])
 
 
 def normalise_properties(feature: dict[str, Any]) -> tuple[dict[str, float | None], dict[str, float | None]]:

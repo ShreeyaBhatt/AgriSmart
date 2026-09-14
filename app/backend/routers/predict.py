@@ -14,12 +14,13 @@ from ..auth import get_current_user
 from ..config import get_settings
 from ..db import get_session
 from ..models.farm import DiagnosisOut
-from ..models.orm import Diagnosis, Plot
+from ..models.orm import Diagnosis, Planting, Plot
 from ..models.user import User
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["predict"])
 _ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/bmp"}
+_MAX_IMAGE_BYTES = 15 * 1024 * 1024  # a phone photo is a few MB; 15MB is generous — matches /assistant/transcribe's cap
 
 
 def _diag_out(d: Diagnosis, predicted_label: str | None = None) -> DiagnosisOut:
@@ -52,6 +53,14 @@ async def predict(
         plot = await session.get(Plot, plot_id)
         if plot is None or plot.owner_id != user.id:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Plot not found")
+    if planting_id:
+        planting = await session.get(Planting, planting_id)
+        if planting is None or planting.owner_id != user.id:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Planting not found")
+
+    data = await file.read()
+    if len(data) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Image too large")
 
     settings = get_settings()
     ext = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/bmp": ".bmp"}[file.content_type]
@@ -59,7 +68,7 @@ async def predict(
     user_dir = settings.uploads_dir / user.id
     user_dir.mkdir(parents=True, exist_ok=True)
     image_path = user_dir / f"{scan_id}{ext}"
-    image_path.write_bytes(await file.read())
+    image_path.write_bytes(data)
     gradcam_path = user_dir / f"{scan_id}_gradcam.png"
 
     try:
