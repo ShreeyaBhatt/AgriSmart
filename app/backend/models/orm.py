@@ -69,6 +69,10 @@ class Diagnosis(Base):
     abstained: Mapped[bool] = mapped_column(default=False)
     precautions: Mapped[list | None] = mapped_column(JSON, default=None)
     model_version: Mapped[str | None] = mapped_column(String(60), default=None)
+    # Set when the predicted crop doesn't match the farmer's declared crop
+    # (Plot.main_crop / User.primary_crop) — see model/infer.py's crop-aware
+    # guard rail. None means no mismatch was detected (not "not checked").
+    crop_warning: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

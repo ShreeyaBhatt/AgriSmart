@@ -71,7 +71,37 @@ async def test_sustainability_overuse_and_disease_drag_score_down():
         disease_class="Tomato___Late_blight"))
     assert s.score < 60 and s.band in {"poor", "fair"}
     assert s.water_overuse_pct == 100.0
+    assert s.water_deficit_pct == 0
     assert len(s.tips) >= 2 and "clamp" in s.formula
+
+
+@pytest.mark.asyncio
+async def test_sustainability_under_irrigation_is_penalised_not_rewarded():
+    """A farmer applying 50mm against a 500mm requirement (severe under-
+    watering) used to score a perfect 100 with an "all within target"
+    message, because the formula only ever penalised *excess* water — a
+    deficit clamped to 0% overuse and was invisible to the score."""
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=50, water_recommended_mm=500,
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_overuse_pct == 0
+    assert s.water_deficit_pct == 90.0  # (500-50)/500 * 100
+    assert s.score < 80  # must not read "excellent" while 90% under-watered
+    assert s.band != "excellent"
+    assert any("below the crop's need" in tip for tip in s.tips)
+    assert not any("all within target" in tip for tip in s.tips)
+
+
+@pytest.mark.asyncio
+async def test_sustainability_within_optimal_irrigation_band_scores_well():
+    """90-110% of the recommendation is the soft 'optimal band' — neither
+    side of the two-sided formula should meaningfully penalise it."""
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=280, water_recommended_mm=300,  # ~93%
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_overuse_pct == 0
+    assert 0 < s.water_deficit_pct <= 10
+    assert s.band == "excellent"
 
 
 # --- Module E ------------------------------------------------------------
@@ -87,3 +117,67 @@ async def test_assistant_fallback_is_grounded_without_key():
 async def test_assistant_handles_unknown_question():
     ans = await answer_question("what colour should the sky be", lang="en")
     assert ans.used_llm is False and isinstance(ans.answer, str) and ans.answer
+
+
+# --- Module E, offline intent router (issue: assistant degrades to a
+# single canned response for any non-disease question without a Gemini
+# key) ----------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_assistant_offline_pest_question_gets_pest_faq_not_generic():
+    ans = await answer_question("How do I control pests on my crop?", lang="en")
+    assert ans.used_llm is False
+    assert "faq:pest" in ans.grounded_on
+    assert "pest" in ans.answer.lower()
+    assert "i don't have a specific card" not in ans.answer.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_offline_sowing_question_gets_sowing_faq():
+    ans = await answer_question("When should I sow my seeds this season?", lang="en")
+    assert ans.used_llm is False
+    assert "faq:sowing" in ans.grounded_on
+    assert "sow" in ans.answer.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_offline_weather_question_without_plot_gets_irrigation_faq():
+    """No plot -> no coordinates for a live forecast -> falls back to the
+    general irrigation-principles FAQ (which itself nudges the farmer to
+    add a plot for live advice) instead of the fully generic no_card."""
+    ans = await answer_question("Will it rain today?", lang="en")
+    assert ans.used_llm is False
+    assert "faq:irrigation" in ans.grounded_on
+    assert "add a plot" in ans.answer.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_offline_weather_question_with_plot_uses_live_forecast(monkeypatch):
+    """With a plot location, the weather intent must be grounded in a real
+    forecast + Module C's own rule engine, not a canned message."""
+    from app.backend.services import weather as weather_service
+
+    async def fake_forecast(lat, lon):
+        return _forecast(rain_prob=80, rain_mm=10)
+
+    monkeypatch.setattr(weather_service, "fetch_forecast", fake_forecast)
+
+    plot = {"name": "Test plot", "lat": 22.3, "lon": 73.2, "area_ha": 1.0, "soil_snapshot": None}
+    ans = await answer_question("Should I irrigate today?", lang="en", plot=plot)
+    assert ans.used_llm is False
+    assert "weather" in ans.grounded_on
+    assert "delay irrigation" in ans.answer.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_offline_soil_question_uses_plots_own_soil_data():
+    plot = {
+        "name": "Test plot", "lat": 22.3, "lon": 73.2, "area_ha": 1.0,
+        "soil_snapshot": {
+            "fetched_at": "2026-01-01T00:00:00Z", "lat": 22.3, "lon": 73.2,
+            "texture_class": "clay", "ph": 8.6, "organic_carbon_pct": 0.3,
+            "sand_pct": 20, "silt_pct": 30, "clay_pct": 50,
+        },
+    }
+    ans = await answer_question("What fertilizer should I use for my soil?", lang="en", plot=plot)
+    assert ans.used_llm is False
+    assert "soil" in ans.grounded_on

@@ -37,6 +37,64 @@ _STOP = {
     "fungicide", "pesticide", "fertilizer", "fertiliser", "soil", "water",
 }
 
+# Non-disease intents the offline fallback can still answer from local data
+# instead of the single generic "no_card" message — checked (in this order)
+# only when disease-card retrieval found nothing. "weather" also covers
+# irrigation-timing questions: weather.build_advice's own rule set already
+# includes "delay irrigation - rain is coming" (docs/weather_rules.md rule
+# #1), so routing irrigation questions there reuses a real, grounded rule
+# instead of a second bespoke implementation. Checked as plain substring
+# containment across every language's keyword list regardless of the
+# requested reply language — cheap, and a farmer occasionally typing in a
+# different script than their UI setting should still route correctly.
+_INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
+    "weather": {
+        "en": ["rain", "weather", "temperature", "forecast", "wind", "humid", "irrigat", "water"],
+        "hi": ["बारिश", "मौसम", "तापमान", "पूर्वानुमान", "हवा", "नमी", "सिंचाई", "पानी"],
+        "gu": ["વરસાદ", "હવામાન", "તાપમાન", "આગાહી", "પવન", "ભેજ", "સિંચાઈ", "પાણી"],
+        "mr": ["पाऊस", "हवामान", "तापमान", "अंदाज", "वारा", "आर्द्रता", "सिंचन", "पाणी"],
+        "ta": ["மழை", "வானிலை", "வெப்பநிலை", "முன்னறிவிப்பு", "காற்று", "நீர்ப்பாசனம்", "தண்ணீர்"],
+        "te": ["వర్షం", "వాతావరణం", "ఉష్ణోగ్రత", "సూచన", "గాలి", "నీటిపారుదల", "నీరు"],
+        "pa": ["ਮੀਂਹ", "ਮੌਸਮ", "ਤਾਪਮਾਨ", "ਪੂਰਵ ਅਨੁਮਾਨ", "ਹਵਾ", "ਸਿੰਚਾਈ", "ਪਾਣੀ"],
+    },
+    "soil": {
+        "en": ["fertiliz", "fertilis", "npk", "nitrogen", "phosphorus", "potassium", "manure", "compost", "nutrient"],
+        "hi": ["खाद", "उर्वरक", "नाइट्रोजन", "पोषक", "कम्पोस्ट"],
+        "gu": ["ખાતર", "પોષક", "નાઇટ્રોજન"],
+        "mr": ["खत", "पोषक", "नत्र"],
+        "ta": ["உரம்", "ஊட்டச்சத்து", "நைட்ரஜன்"],
+        "te": ["ఎరువు", "పోషకాలు", "నత్రజని"],
+        "pa": ["ਖਾਦ", "ਪੋਸ਼ਕ", "ਨਾਈਟ੍ਰੋਜਨ"],
+    },
+    "pest": {
+        "en": ["pest", "insect", "aphid", "caterpillar"],
+        "hi": ["कीट", "कीड़े", "इल्ली"],
+        "gu": ["જીવાત", "કીટક"],
+        "mr": ["कीड", "किडे", "अळी"],
+        "ta": ["பூச்சி", "புழு"],
+        "te": ["పురుగు", "పుర్వు"],
+        "pa": ["ਕੀੜੇ", "ਸੁੰਡੀ"],
+    },
+    "sowing": {
+        "en": ["sow", "sowing", "seed", "transplant", "nursery"],
+        "hi": ["बुवाई", "बीज", "रोपाई", "नर्सरी"],
+        "gu": ["વાવણી", "બીજ", "રોપણી"],
+        "mr": ["पेरणी", "बियाणे", "लागवड"],
+        "ta": ["விதைப்பு", "விதை", "நடவு"],
+        "te": ["విత్తడం", "విత్తనం", "నాటడం"],
+        "pa": ["ਬਿਜਾਈ", "ਬੀਜ", "ਲੁਆਈ"],
+    },
+}
+
+
+def _detect_intent(question: str) -> str | None:
+    q = question.lower()
+    for intent, by_lang in _INTENT_KEYWORDS.items():
+        for keywords in by_lang.values():
+            if any(kw in q for kw in keywords):
+                return intent
+    return None
+
 
 @lru_cache
 def _cards() -> dict[str, dict[str, Any]]:
@@ -212,10 +270,124 @@ _FALLBACK_TEMPLATES = {
 }
 
 
-def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: str, lang: str = "en") -> str:
+# Project-authored general agronomy guidance (not sourced from any specific
+# external dataset — labelled "general-best-practice" deliberately, see the
+# agentic-advisor data-sourcing note in project history for why that
+# distinction matters). Used when the offline assistant can't ground an
+# answer in a specific disease card, live weather, or the farmer's own soil
+# data — e.g. a general "when should I sow" question with no plot selected.
+_LOCAL_FAQ = {
+    "pest": {
+        "en": "General pest control: check the underside of leaves weekly for eggs or larvae, remove and destroy heavily infested leaves, and avoid broad-spectrum sprays so natural predators can help keep numbers down. Neem oil or a mild soap-water spray is a reasonable first step before stronger pesticides.",
+        "hi": "सामान्य कीट नियंत्रण: हर हफ्ते पत्तियों के नीचे अंडे या इल्ली जांचें, बुरी तरह प्रभावित पत्तियों को हटाकर नष्ट करें, और व्यापक स्प्रे से बचें ताकि प्राकृतिक शिकारी कीटों की संख्या कम रखने में मदद करें। तेज़ कीटनाशक से पहले नीम तेल या हल्का साबुन-पानी स्प्रे आज़माएं।",
+        "gu": "સામાન્ય જીવાત નિયંત્રણ: દર અઠવાડિયે પાંદડાની નીચે ઈંડા કે જીવાત તપાસો, ખરાબ રીતે અસરગ્રસ્ત પાંદડાં દૂર કરી નષ્ટ કરો, અને વ્યાપક સ્પ્રે ટાળો જેથી કુદરતી શિકારી જીવાતોની સંખ્યા ઘટાડવામાં મદદ કરે. તીવ્ર કીટનાશક પહેલાં લીમડાનું તેલ કે હળવો સાબુ-પાણી સ્પ્રે અજમાવો.",
+        "mr": "सर्वसाधारण कीड नियंत्रण: दर आठवड्याला पानांच्या खालच्या बाजूला अंडी किंवा अळी तपासा, गंभीरपणे प्रभावित पाने काढून नष्ट करा, आणि व्यापक फवारणी टाळा जेणेकरून नैसर्गिक भक्षक किडींची संख्या कमी ठेवण्यास मदत करतील. तीव्र कीटकनाशकाआधी कडुलिंब तेल किंवा सौम्य साबण-पाणी फवारणी वापरून पहा.",
+        "ta": "பொது பூச்சி கட்டுப்பாடு: வாரந்தோறும் இலைகளின் அடிப்பகுதியில் முட்டைகள் அல்லது புழுக்களை சோதிக்கவும், கடுமையாக பாதிக்கப்பட்ட இலைகளை அகற்றி அழிக்கவும், இயற்கை வேட்டையாடிகள் உதவும்படி பரவலான தெளிப்புகளை தவிர்க்கவும். வலுவான பூச்சிக்கொல்லிக்கு முன் வேப்ப எண்ணெய் அல்லது மென்மையான சோப்பு-நீர் தெளிப்பு முயற்சிக்கவும்.",
+        "te": "సాధారణ పురుగు నియంత్రణ: ప్రతి వారం ఆకుల కింద గుడ్లు లేదా లార్వాలను పరిశీలించండి, తీవ్రంగా ప్రభావితమైన ఆకులను తీసివేసి నాశనం చేయండి, సహజ శత్రు కీటకాలకు సహాయపడేలా విస్తృత-స్పెక్ట్రం స్ప్రేలను నివారించండి. బలమైన పురుగుమందుకు ముందు వేప నూనె లేదా తేలికపాటి సబ్బు-నీటి స్ప్రే ప్రయత్నించండి.",
+        "pa": "ਆਮ ਕੀੜੇ ਨਿਯੰਤਰਣ: ਹਰ ਹਫ਼ਤੇ ਪੱਤਿਆਂ ਦੇ ਹੇਠਾਂ ਆਂਡੇ ਜਾਂ ਸੁੰਡੀਆਂ ਦੀ ਜਾਂਚ ਕਰੋ, ਬੁਰੀ ਤਰ੍ਹਾਂ ਪ੍ਰਭਾਵਿਤ ਪੱਤਿਆਂ ਨੂੰ ਹਟਾ ਕੇ ਨਸ਼ਟ ਕਰੋ, ਅਤੇ ਵਿਆਪਕ ਸਪਰੇਅ ਤੋਂ ਬਚੋ ਤਾਂ ਜੋ ਕੁਦਰਤੀ ਸ਼ਿਕਾਰੀ ਕੀੜਿਆਂ ਦੀ ਗਿਣਤੀ ਘਟਾਉਣ ਵਿੱਚ ਮਦਦ ਕਰਨ। ਤੇਜ਼ ਕੀਟਨਾਸ਼ਕ ਤੋਂ ਪਹਿਲਾਂ ਨਿੰਮ ਦਾ ਤੇਲ ਜਾਂ ਹਲਕਾ ਸਾਬਣ-ਪਾਣੀ ਸਪਰੇਅ ਅਜ਼ਮਾਓ।",
+    },
+    "sowing": {
+        "en": "Sowing time depends on the crop and your local season: as a rule, sow kharif crops after the first reliable monsoon rains, and rabi crops at the start of the cool season. Use certified seed, treat it against soil-borne disease before sowing, and keep row spacing wide enough for airflow.",
+        "hi": "बुवाई का समय फसल और स्थानीय मौसम पर निर्भर करता है: सामान्यतः खरीफ फसलें पहली भरोसेमंद मानसून बारिश के बाद और रबी फसलें ठंड शुरू होते ही बोएं। प्रमाणित बीज का उपयोग करें, बुवाई से पहले मिट्टी-जनित रोगों से बचाव हेतु बीज उपचार करें, और पंक्तियों के बीच हवा के लिए पर्याप्त दूरी रखें।",
+        "gu": "વાવણીનો સમય પાક અને સ્થાનિક ઋતુ પર આધારિત છે: સામાન્ય રીતે ખરીફ પાક પ્રથમ વિશ્વસનીય ચોમાસાના વરસાદ પછી અને રવિ પાક ઠંડીની શરૂઆતમાં વાવો. પ્રમાણિત બિયારણનો ઉપયોગ કરો, વાવણી પહેલાં માટીજન્ય રોગો સામે બીજ સારવાર કરો, અને હવાની અવરજવર માટે હાર વચ્ચે પૂરતું અંતર રાખો.",
+        "mr": "पेरणीची वेळ पीक आणि स्थानिक हंगामावर अवलंबून असते: साधारणपणे खरीप पिके पहिल्या विश्वासार्ह पावसानंतर आणि रब्बी पिके थंडीच्या सुरुवातीला पेरा. प्रमाणित बियाणे वापरा, पेरणीपूर्वी मातीजन्य रोगांपासून बचावासाठी बीजप्रक्रिया करा, आणि हवा खेळण्यासाठी ओळींमध्ये पुरेसे अंतर ठेवा.",
+        "ta": "விதைப்பு நேரம் பயிர் மற்றும் உங்கள் உள்ளூர் பருவத்தைப் பொறுத்தது: பொதுவாக காரீஃப் பயிர்களை முதல் நம்பகமான பருவமழைக்குப் பிறகும், ரபி பயிர்களை குளிர்காலம் தொடங்கும்போதும் விதைக்கவும். சான்றளிக்கப்பட்ட விதைகளைப் பயன்படுத்தவும், விதைப்பதற்கு முன் மண் வழி நோய்களிலிருந்து பாதுகாக்க விதை சிகிச்சை செய்யவும், காற்றோட்டத்திற்காக வரிசைகளுக்கு இடையே போதுமான இடைவெளி வைக்கவும்.",
+        "te": "విత్తే సమయం పంట మరియు మీ స్థానిక సీజన్‌పై ఆధారపడి ఉంటుంది: సాధారణంగా ఖరీఫ్ పంటలను మొదటి నమ్మదగిన వర్షాల తర్వాత మరియు రబీ పంటలను చలికాలం మొదట్లో విత్తండి. ధృవీకరించిన విత్తనాలను వాడండి, విత్తే ముందు నేల ద్వారా వ్యాపించే వ్యాధుల నుండి రక్షణకు విత్తన శుద్ధి చేయండి, గాలి ప్రసరణ కోసం వరుసల మధ్య తగినంత అంతరం ఉంచండి.",
+        "pa": "ਬਿਜਾਈ ਦਾ ਸਮਾਂ ਫ਼ਸਲ ਅਤੇ ਤੁਹਾਡੇ ਸਥਾਨਕ ਮੌਸਮ 'ਤੇ ਨਿਰਭਰ ਕਰਦਾ ਹੈ: ਆਮ ਤੌਰ 'ਤੇ ਸਾਉਣੀ ਦੀਆਂ ਫ਼ਸਲਾਂ ਪਹਿਲੀ ਭਰੋਸੇਯੋਗ ਮਾਨਸੂਨ ਬਾਰਿਸ਼ ਤੋਂ ਬਾਅਦ ਅਤੇ ਹਾੜ੍ਹੀ ਦੀਆਂ ਫ਼ਸਲਾਂ ਠੰਢ ਸ਼ੁਰੂ ਹੁੰਦੇ ਹੀ ਬੀਜੋ। ਪ੍ਰਮਾਣਿਤ ਬੀਜ ਵਰਤੋ, ਬਿਜਾਈ ਤੋਂ ਪਹਿਲਾਂ ਮਿੱਟੀ-ਜਨਿਤ ਰੋਗਾਂ ਤੋਂ ਬਚਾਅ ਲਈ ਬੀਜ ਸੋਧ ਕਰੋ, ਅਤੇ ਹਵਾ ਲਈ ਕਤਾਰਾਂ ਵਿਚਕਾਰ ਲੋੜੀਂਦੀ ਦੂਰੀ ਰੱਖੋ।",
+    },
+    "irrigation": {
+        "en": "As a general rule, water deeply but less often rather than little and often — this grows deeper roots and wastes less water. Irrigate early morning or evening to cut evaporation, and check soil moisture a few inches down before watering again. Add a plot with a location to get a live, rain-based irrigation recommendation instead of this general rule.",
+        "hi": "सामान्य नियम: कम बार लेकिन गहरी सिंचाई करें, बार-बार थोड़ा पानी देने से बेहतर — इससे जड़ें गहरी होती हैं और पानी कम बर्बाद होता है। वाष्पीकरण कम करने के लिए सुबह या शाम सिंचाई करें, और दोबारा पानी देने से पहले कुछ इंच नीचे मिट्टी की नमी जांचें। इस सामान्य सलाह की जगह लाइव, बारिश-आधारित सिंचाई सुझाव पाने के लिए स्थान सहित एक खेत जोड़ें।",
+        "gu": "સામાન્ય નિયમ: વારંવાર થોડું પાણી આપવાને બદલે ઓછી વાર પણ ઊંડું પાણી આપો — આનાથી મૂળ ઊંડા જાય છે અને પાણીનો બગાડ ઓછો થાય છે. બાષ્પીભવન ઘટાડવા સવારે અથવા સાંજે સિંચાઈ કરો, અને ફરી પાણી આપતા પહેલા થોડા ઇંચ નીચે માટીની ભેજ તપાસો. આ સામાન્ય સલાહને બદલે લાઇવ, વરસાદ-આધારિત સિંચાઈ સૂચન મેળવવા સ્થાન સાથે ખેતર ઉમેરો.",
+        "mr": "सर्वसाधारण नियम: वारंवार थोडे पाणी देण्याऐवजी कमी वेळा पण खोलवर पाणी द्या — यामुळे मुळे खोलवर जातात आणि पाण्याचा अपव्यय कमी होतो. बाष्पीभवन कमी करण्यासाठी सकाळी किंवा संध्याकाळी सिंचन करा, आणि पुन्हा पाणी देण्यापूर्वी काही इंच खाली मातीतील ओलावा तपासा. या सर्वसाधारण सल्ल्याऐवजी थेट, पावसावर आधारित सिंचन सूचना मिळवण्यासाठी स्थानासह शेत जोडा.",
+        "ta": "பொது விதி: அடிக்கடி குறைவாக நீர் பாய்ச்சுவதை விட, குறைவான முறை ஆனால் ஆழமாக நீர் பாய்ச்சவும் — இது வேர்களை ஆழமாகச் செல்ல வைத்து நீர் விரயத்தைக் குறைக்கும். ஆவியாதலைக் குறைக்க காலை அல்லது மாலையில் நீர் பாய்ச்சவும், மீண்டும் நீர் பாய்ச்சும் முன் சில அங்குலம் கீழே மண் ஈரப்பதத்தை சரிபார்க்கவும். இந்த பொது ஆலோசனைக்குப் பதிலாக நேரடி, மழை அடிப்படையிலான நீர்ப்பாசன பரிந்துரை பெற இருப்பிடத்துடன் ஒரு வயலைச் சேர்க்கவும்.",
+        "te": "సాధారణ నియమం: తరచుగా కొద్దిగా నీరు పెట్టడం కంటే, తక్కువసార్లు కానీ లోతుగా నీరు పెట్టండి — దీనివల్ల వేర్లు లోతుగా పెరిగి నీరు వృథా తగ్గుతుంది. ఆవిరైపోవడం తగ్గించడానికి ఉదయం లేదా సాయంత్రం నీరు పెట్టండి, మళ్ళీ నీరు పెట్టే ముందు కొన్ని అంగుళాల లోతులో నేల తేమను తనిఖీ చేయండి. ఈ సాధారణ సూచనకు బదులుగా ప్రత్యక్ష, వర్షం-ఆధారిత నీటిపారుదల సూచన పొందడానికి స్థానంతో ఒక పొలాన్ని జోడించండి.",
+        "pa": "ਆਮ ਨਿਯਮ: ਵਾਰ-ਵਾਰ ਥੋੜ੍ਹਾ ਪਾਣੀ ਦੇਣ ਦੀ ਬਜਾਏ, ਘੱਟ ਵਾਰ ਪਰ ਡੂੰਘਾ ਪਾਣੀ ਦਿਓ — ਇਸ ਨਾਲ ਜੜ੍ਹਾਂ ਡੂੰਘੀਆਂ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਪਾਣੀ ਦੀ ਬਰਬਾਦੀ ਘਟਦੀ ਹੈ। ਭਾਫ਼ ਬਣਨਾ ਘਟਾਉਣ ਲਈ ਸਵੇਰੇ ਜਾਂ ਸ਼ਾਮ ਸਿੰਚਾਈ ਕਰੋ, ਅਤੇ ਦੁਬਾਰਾ ਪਾਣੀ ਦੇਣ ਤੋਂ ਪਹਿਲਾਂ ਕੁਝ ਇੰਚ ਹੇਠਾਂ ਮਿੱਟੀ ਦੀ ਨਮੀ ਜਾਂਚੋ। ਇਸ ਆਮ ਸਲਾਹ ਦੀ ਬਜਾਏ ਲਾਈਵ, ਮੀਂਹ-ਅਧਾਰਿਤ ਸਿੰਚਾਈ ਸੁਝਾਅ ਲਈ ਟਿਕਾਣੇ ਸਮੇਤ ਇੱਕ ਖੇਤ ਜੋੜੋ।",
+    },
+}
+
+
+async def _weather_intent_answer(plot: dict | None, last_class: str | None, lang: str) -> str | None:
+    """Grounded in the same rule engine as Module C (weather.build_advice) —
+    covers both weather questions and irrigation-timing questions (its rule
+    set already includes "delay irrigation, rain is coming"). None if there's
+    no plot location to fetch a forecast for."""
+    if not plot or plot.get("lat") is None or plot.get("lon") is None:
+        return None
+    try:
+        from . import weather as weather_service
+
+        fc = await weather_service.fetch_forecast(plot["lat"], plot["lon"])
+        advice = weather_service.build_advice(
+            plot["lat"], plot["lon"], fc, last_disease=last_class, lang=lang)
+    except Exception as exc:
+        log.warning("Weather intent lookup failed, falling through: %s", exc)
+        return None
+    lines = [f"{a.headline} — {a.detail}" for a in advice.actions[:2]]
+    return "\n\n".join(lines) if lines else None
+
+
+async def _soil_intent_answer(plot: dict | None) -> str | None:
+    """Grounded in the plot's own fetched soil profile (Module A) — None if
+    no plot is selected or its soil hasn't been fetched yet, so the caller
+    can fall through to the general fertilizer-principles FAQ entry instead.
+    Amendment text is currently English-only regardless of `lang` (a known
+    gap in services/recommend.py, tracked separately) — not claimed as
+    localized here."""
+    if not plot:
+        return None
+    snapshot = plot.get("soil_snapshot")
+    if not snapshot or not snapshot.get("texture_class"):
+        return None
+    try:
+        from ..models.soil import SoilProfile
+        from .recommend import recommend_amendments
+
+        report = recommend_amendments(SoilProfile(**snapshot))
+    except Exception as exc:
+        log.warning("Soil intent lookup failed, falling through: %s", exc)
+        return None
+    if not report.amendments:
+        return None
+    lines = [f"{a.finding} {a.action}".strip() for a in report.amendments[:2]]
+    return "\n\n".join(lines) if lines else None
+
+
+async def _fallback_answer(
+    question: str, picked: list[tuple[str, dict]], plot: dict | None, plot_ctx: str,
+    last_class: str | None, lang: str = "en",
+) -> str:
     tmpl = _FALLBACK_TEMPLATES.get(lang, _FALLBACK_TEMPLATES["en"])
-    
+
     if not picked:
+        intent = _detect_intent(question)
+
+        # Weather / irrigation-timing — grounded in a live forecast + the
+        # same rule engine Module C uses, when a plot location is known.
+        if intent == "weather":
+            weather_answer = await _weather_intent_answer(plot, last_class, lang)
+            if weather_answer:
+                return weather_answer
+            # No plot location to fetch a forecast for — the irrigation FAQ
+            # entry already covers this exact case (general watering
+            # principles + a nudge to add a plot for live advice), and most
+            # non-plot weather questions from a farmer are practically
+            # "should I water" questions anyway.
+            faq = _LOCAL_FAQ["irrigation"]
+            return faq.get(lang, faq["en"])
+
+        # Soil & fertilizer — grounded in the plot's own fetched soil
+        # profile when available.
+        if intent == "soil":
+            soil_answer = await _soil_intent_answer(plot)
+            if soil_answer:
+                return soil_answer
+            # Falls through to the crop-question check and eventually
+            # no_card below, which already mentions matching fertiliser to
+            # a soil test — no dedicated ungrounded fertilizer FAQ exists,
+            # since specific dosing advice without real soil data would be
+            # a guess, not grounded guidance.
+
         q_low = question.lower()
         en_match = re.search(r"\b(what|which|best|suggest|recommend|suitable|top)\s+(crop|plant|seed)s?\b|\bwhat\s+to\s+(grow|plant|sow)\b|\bbest\s+(crop|plant)s?\s+to\s+(grow|plant)\b", q_low)
         hi_match = re.search(r"(कौन\s*सी|क्या|सबसे\s*अच्छी|सुझाव).*(फसल|उगा|लगा)", q_low)
@@ -243,6 +415,14 @@ def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: st
             base_plot = plot_ctx.split(";")[0]
             plot_advice = tmpl["plot_advice"].format(ctx=base_plot)
             return tmpl["crops_answer"].format(crops=crops, plot_advice=plot_advice)
+
+        # General agronomy FAQ (pest control / sowing) — project-authored,
+        # not grounded in the farmer's own data, but still relevant local
+        # guidance instead of the single generic canned response.
+        if intent in _LOCAL_FAQ:
+            faq = _LOCAL_FAQ[intent]
+            return faq.get(lang, faq["en"])
+
         return tmpl["no_card"]
     key, c = picked[0]
     name = c.get("disease") or f"healthy {c.get('crop', 'crop')}"
@@ -295,7 +475,19 @@ async def answer_question(
         llm = await _gemini_answer(question, context, lang)
         if llm:
             return AssistantAnswer(answer=llm, grounded_on=grounded_on, used_llm=True, lang=lang)
-    answer = _fallback_answer(question, picked, plot_ctx, lang)
+    answer = await _fallback_answer(question, picked, plot, plot_ctx, last_class, lang)
+    if not picked:
+        # Surface which offline data source actually answered a non-disease
+        # question (weather/soil grounded in the farmer's own live data;
+        # faq:* is project-authored general guidance, not farm-specific) —
+        # same transparency AssistantAnswer already gives for disease cards.
+        intent = _detect_intent(question)
+        if intent == "weather" and plot and plot.get("lat") is not None:
+            grounded_on.append("weather")
+        elif intent == "soil" and plot and (plot.get("soil_snapshot") or {}).get("texture_class"):
+            grounded_on.append("soil")
+        elif intent in _LOCAL_FAQ or intent == "weather":
+            grounded_on.append(f"faq:{intent if intent != 'weather' else 'irrigation'}")
     return AssistantAnswer(answer=answer, grounded_on=grounded_on, used_llm=used_llm, lang=lang)
 
 

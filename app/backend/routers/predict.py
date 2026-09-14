@@ -33,7 +33,8 @@ def _diag_out(d: Diagnosis, predicted_label: str | None = None) -> DiagnosisOut:
         ),
         predicted_class=d.predicted_class, predicted_label=predicted_label,
         confidence=d.confidence, abstained=d.abstained,
-        precautions=d.precautions, model_version=d.model_version, created_at=d.created_at,
+        precautions=d.precautions, model_version=d.model_version,
+        crop_warning=d.crop_warning, created_at=d.created_at,
     )
 
 
@@ -49,6 +50,7 @@ async def predict(
     if file.content_type not in _ALLOWED:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Upload a JPEG, PNG or WebP image")
 
+    plot: Plot | None = None
     if plot_id:
         plot = await session.get(Plot, plot_id)
         if plot is None or plot.owner_id != user.id:
@@ -57,6 +59,11 @@ async def predict(
         planting = await session.get(Planting, planting_id)
         if planting is None or planting.owner_id != user.id:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Planting not found")
+
+    # Best-known declared crop for this scan, for the crop-aware guard rail
+    # in model/infer.py — the plot's own main_crop first, falling back to
+    # the farmer's account-level primary_crop from onboarding.
+    expected_crop = (plot.main_crop if plot else None) or user.primary_crop
 
     data = await file.read()
     if len(data) > _MAX_IMAGE_BYTES:
@@ -76,7 +83,10 @@ async def predict(
         # run_inference is a synchronous, CPU-bound torch forward pass — off the
         # event loop so one person's scan doesn't stall every other request
         # (weather, soil, everything) for its whole duration.
-        result = await asyncio.to_thread(run_inference, str(image_path), gradcam_out=gradcam_path, lang=lang)
+        result = await asyncio.to_thread(
+            run_inference, str(image_path), gradcam_out=gradcam_path, lang=lang,
+            expected_crop=expected_crop,
+        )
     except FileNotFoundError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
                             f"The disease model is not trained yet. {exc}")
@@ -93,6 +103,7 @@ async def predict(
         abstained=result["abstained"],
         precautions=result["precautions"],
         model_version=result["model_version"],
+        crop_warning=result.get("crop_warning"),
     )
     session.add(diagnosis)
     await session.commit()
