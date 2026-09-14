@@ -19,6 +19,7 @@ class SoilLookupRequest(BaseModel):
     # Optional: when the app is wired to Mongo, the resolved profile is cached
     # into this plot's `soil_snapshot`.
     plot_id: str | None = None
+    texture_override: str | None = Field(None, description="Manual texture correction")
 
 
 class SoilUncertainty(BaseModel):

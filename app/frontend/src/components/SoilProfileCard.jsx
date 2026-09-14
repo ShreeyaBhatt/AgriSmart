@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
 import Card from "./Card.jsx";
 import Icon from "./Icon.jsx";
@@ -8,7 +9,7 @@ import { rating } from "../lib/ratings.js";
 import { useT } from "../i18n/useT.js";
 
 function SourceBadge({ source, t }) {
-  const offline = source?.startsWith("sample");
+  const offline = source?.includes("offline");
   return (
     <span
       className={clsx(
@@ -23,24 +24,125 @@ function SourceBadge({ source, t }) {
   );
 }
 
-export default function SoilProfileCard({ profile: p }) {
+const TEXTURES = [
+  { value: "sand", label: "Sand" },
+  { value: "loamy sand", label: "Loamy sand" },
+  { value: "sandy loam", label: "Sandy loam" },
+  { value: "loam", label: "Loam" },
+  { value: "silt loam", label: "Silt loam" },
+  { value: "silt", label: "Silt" },
+  { value: "sandy clay loam", label: "Sandy clay loam" },
+  { value: "clay loam", label: "Clay loam" },
+  { value: "silty clay loam", label: "Silty clay loam" },
+  { value: "sandy clay", label: "Sandy clay" },
+  { value: "silty clay", label: "Silty clay" },
+  { value: "clay", label: "Clay" },
+];
+
+function TextureDropdown({ currentTexture, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onPointer = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [open]);
+
+  const choose = (val) => {
+    onChange(val);
+    setOpen(false);
+  };
+
+  const currentLabel = TEXTURES.find(t => t.value === currentTexture)?.label || "Override...";
+
+  return (
+    <div ref={ref} className="relative z-50">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={[
+          "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
+          "border-line bg-surface text-ink shadow-sm",
+          "hover:border-brand-400 hover:text-brand-700",
+          open ? "border-brand-400 text-brand-700" : "",
+        ].join(" ")}
+      >
+        <span>{currentLabel}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={["h-3 w-3 shrink-0 text-faint transition-transform duration-200", open ? "rotate-180" : ""].join(" ")}><path d="m6 9 6 6 6-6" /></svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
+          <div className="flex flex-col gap-0.5">
+            {TEXTURES.map((t) => {
+              const active = t.value === currentTexture;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => choose(t.value)}
+                  className={[
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition",
+                    active ? "bg-brand-600 text-white" : "text-ink hover:bg-canvas",
+                  ].join(" ")}
+                >
+                  <span>{t.label}</span>
+                  {active && <Icon name="check" className="h-3.5 w-3.5 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SoilProfileCard({ profile: p, onTextureOverride }) {
   const t = useT();
   if (!p) return null;
   const u = p.uncertainty || {};
   const loc = [p.shc_district, p.shc_state].filter(Boolean).join(", ");
+  const offline = p.source?.includes("offline");
+
+  const handleTextureChange = (e) => {
+    if (onTextureOverride) onTextureOverride(e.target.value);
+  };
 
   return (
     <Card className="animate-fade-up overflow-clip">
+      {offline && (
+        <div className="flex items-center gap-2 bg-amber-50 px-5 py-2.5 text-xs font-semibold text-amber-800 border-b border-amber-200">
+          <Icon name="alert" className="h-4 w-4 shrink-0" /> 
+          {t("soil.offlineWarning")}
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-b from-brand-50/60 to-transparent dark:from-brand-900/30 dark:to-transparent px-5 pt-4 pb-4">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-brand-700">
             <Icon name="layers" className="h-4 w-4" />
             {t("plot.soil")}
           </div>
-          <h2 className="mt-1 text-2xl font-bold capitalize tracking-tight text-ink">
-            {p.texture_class || t("soil.unknownTexture")}
-          </h2>
-          <p className="text-xs text-muted">
+          <div className="mt-1 flex items-center gap-2">
+            <h2 className="text-2xl font-bold capitalize tracking-tight text-ink">
+              {p.texture_class || t("soil.unknownTexture")}
+            </h2>
+            {onTextureOverride && (
+              <TextureDropdown currentTexture={p.texture_class} onChange={onTextureOverride} />
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-muted">
             {p.wrb_class ? `${p.wrb_class} (WRB)` : t("soil.wrbNA")}
             {p.wrb_probability != null && (
               <span className="text-faint"> · p={p.wrb_probability}</span>

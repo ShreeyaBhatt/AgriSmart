@@ -14,6 +14,7 @@ class RecommendRequest(BaseModel):
     lon: float = Field(..., ge=-180, le=180)
     season: str | None = Field(None, description="kharif | rabi | zaid (optional)")
     lang: Literal["en", "hi", "gu", "mr", "ta", "te", "pa"] = "en"
+    texture_override: str | None = Field(None, description="Manual texture correction")
 
 
 class Amendment(BaseModel):

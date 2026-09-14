@@ -49,7 +49,10 @@ export default function SoilCheck() {
           )}
           {!loading && result && (
             <>
-              <SoilProfileCard profile={result.profile} />
+              <SoilProfileCard 
+                profile={result.profile} 
+                onTextureOverride={(tex) => analyse(lat, lon, season, tex)}
+              />
               <div className="grid gap-4 lg:grid-cols-2">
                 <AmendmentsPanel report={result.amendments} />
                 <CropsPanel rec={result.crops} />

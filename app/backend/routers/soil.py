@@ -23,7 +23,7 @@ async def soil_lookup(req: SoilLookupRequest) -> SoilProfile:
     unreachable the bundled offline sample is returned with
     ``source = "sample (offline)"``.
     """
-    profile = await build_soil_profile(req.lat, req.lon)
+    profile = await build_soil_profile(req.lat, req.lon, texture_override=req.texture_override)
 
     if req.plot_id:
         # TODO(app-db): persist `profile` into Plot(id=req.plot_id).soil_snapshot

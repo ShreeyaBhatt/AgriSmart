@@ -207,13 +207,11 @@ def _cache_key(lat: float, lon: float) -> str:
     return f"{round(lat, p)},{round(lon, p)}"
 
 
-@lru_cache
-def _sample_doc() -> dict[str, Any]:
-    return json.loads(get_settings().soilgrids_sample_path.read_text(encoding="utf-8"))
+
 
 
 async def build_soil_profile(
-    lat: float, lon: float, *, use_cache: bool = True, skip_offline_cache: bool = False
+    lat: float, lon: float, *, use_cache: bool = True, skip_offline_cache: bool = False, texture_override: str | None = None
 ) -> SoilProfile:
     """Full pipeline: SoilGrids ``properties`` + ``classification`` -> 0-30 cm
     normalisation -> USDA texture -> Soil Health Card nutrient enrichment -> cache.
@@ -239,9 +237,9 @@ async def build_soil_profile(
     """
     key = _cache_key(lat, lon)
     if use_cache and (cached := _cache.get(key)) is not None:
-        return cached
+        return cached if not texture_override else cached.model_copy(update={"texture_class": texture_override})
     if use_cache and not skip_offline_cache and (cached := _offline_cache.get(key)) is not None:
-        return cached
+        return cached if not texture_override else cached.model_copy(update={"texture_class": texture_override})
 
     # --- Run all external calls concurrently ---
     async def _safe_properties():
@@ -272,9 +270,11 @@ async def build_soil_profile(
     shc = shc_lookup(admin.district)
 
     if properties_payload is None:
-        source_prefix = "sample (offline)"
-        properties_payload = _sample_doc()["properties"]
-        classification_payload = classification_payload or _sample_doc().get("classification", {})
+        from .soil_fallback import get_regional_fallback
+        source_prefix = "regional estimate (offline)"
+        fallback_props, fallback_class = get_regional_fallback(admin.state)
+        properties_payload = fallback_props
+        classification_payload = classification_payload or fallback_class
     else:
         source_prefix = "SoilGrids v2.0"
 
@@ -296,7 +296,7 @@ async def build_soil_profile(
         # what actually made repeated lookups slow during an outage, not
         # just the one-off cold cost.
         _offline_cache.set(key, profile)
-    return profile
+    return profile if not texture_override else profile.model_copy(update={"texture_class": texture_override})
 
 
 def clear_cache() -> None:
