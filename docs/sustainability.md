@@ -53,3 +53,32 @@ the equivalent severe overuse.
 
 The response echoes the formula string and returns 2–3 improvement tips based on
 which term dragged the score down.
+
+## `score`/`band` vs. `moisture_stress_risk` — read this before wiring up a UI
+
+**`score`/`band` is an overall water + chemical + crop-health efficiency
+grade, not a risk-free guarantee.** Because it blends three things into one
+number, a real water-deviation problem doesn't always move the band. Example:
+90 % of requirement applied is inside the soft optimal band and barely
+touches the score at all, but a **30 % deviation** (used = 210 mm against a
+300 mm requirement, say) only costs `0.4 * 30 = 12` points — nowhere near
+enough to drop a clean input out of `excellent`. Shown alone, "Excellent"
+next to a 30 %-under-watered field reads as "no problem here," which isn't
+true.
+
+So the response also carries a second, **deliberately separate** indicator
+that is *never* blended into `score`/`band`:
+
+| Field | Meaning |
+|---|---|
+| `water_deviation_pct` | signed version of the two fields above: negative = under-watering, positive = overuse, `0` = on target |
+| `moisture_stress_risk` | `"none"` (\|deviation\| < 10 %) · `"moderate"` (10–25 %) · `"severe"` (≥ 25 %) — independent thresholds, not derived from the score |
+
+**UI requirement:** show `moisture_stress_risk` as its own indicator, not as
+a sub-detail of the score card that a user can miss. When it's `"moderate"`
+or `"severe"`, that must be visible **even when `band` is `"excellent"` or
+`"good"`** — the two are answering different questions (resource-use
+efficiency vs. "is the crop stressed right now") and are expected to
+disagree sometimes. Don't recolor or reword `band` based on
+`moisture_stress_risk` — that would just move the same ambiguity somewhere
+else; keep them visually distinct and let both be true at once.
