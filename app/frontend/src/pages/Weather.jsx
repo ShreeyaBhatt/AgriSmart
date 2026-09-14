@@ -78,7 +78,7 @@ export default function Weather() {
             {error && <p className="text-xs text-rose-600">{error}</p>}
             <button onClick={run} disabled={busy}
               className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint">
-              {busy ? t("weather.checking") : t("action.analyse")}
+              {busy ? t("weather.checking") : t("weather.analyse")}
             </button>
           </>
         )}
@@ -93,6 +93,9 @@ export default function Weather() {
           onSeason={() => {}}
           onAnalyze={run}
           loading={busy}
+          analyzeIcon="sun"
+          analyzeLabel={t("weather.analyse")}
+          analyzingLabel={t("weather.checking")}
         />
       )}
       {!plotId && error && <p className="text-xs text-rose-600">{error}</p>}
