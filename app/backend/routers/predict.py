@@ -77,6 +77,19 @@ async def predict(
         # event loop so one person's scan doesn't stall every other request
         # (weather, soil, everything) for its whole duration.
         result = await asyncio.to_thread(run_inference, str(image_path), gradcam_out=gradcam_path, lang=lang)
+        # Prevent treatment advice for predictions that don't match
+        # the crop registered for the plot.
+        if plot_id and plot.main_crop and not result["abstained"]:
+            predicted_crop = result["raw_class"].split("___", 1)[0].strip().lower()
+            registered_crop = plot.main_crop.strip().lower()
+
+            if predicted_crop != registered_crop:
+                log.warning(
+                "Crop mismatch: registered=%s predicted=%s",
+                registered_crop,
+                predicted_crop,
+            )
+            result["precautions"] = []
     except FileNotFoundError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
                             f"The disease model is not trained yet. {exc}")

@@ -102,6 +102,9 @@ _GENERIC_PRECAUTIONS = {
     ],
 }
 
+def _crop_from_class(label: str) -> str:
+    """Extract crop name from PlantVillage class label."""
+    return label.split("___", 1)[0].strip().lower()
 
 @lru_cache
 def _cards() -> dict:
