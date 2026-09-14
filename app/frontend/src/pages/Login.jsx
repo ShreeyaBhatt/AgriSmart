@@ -63,6 +63,7 @@ function Hero() {
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10">
                 <Icon name={b.icon} className="h-3.5 w-3.5" />
               </span>
+
               {t(b.key)}
             </li>
           ))}
@@ -94,26 +95,32 @@ function ModeStep({
       </p>
 
       <div className="space-y-2.5">
+        {/* LOGIN */}
         <button
           type="button"
           onClick={onChooseLogin}
           disabled={busy}
-          className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left transition hover:border-brand-300 hover:bg-brand-50 disabled:text-faint"
+          className="group flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left !text-ink transition hover:border-brand-300 hover:bg-brand-50 hover:!text-ink disabled:!text-faint"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
-            <Icon name="user" className="h-4.5 w-4.5" />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 !text-brand-700">
+            <Icon
+              name="user"
+              className="h-4.5 w-4.5 !text-brand-700"
+            />
           </span>
 
           <span>
-            <span className="block text-sm font-semibold text-ink">
+            <span className="block text-sm font-semibold !text-ink group-hover:!text-black">
               {t("login.loginOption")}
             </span>
-            <span className="block text-xs text-muted">
+
+            <span className="block text-xs !text-muted group-hover:!text-[#5a6a5f]">
               {t("login.loginOptionDesc")}
             </span>
           </span>
         </button>
 
+        {/* SIGN UP */}
         <button
           type="button"
           onClick={onChooseSignup}
@@ -128,6 +135,7 @@ function ModeStep({
             <span className="block text-sm font-semibold">
               {t("login.signupOption")}
             </span>
+
             <span className="block text-xs text-brand-100">
               {t("login.signupOptionDesc")}
             </span>
@@ -372,7 +380,10 @@ function ProfileStep({
             placeholder={t("login.locationPlaceholder")}
             value={form.location}
             onChange={(e) =>
-              setForm((f) => ({ ...f, location: e.target.value }))
+              setForm((f) => ({
+                ...f,
+                location: e.target.value,
+              }))
             }
             required
           />
@@ -485,7 +496,6 @@ export default function Login() {
 
   const [step, setStep] = useState("mode");
   const [authMode, setAuthMode] = useState(null);
-
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [demoOtp, setDemoOtp] = useState("");
@@ -623,6 +633,7 @@ export default function Login() {
 
         <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10">
           <div className="mx-auto w-full max-w-sm">
+
             <div className="mb-6 flex items-center gap-2.5 md:hidden">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white">
                 <Icon name="sprout" className="h-4.5 w-4.5" />
@@ -710,6 +721,7 @@ export default function Login() {
                 }
               />
             )}
+
           </div>
         </div>
       </div>
