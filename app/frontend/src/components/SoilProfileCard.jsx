@@ -83,7 +83,7 @@ function TextureDropdown({ currentTexture, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto">
+        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
           <div className="flex flex-col gap-0.5">
             {TEXTURES.map((t) => {
               const active = t.value === currentTexture;
