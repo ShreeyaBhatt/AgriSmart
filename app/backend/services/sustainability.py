@@ -104,7 +104,7 @@ async def _ai_validate(
     """
     prompt = (
         "You are an agricultural sustainability analyst. A farmer submitted these inputs:\n\n"
-        f"• Water applied: {req.water_used_mm} mm (recommended: {req.water_recommended_mm} mm) → overuse: {water_over:.1f}%\n"
+        f"• Water applied: {req.water_used_mm} mm (recommended: {req.water_recommended_mm} mm) → deviation: {water_dev:.1f}%\n"
         f"• Chemicals used: {req.chemical_used_kg_ha} kg/ha (recommended: {req.chemical_recommended_kg_ha} kg/ha) → overuse: {chem_over:.1f}%\n"
         f"• Disease: {req.disease_class or 'None (healthy)'} → crop health: {crop_health:.0f}%\n"
         f"• Computed sustainability score: {score:.1f}/100 ({band})\n\n"
