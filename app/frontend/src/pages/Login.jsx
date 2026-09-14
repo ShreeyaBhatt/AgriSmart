@@ -51,7 +51,96 @@ function Hero() {
   );
 }
 
-function PhoneStep({ t, phone, setPhone, busy, error, onSend, onGuest }) {
+function ModeStep({ t, busy, onChooseLogin, onChooseSignup, onGuest }) {
+  return (
+    <div key="mode" className="animate-fade-up space-y-4">
+      <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+        <Icon name="sprout" className="h-5 w-5" />
+      </div>
+      <h2 className="text-base font-semibold text-ink">{t("login.modeTitle")}</h2>
+      <p className="text-xs text-muted">{t("login.modeSubtitle")}</p>
+
+      <div className="space-y-2.5">
+        <button
+          type="button"
+          onClick={onChooseLogin}
+          disabled={busy}
+          className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left transition hover:border-brand-300 hover:bg-brand-50 disabled:text-faint"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+            <Icon name="user" className="h-4.5 w-4.5" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-ink">{t("login.loginOption")}</span>
+            <span className="block text-xs text-muted">{t("login.loginOptionDesc")}</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onChooseSignup}
+          disabled={busy}
+          className="flex w-full items-center gap-3 rounded-xl bg-brand-700 px-4 py-3 text-left text-white transition hover:bg-brand-800 disabled:opacity-60"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
+            <Icon name="sprout" className="h-4.5 w-4.5" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold">{t("login.signupOption")}</span>
+            <span className="block text-xs text-brand-100">{t("login.signupOptionDesc")}</span>
+          </span>
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-faint">
+        <span className="h-px flex-1 bg-line" />
+        {t("login.guestOr")}
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onGuest}
+        disabled={busy}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-canvas disabled:text-faint"
+      >
+        <Icon name="globe" className="h-4 w-4" /> {t("login.guestCta")}
+      </button>
+      <p className="text-center text-[11px] text-faint">{t("login.guestHint")}</p>
+    </div>
+  );
+}
+
+function SignupNameStep({ t, name, setName, busy, onSubmit, onBack }) {
+  return (
+    <div key="signupName" className="animate-fade-up space-y-4">
+      <h2 className="text-base font-semibold text-ink">{t("login.signupNameTitle")}</h2>
+
+      <form onSubmit={onSubmit} className="space-y-3">
+        <input
+          className={FIELD}
+          placeholder={t("login.namePlaceholder")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+          required
+        />
+        <button
+          disabled={busy || !name.trim()}
+          className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
+        >
+          {busy ? "…" : t("login.continue")}
+        </button>
+      </form>
+
+      <button type="button" onClick={onBack} className="text-xs font-medium text-muted hover:text-ink">
+        {t("login.back")}
+      </button>
+    </div>
+  );
+}
+
+function PhoneStep({ t, phone, setPhone, busy, error, onSend, onBack }) {
   return (
     <div key="phone" className="animate-fade-up space-y-4">
       <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -80,21 +169,9 @@ function PhoneStep({ t, phone, setPhone, busy, error, onSend, onGuest }) {
         </button>
       </form>
 
-      <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-faint">
-        <span className="h-px flex-1 bg-line" />
-        {t("login.guestOr")}
-        <span className="h-px flex-1 bg-line" />
-      </div>
-
-      <button
-        type="button"
-        onClick={onGuest}
-        disabled={busy}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-canvas disabled:text-faint"
-      >
-        <Icon name="globe" className="h-4 w-4" /> {t("login.guestCta")}
+      <button type="button" onClick={onBack} className="text-xs font-medium text-muted hover:text-ink">
+        {t("login.back")}
       </button>
-      <p className="text-center text-[11px] text-faint">{t("login.guestHint")}</p>
     </div>
   );
 }
@@ -137,7 +214,7 @@ function OtpStep({ t, phone, demoOtp, otp, setOtp, busy, error, onVerify, onChan
   );
 }
 
-function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
+function ProfileStep({ t, form, setForm, busy, error, onSubmit, skipName }) {
   const useGps = () => {
     navigator.geolocation?.getCurrentPosition(
       (p) => setForm((f) => ({ ...f, location: `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}` })),
@@ -150,14 +227,16 @@ function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
       <h2 className="text-base font-semibold text-ink">{t("login.profileTitle")}</h2>
 
       <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          className={FIELD}
-          placeholder={t("login.namePlaceholder")}
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          autoFocus
-          required
-        />
+        {!skipName && (
+          <input
+            className={FIELD}
+            placeholder={t("login.namePlaceholder")}
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            autoFocus
+            required
+          />
+        )}
 
         <div className="flex gap-2">
           <input
@@ -244,13 +323,31 @@ export default function Login() {
   const location = useLocation();
   const dest = location.state?.from?.pathname || "/";
 
-  const [step, setStep] = useState("phone");
+  const [step, setStep] = useState("mode");
+  const [authMode, setAuthMode] = useState(null); // "login" | "signup"
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [demoOtp, setDemoOtp] = useState("");
   const [profile, setProfile] = useState({ name: "", location: "", crop: "", cropOther: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const chooseLogin = () => {
+    setAuthMode("login");
+    setError("");
+    setStep("phone");
+  };
+
+  const chooseSignup = () => {
+    setAuthMode("signup");
+    setError("");
+    setStep("signupName");
+  };
+
+  const submitSignupName = (e) => {
+    e.preventDefault();
+    setStep("phone");
+  };
 
   const sendOtp = async (e) => {
     e.preventDefault();
@@ -337,6 +434,22 @@ export default function Login() {
               <span className="text-base font-bold tracking-tight text-ink">AgriSmart</span>
             </div>
 
+            {step === "mode" && (
+              <ModeStep t={t} busy={busy} onChooseLogin={chooseLogin} onChooseSignup={chooseSignup} onGuest={guest} />
+            )}
+            {step === "signupName" && (
+              <SignupNameStep
+                t={t}
+                name={profile.name}
+                setName={(name) => setProfile((f) => ({ ...f, name }))}
+                busy={busy}
+                onSubmit={submitSignupName}
+                onBack={() => {
+                  setStep("mode");
+                  setError("");
+                }}
+              />
+            )}
             {step === "phone" && (
               <PhoneStep
                 t={t}
@@ -345,7 +458,10 @@ export default function Login() {
                 busy={busy}
                 error={error}
                 onSend={sendOtp}
-                onGuest={guest}
+                onBack={() => {
+                  setStep(authMode === "signup" ? "signupName" : "mode");
+                  setError("");
+                }}
               />
             )}
             {step === "otp" && (
@@ -366,7 +482,15 @@ export default function Login() {
               />
             )}
             {step === "profile" && (
-              <ProfileStep t={t} form={profile} setForm={setProfile} busy={busy} error={error} onSubmit={finishProfile} />
+              <ProfileStep
+                t={t}
+                form={profile}
+                setForm={setProfile}
+                busy={busy}
+                error={error}
+                onSubmit={finishProfile}
+                skipName={authMode === "signup" && !!profile.name.trim()}
+              />
             )}
           </div>
         </div>
