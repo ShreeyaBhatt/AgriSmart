@@ -101,8 +101,8 @@ export default function Sustainability() {
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-canvas/60 p-2">
-              <div className="text-[10px] uppercase text-faint">{t("sustainability.waterOveruse")}</div>
-              <div className="text-sm font-semibold text-ink">{result.water_overuse_pct}%</div>
+              <div className="text-[10px] uppercase text-faint">{t("sustainability.waterDeviation")}</div>
+              <div className="text-sm font-semibold text-ink">{result.water_deviation_pct}%</div>
             </div>
             <div className="rounded-lg bg-canvas/60 p-2">
               <div className="text-[10px] uppercase text-faint">{t("sustainability.chemicalOveruse")}</div>

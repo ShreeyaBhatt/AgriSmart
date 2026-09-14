@@ -59,8 +59,9 @@ async def test_sustainability_perfect_practice_scores_high():
     s = await compute_score(SustainabilityRequest(
         water_used_mm=300, water_recommended_mm=300,
         chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
-    assert s.score == 100.0 and s.band == "excellent"
-    assert s.water_overuse_pct == 0 and s.crop_health_pct == 100
+    assert s.score == 100.0
+    assert s.band == "excellent"
+    assert s.water_deviation_pct == 0 and s.crop_health_pct == 100
 
 
 @pytest.mark.asyncio
@@ -70,7 +71,7 @@ async def test_sustainability_overuse_and_disease_drag_score_down():
         chemical_used_kg_ha=100, chemical_recommended_kg_ha=50,
         disease_class="Tomato___Late_blight"))
     assert s.score < 60 and s.band in {"poor", "fair"}
-    assert s.water_overuse_pct == 100.0
+    assert s.water_deviation_pct == 100.0
     assert len(s.tips) >= 2 and "clamp" in s.formula
 
 
