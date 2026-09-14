@@ -3,6 +3,7 @@ import clsx from "clsx";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import Stat from "../components/Stat.jsx";
+import LocationPicker from "../components/LocationPicker.jsx";
 import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
 
@@ -72,22 +73,29 @@ export default function Weather() {
             </select>
           </label>
         )}
-        {!plotId && (
-          <div className="grid grid-cols-2 gap-2">
-            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
-              placeholder={t("common.latitude")} inputMode="decimal"
-              value={coords.lat} onChange={(e) => setCoords({ ...coords, lat: e.target.value })} />
-            <input className="rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
-              placeholder={t("common.longitude")} inputMode="decimal"
-              value={coords.lon} onChange={(e) => setCoords({ ...coords, lon: e.target.value })} />
-          </div>
+        {plotId && (
+          <>
+            {error && <p className="text-xs text-rose-600">{error}</p>}
+            <button onClick={run} disabled={busy}
+              className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint">
+              {busy ? t("weather.checking") : t("action.analyse")}
+            </button>
+          </>
         )}
-        {error && <p className="text-xs text-rose-600">{error}</p>}
-        <button onClick={run} disabled={busy}
-          className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint">
-          {busy ? t("weather.checking") : t("action.analyse")}
-        </button>
       </Card>
+
+      {!plotId && (
+        <LocationPicker
+          lat={coords.lat === "" ? null : Number(coords.lat)}
+          lon={coords.lon === "" ? null : Number(coords.lon)}
+          onChange={(la, lo) => setCoords({ lat: la, lon: lo })}
+          season=""
+          onSeason={() => {}}
+          onAnalyze={run}
+          loading={busy}
+        />
+      )}
+      {!plotId && error && <p className="text-xs text-rose-600">{error}</p>}
 
       {advice && (
         <>
