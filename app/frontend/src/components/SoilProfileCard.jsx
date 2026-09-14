@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
 import Card from "./Card.jsx";
 import Icon from "./Icon.jsx";
@@ -20,6 +21,91 @@ function SourceBadge({ source, t }) {
       <span className={clsx("h-1.5 w-1.5 rounded-full", offline ? "bg-amber-500" : "bg-brand-500")} />
       {source}
     </span>
+  );
+}
+
+const TEXTURES = [
+  { value: "sand", label: "Sand" },
+  { value: "loamy sand", label: "Loamy sand" },
+  { value: "sandy loam", label: "Sandy loam" },
+  { value: "loam", label: "Loam" },
+  { value: "silt loam", label: "Silt loam" },
+  { value: "silt", label: "Silt" },
+  { value: "sandy clay loam", label: "Sandy clay loam" },
+  { value: "clay loam", label: "Clay loam" },
+  { value: "silty clay loam", label: "Silty clay loam" },
+  { value: "sandy clay", label: "Sandy clay" },
+  { value: "silty clay", label: "Silty clay" },
+  { value: "clay", label: "Clay" },
+];
+
+function TextureDropdown({ currentTexture, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onPointer = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [open]);
+
+  const choose = (val) => {
+    onChange(val);
+    setOpen(false);
+  };
+
+  const currentLabel = TEXTURES.find(t => t.value === currentTexture)?.label || "Override...";
+
+  return (
+    <div ref={ref} className="relative z-50">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={[
+          "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
+          "border-line bg-surface text-ink shadow-sm",
+          "hover:border-brand-400 hover:text-brand-700",
+          open ? "border-brand-400 text-brand-700" : "",
+        ].join(" ")}
+      >
+        <span>{currentLabel}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={["h-3 w-3 shrink-0 text-faint transition-transform duration-200", open ? "rotate-180" : ""].join(" ")}><path d="m6 9 6 6 6-6" /></svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto">
+          <div className="flex flex-col gap-0.5">
+            {TEXTURES.map((t) => {
+              const active = t.value === currentTexture;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => choose(t.value)}
+                  className={[
+                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition",
+                    active ? "bg-brand-600 text-white" : "text-ink hover:bg-canvas",
+                  ].join(" ")}
+                >
+                  <span>{t.label}</span>
+                  {active && <Icon name="check" className="h-3.5 w-3.5 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -53,26 +139,7 @@ export default function SoilProfileCard({ profile: p, onTextureOverride }) {
               {p.texture_class || t("soil.unknownTexture")}
             </h2>
             {onTextureOverride && (
-              <select
-                className="rounded-md border-line bg-canvas px-2 py-1 text-xs text-ink focus:border-brand-500 focus:ring-brand-500"
-                value={p.texture_class || ""}
-                onChange={handleTextureChange}
-                title="Manual Override"
-              >
-                <option value="" disabled>Override...</option>
-                <option value="sand">Sand</option>
-                <option value="loamy sand">Loamy sand</option>
-                <option value="sandy loam">Sandy loam</option>
-                <option value="loam">Loam</option>
-                <option value="silt loam">Silt loam</option>
-                <option value="silt">Silt</option>
-                <option value="sandy clay loam">Sandy clay loam</option>
-                <option value="clay loam">Clay loam</option>
-                <option value="silty clay loam">Silty clay loam</option>
-                <option value="sandy clay">Sandy clay</option>
-                <option value="silty clay">Silty clay</option>
-                <option value="clay">Clay</option>
-              </select>
+              <TextureDropdown currentTexture={p.texture_class} onChange={onTextureOverride} />
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted">
