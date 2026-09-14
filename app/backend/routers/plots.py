@@ -80,7 +80,10 @@ async def _background_attach_soil(plot_id: str) -> None:
 
     # 2. Network call (takes up to 45s) — no DB transaction held!
     try:
-        profile = await build_soil_profile(lat, lon)
+        # skip_offline_cache=True: a previous transient failure for these
+        # coordinates (e.g. from an interactive /soil/lookup that hit a timeout)
+        # must not shadow this background attempt, which has its own full budget.
+        profile = await build_soil_profile(lat, lon, skip_offline_cache=True)
         snapshot = profile.model_dump(mode="json")
         status = "ready"
     except Exception:

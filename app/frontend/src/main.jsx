@@ -12,6 +12,8 @@ import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import { LanguageProvider } from "./i18n/useT.js";
 import { ThemeProvider } from "./theme/useTheme.js";
 import { LandUnitProvider } from "./units/useLandUnit.js";
+import { SoilCheckProvider } from "./lib/SoilCheckContext.jsx";
+import { PlotSoilProvider } from "./lib/PlotSoilContext.jsx";
 
 // Fix Leaflet's default marker asset paths under bundlers.
 L.Marker.prototype.options.icon = L.icon({
@@ -36,9 +38,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <LandUnitProvider>
         <BrowserRouter>
           <AuthProvider>
-            <LangBridge>
-              <App />
-            </LangBridge>
+            <PlotSoilProvider>
+              <SoilCheckProvider>
+                <LangBridge>
+                  <App />
+                </LangBridge>
+              </SoilCheckProvider>
+            </PlotSoilProvider>
           </AuthProvider>
         </BrowserRouter>
       </LandUnitProvider>
