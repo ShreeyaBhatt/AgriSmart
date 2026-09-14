@@ -29,7 +29,7 @@ export default function AppShell({ children }) {
   return (
     <div className="min-h-screen">
       {/* top bar */}
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur">
+      <header className="sticky top-0 z-[1010] border-b border-line bg-surface/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
           <NavLink to="/" className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-700 text-white ring-1 ring-brand-800/10 transition hover:scale-105">
@@ -85,7 +85,7 @@ export default function AppShell({ children }) {
       <main className="mx-auto max-w-6xl px-4 py-5 pb-24 md:pb-8">{children}</main>
 
       {/* bottom nav (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-[1010] border-t border-line bg-surface/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md">
           {BOTTOM.map((to) => {
             const item = NAV.find((n) => n.to === to) || { to, icon: "user", key: "nav.settings" };

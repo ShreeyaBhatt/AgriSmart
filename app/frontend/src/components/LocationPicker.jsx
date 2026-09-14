@@ -70,7 +70,7 @@ function useLocationSearch() {
   return { query, setQuery, results, setResults, searching };
 }
 
-export default function LocationPicker({ lat, lon, season, onChange, onSeason, onAnalyze, loading }) {
+export default function LocationPicker({ lat, lon, season, onChange, onSeason, onAnalyze, loading, analyzeLabel, analyzingLabel }) {
   const t = useT();
   const [latText, setLatText] = useState("");
   const [lonText, setLonText] = useState("");
@@ -259,12 +259,12 @@ export default function LocationPicker({ lat, lon, season, onChange, onSeason, o
           {loading ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              {t("soil.analysing")}
+              {analyzingLabel || t("soil.analysing")}
             </>
           ) : (
             <>
               <Icon name="sprout" className="h-4 w-4" />
-              {t("soil.analyseSoil")}
+              {analyzeLabel || t("soil.analyseSoil")}
             </>
           )}
         </button>

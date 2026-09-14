@@ -93,6 +93,8 @@ export default function Weather() {
           onSeason={() => {}}
           onAnalyze={run}
           loading={busy}
+          analyzeLabel={t("weather.analyseWeather")}
+          analyzingLabel={t("weather.checking")}
         />
       )}
       {!plotId && error && <p className="text-xs text-rose-600">{error}</p>}

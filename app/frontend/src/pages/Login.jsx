@@ -9,6 +9,8 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from "../i18n/useT.js";
 import { KNOWN_CROPS } from "../lib/crops.js";
 
+const OTP_LENGTH = 6; // must match OtpInput's default `length` and the backend's demo code
+
 const FIELD =
   "w-full rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-300/40";
 
@@ -51,13 +53,77 @@ function Hero() {
   );
 }
 
-function PhoneStep({ t, phone, setPhone, busy, error, onSend, onGuest }) {
+function ChoiceStep({ t, busy, error, onLogin, onSignup, onGuest }) {
+  return (
+    <div key="choice" className="animate-fade-up space-y-4">
+      <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+        <Icon name="sprout" className="h-5 w-5" />
+      </div>
+      <h2 className="text-base font-semibold text-ink">{t("login.chooseTitle")}</h2>
+      <p className="text-xs text-muted">{t("login.chooseSubtitle")}</p>
+
+      <div className="space-y-2.5">
+        <button
+          type="button"
+          onClick={onLogin}
+          className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left transition hover:border-brand-300 hover:bg-brand-50"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+            <Icon name="user" className="h-4.5 w-4.5" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-ink">{t("login.loginCta")}</span>
+            <span className="block text-xs text-muted">{t("login.loginCtaHint")}</span>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onSignup}
+          className="flex w-full items-center gap-3 rounded-xl bg-brand-700 px-4 py-3 text-left text-white transition hover:bg-brand-800"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+            <Icon name="leaf" className="h-4.5 w-4.5" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold">{t("login.signupCta")}</span>
+            <span className="block text-xs text-brand-100">{t("login.signupCtaHint")}</span>
+          </span>
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-faint">
+        <span className="h-px flex-1 bg-line" />
+        {t("login.guestOr")}
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onGuest}
+        disabled={busy}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-canvas disabled:text-faint"
+      >
+        <Icon name="globe" className="h-4 w-4" /> {t("login.guestCta")}
+      </button>
+      {error && <p className="text-center text-xs text-rose-600">{error}</p>}
+      <p className="text-center text-[11px] text-faint">{t("login.guestHint")}</p>
+    </div>
+  );
+}
+
+function PhoneStep({ t, mode, phone, setPhone, busy, error, onSend, onBack }) {
   return (
     <div key="phone" className="animate-fade-up space-y-4">
+      <button type="button" onClick={onBack} className="flex items-center gap-1 text-xs font-medium text-muted hover:text-ink">
+        <Icon name="arrowLeft" className="h-3.5 w-3.5" /> {t("login.backToChoice")}
+      </button>
       <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
         <Icon name="user" className="h-5 w-5" />
       </div>
-      <h2 className="text-base font-semibold text-ink">{t("login.phoneTitle")}</h2>
+      <h2 className="text-base font-semibold text-ink">
+        {mode === "signup" ? t("login.signupPhoneTitle") : t("login.phoneTitle")}
+      </h2>
 
       <form onSubmit={onSend} className="space-y-3">
         <input
@@ -79,22 +145,6 @@ function PhoneStep({ t, phone, setPhone, busy, error, onSend, onGuest }) {
           {busy ? "…" : t("login.sendOtp")}
         </button>
       </form>
-
-      <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-faint">
-        <span className="h-px flex-1 bg-line" />
-        {t("login.guestOr")}
-        <span className="h-px flex-1 bg-line" />
-      </div>
-
-      <button
-        type="button"
-        onClick={onGuest}
-        disabled={busy}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-canvas disabled:text-faint"
-      >
-        <Icon name="globe" className="h-4 w-4" /> {t("login.guestCta")}
-      </button>
-      <p className="text-center text-[11px] text-faint">{t("login.guestHint")}</p>
     </div>
   );
 }
@@ -115,10 +165,10 @@ function OtpStep({ t, phone, demoOtp, otp, setOtp, busy, error, onVerify, onChan
       )}
 
       <form onSubmit={onVerify} className="space-y-4">
-        <OtpInput value={otp} onChange={setOtp} />
+        <OtpInput length={OTP_LENGTH} value={otp} onChange={setOtp} />
         {error && <p className="text-center text-xs text-rose-600">{error}</p>}
         <button
-          disabled={busy || otp.length < 4}
+          disabled={busy || otp.length < OTP_LENGTH}
           className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
         >
           {busy ? "…" : t("login.verify")}
@@ -137,7 +187,7 @@ function OtpStep({ t, phone, demoOtp, otp, setOtp, busy, error, onVerify, onChan
   );
 }
 
-function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
+function ProfileStep({ t, form, setForm, busy, error, onSubmit, onBack, submitLabel }) {
   const useGps = () => {
     navigator.geolocation?.getCurrentPosition(
       (p) => setForm((f) => ({ ...f, location: `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}` })),
@@ -147,6 +197,11 @@ function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
 
   return (
     <div key="profile" className="animate-fade-up space-y-4">
+      {onBack && (
+        <button type="button" onClick={onBack} className="flex items-center gap-1 text-xs font-medium text-muted hover:text-ink">
+          <Icon name="arrowLeft" className="h-3.5 w-3.5" /> {t("login.backToChoice")}
+        </button>
+      )}
       <h2 className="text-base font-semibold text-ink">{t("login.profileTitle")}</h2>
 
       <form onSubmit={onSubmit} className="space-y-3">
@@ -217,7 +272,7 @@ function ProfileStep({ t, form, setForm, busy, error, onSubmit }) {
           disabled={busy || !form.name || !form.location || !form.crop}
           className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 active:scale-[0.99] disabled:bg-line disabled:text-faint"
         >
-          {busy ? "…" : t("login.finish")}
+          {busy ? "…" : submitLabel || t("login.finish")}
         </button>
       </form>
     </div>
@@ -231,13 +286,38 @@ export default function Login() {
   const location = useLocation();
   const dest = location.state?.from?.pathname || "/";
 
-  const [step, setStep] = useState("phone");
+  // "choice" | "details" (signup only, before phone) | "phone" | "otp" | "profile" (login fallback, after phone)
+  const [step, setStep] = useState("choice");
+  const [mode, setMode] = useState(""); // "login" | "signup"
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [demoOtp, setDemoOtp] = useState("");
   const [profile, setProfile] = useState({ name: "", location: "", crop: "", cropOther: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const resetToChoice = () => {
+    setStep("choice");
+    setMode("");
+    setError("");
+  };
+
+  const chooseLogin = () => {
+    setMode("login");
+    setError("");
+    setStep("phone");
+  };
+
+  const chooseSignup = () => {
+    setMode("signup");
+    setError("");
+    setStep("details");
+  };
+
+  const submitDetails = (e) => {
+    e.preventDefault();
+    setStep("phone");
+  };
 
   const sendOtp = async (e) => {
     e.preventDefault();
@@ -261,7 +341,18 @@ export default function Login() {
     setError("");
     try {
       const resp = await verifyOtp(phone, otp);
-      if (resp.is_new) {
+      if (mode === "signup") {
+        if (resp.is_new) {
+          // Brand-new account — apply the details collected before the phone step.
+          const crop = profile.crop === t("login.cropOther") ? profile.cropOther : profile.crop;
+          await completeProfile({ name: profile.name, location_label: profile.location, primary_crop: crop });
+        }
+        // If the number already had an account, verifyOtp still logged
+        // them into that existing account — nothing from the signup form
+        // is used, but they land in the app either way instead of a dead end.
+        navigate(dest, { replace: true });
+      } else if (resp.is_new) {
+        // Logged in with a number that has no profile yet — collect it now.
         setStep("profile");
       } else {
         navigate(dest, { replace: true });
@@ -320,15 +411,31 @@ export default function Login() {
               <span className="text-base font-bold tracking-tight text-ink">AgriSmart</span>
             </div>
 
+            {step === "choice" && (
+              <ChoiceStep t={t} busy={busy} error={error} onLogin={chooseLogin} onSignup={chooseSignup} onGuest={guest} />
+            )}
+            {step === "details" && (
+              <ProfileStep
+                t={t}
+                form={profile}
+                setForm={setProfile}
+                busy={busy}
+                error={error}
+                onSubmit={submitDetails}
+                onBack={resetToChoice}
+                submitLabel={t("login.continueToPhone")}
+              />
+            )}
             {step === "phone" && (
               <PhoneStep
                 t={t}
+                mode={mode}
                 phone={phone}
                 setPhone={setPhone}
                 busy={busy}
                 error={error}
                 onSend={sendOtp}
-                onGuest={guest}
+                onBack={mode === "signup" ? () => setStep("details") : resetToChoice}
               />
             )}
             {step === "otp" && (
