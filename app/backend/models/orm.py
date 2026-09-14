@@ -11,7 +11,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, String, Text, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..db import Base
@@ -34,8 +34,10 @@ class Plot(Base):
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)
     area_ha: Mapped[float | None] = mapped_column(Float, default=None)
+    main_crop: Mapped[str | None] = mapped_column(String(120), default=None)
     soil_snapshot: Mapped[dict | None] = mapped_column(JSON, default=None)  # a SoilProfile dict
     soil_fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    soil_status: Mapped[str] = mapped_column(String(10), default="pending")  # pending | ready | failed
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

@@ -27,8 +27,18 @@ async def test_create_and_list_plot_with_soil(auth_client):
     assert r.status_code == 201, r.text
     plot = r.json()
     assert plot["name"] == "North field"
-    assert plot["soil_snapshot"]["texture_class"] == "clay loam"
-    assert plot["soil_fetched_at"] is not None
+    assert plot["soil_status"] == "pending"
+    assert plot["soil_snapshot"] is None
+    
+    # Wait for background task to complete and poll the status endpoint
+    import asyncio
+    await asyncio.sleep(0.1)
+    status_r = await client.get(f"/api/plots/{plot['id']}/soil-status", headers=headers)
+    assert status_r.status_code == 200
+    status_data = status_r.json()
+    assert status_data["soil_status"] == "ready"
+    assert status_data["soil_snapshot"]["texture_class"] == "clay loam"
+    assert status_data["soil_fetched_at"] is not None
 
     lst = await client.get("/api/plots", headers=headers)
     assert lst.status_code == 200 and len(lst.json()) == 1
