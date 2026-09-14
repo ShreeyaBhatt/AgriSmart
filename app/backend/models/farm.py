@@ -81,6 +81,7 @@ class DiagnosisOut(BaseModel):
     abstained: bool
     precautions: list[str] | None
     model_version: str | None
+    crop_warning: str | None = None  # set when the prediction's crop doesn't match the farmer's declared crop
     created_at: datetime
 
 
