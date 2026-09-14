@@ -539,7 +539,7 @@ export default function Login() {
     setError("");
 
     try {
-      const resp = await requestOtp(phone);
+      const resp = await requestOtp(phone, authMode);
 
       setDemoOtp(resp.demo_otp || "");
       setOtp("");
@@ -633,7 +633,6 @@ export default function Login() {
 
         <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10">
           <div className="mx-auto w-full max-w-sm">
-
             <div className="mb-6 flex items-center gap-2.5 md:hidden">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white">
                 <Icon name="sprout" className="h-4.5 w-4.5" />
@@ -721,7 +720,6 @@ export default function Login() {
                 }
               />
             )}
-
           </div>
         </div>
       </div>

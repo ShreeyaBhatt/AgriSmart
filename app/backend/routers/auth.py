@@ -31,6 +31,14 @@ def _token_response(user: User, *, is_new: bool) -> TokenResponse:
 
 @router.post("/otp/request", response_model=OtpRequestOut)
 async def request_otp(body: OtpRequest) -> OtpRequestOut:
+    if body.mode == "signup":
+        existing_user = await users_repo.get_by_phone(body.phone)
+        if existing_user is not None:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                "User already exists",
+            )
+
     try:
         code = otp_service.request_otp(body.phone)
     except otp_service.OtpCooldownError as exc:
@@ -38,8 +46,8 @@ async def request_otp(body: OtpRequest) -> OtpRequestOut:
             status.HTTP_429_TOO_MANY_REQUESTS,
             f"Please wait {int(exc.retry_after_s) + 1}s before requesting another code",
         ) from exc
-    return OtpRequestOut(phone=body.phone, demo_otp=code)
 
+    return OtpRequestOut(phone=body.phone, demo_otp=code)
 
 @router.post("/otp/verify", response_model=TokenResponse)
 async def verify_otp(body: OtpVerifyRequest) -> TokenResponse:
