@@ -17,6 +17,7 @@ const NAV = [
   { to: "/assistant", icon: "chat", key: "nav.assistant" },
   { to: "/settings", icon: "user", key: "nav.settings" },
 ];
+
 const BOTTOM = ["/", "/scan", "/weather", "/assistant", "/settings"];
 
 export default function AppShell({ children }) {
@@ -40,7 +41,9 @@ export default function AppShell({ children }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-700 text-white ring-1 ring-brand-800/10 transition hover:scale-105">
               <Icon name="sprout" className="h-4 w-4" />
             </span>
-            <span className="text-sm font-bold tracking-tight text-ink">AgriSmart</span>
+            <span className="text-sm font-bold tracking-tight text-ink">
+              AgriSmart
+            </span>
           </NavLink>
 
           <nav className="ml-4 hidden items-center gap-1 md:flex">
@@ -52,24 +55,30 @@ export default function AppShell({ children }) {
                 className={({ isActive }) =>
                   clsx(
                     "relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition",
-                    isActive ? "bg-brand-50 text-brand-700" : "text-muted hover:bg-canvas hover:text-ink"
+                    isActive
+                      ? "bg-brand-50 text-brand-700"
+                      : "text-muted hover:bg-canvas hover:text-ink"
                   )
                 }
               >
                 <Icon name={n.icon} className="h-4 w-4" />
                 {t(n.key)}
+
                 {n.to === "/soil" && soilLoading && (
                   <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-600" />
                   </span>
                 )}
-                {n.to === "/" && pendingPlot && soilStatus === "pending" && (
-                  <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
-                  </span>
-                )}
+
+                {n.to === "/" &&
+                  pendingPlot &&
+                  soilStatus === "pending" && (
+                    <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                    </span>
+                  )}
               </NavLink>
             ))}
           </nav>
@@ -77,6 +86,7 @@ export default function AppShell({ children }) {
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <LanguageSwitcher />
+
             {user && (
               <button
                 onClick={doLogout}
@@ -84,13 +94,14 @@ export default function AppShell({ children }) {
                 className="flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-canvas"
               >
                 <Icon name="logout" className="h-4 w-4" />
+
                 <span className="hidden items-center gap-1.5 sm:inline-flex">
                   {user.is_guest ? (
                     <span className="rounded-full bg-earth-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-earth-600">
                       {t("nav.guestTag")}
                     </span>
                   ) : (
-                    user.name?.split(" ")[0] || t("action.logout")
+                    user.name || t("action.logout")
                   )}
                 </span>
               </button>
@@ -99,7 +110,9 @@ export default function AppShell({ children }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-5 pb-24 md:pb-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-5 pb-24 md:pb-8">
+        {children}
+      </main>
 
       {/* Plot soil fetch toast — shown on any page while polling */}
       {pendingPlot && (
@@ -116,11 +129,17 @@ export default function AppShell({ children }) {
           {/* status icon / spinner */}
           {soilStatus === "ready" ? (
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-              <Icon name="checkCircle" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <Icon
+                name="checkCircle"
+                className="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+              />
             </span>
           ) : soilStatus === "failed" ? (
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/50">
-              <Icon name="warning" className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <Icon
+                name="warning"
+                className="h-4 w-4 text-amber-600 dark:text-amber-400"
+              />
             </span>
           ) : (
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/40">
@@ -129,7 +148,10 @@ export default function AppShell({ children }) {
           )}
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold text-ink">{pendingPlot.name}</p>
+            <p className="truncate text-xs font-semibold text-ink">
+              {pendingPlot.name}
+            </p>
+
             <p className="mt-0.5 text-[11px] text-muted">
               {soilStatus === "ready"
                 ? t("plotNew.soilReady")
@@ -137,6 +159,7 @@ export default function AppShell({ children }) {
                 ? t("plotNew.soilFailed")
                 : t("plotNew.soilFetchingBg")}
             </p>
+
             {soilStatus !== "pending" && (
               <Link
                 to={`/plots/${pendingPlot.id}`}
@@ -163,7 +186,12 @@ export default function AppShell({ children }) {
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md">
           {BOTTOM.map((to) => {
-            const item = NAV.find((n) => n.to === to) || { to, icon: "user", key: "nav.settings" };
+            const item = NAV.find((n) => n.to === to) || {
+              to,
+              icon: "user",
+              key: "nav.settings",
+            };
+
             return (
               <NavLink
                 key={to}
@@ -180,18 +208,22 @@ export default function AppShell({ children }) {
                   <>
                     <Icon name={item.icon} className="h-5 w-5" />
                     {t(item.key)}
+
                     <span
                       className={clsx(
                         "mt-0.5 h-0.5 w-5 rounded-full transition",
                         isActive ? "bg-brand-700" : "bg-transparent"
                       )}
                     />
-                    {to === "/" && pendingPlot && soilStatus === "pending" && (
-                      <span className="absolute right-3 top-1 flex h-2.5 w-2.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
-                      </span>
-                    )}
+
+                    {to === "/" &&
+                      pendingPlot &&
+                      soilStatus === "pending" && (
+                        <span className="absolute right-3 top-1 flex h-2.5 w-2.5">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                        </span>
+                      )}
                   </>
                 )}
               </NavLink>
