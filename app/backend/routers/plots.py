@@ -220,7 +220,10 @@ async def plot_timeline(
     for e in await session.scalars(select(IrrigationEvent).where(IrrigationEvent.plot_id == plot_id)):
         entries.append(TimelineEntry(
             kind="irrigation", at=e.at, ref_id=e.id, title=_tt("irrigation", lang),
-            detail=(e.note or e.method or (f"{e.amount_mm} mm" if e.amount_mm else None)),
+            # amount_mm=0 is a valid, meaningful reading ("checked, no water
+            # applied") — `if e.amount_mm` treated it as falsy and silently
+            # dropped it, so check for None instead of truthiness.
+            detail=(e.note or e.method or (f"{e.amount_mm} mm" if e.amount_mm is not None else None)),
         ))
     for a in await session.scalars(select(FarmerAction).where(FarmerAction.plot_id == plot_id)):
         entries.append(TimelineEntry(

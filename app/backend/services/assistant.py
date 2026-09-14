@@ -16,6 +16,7 @@ from typing import Any
 
 from ..config import get_settings
 from ..models.modules import AssistantAnswer
+from . import gemini as gemini_service
 from .units import describe_area
 
 log = logging.getLogger(__name__)
@@ -216,13 +217,26 @@ def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: st
     
     if not picked:
         q_low = question.lower()
-        import re
         en_match = re.search(r"\b(what|which|best|suggest|recommend|suitable|top)\s+(crop|plant|seed)s?\b|\bwhat\s+to\s+(grow|plant|sow)\b|\bbest\s+(crop|plant)s?\s+to\s+(grow|plant)\b", q_low)
         hi_match = re.search(r"(कौन\s*सी|क्या|सबसे\s*अच्छी|सुझाव).*(फसल|उगा|लगा)", q_low)
         gu_match = re.search(r"(કયો|કઈ|શું|શ્રેષ્ઠ|સૂચન).*(પાક|વાવ|ઉગાડ)", q_low)
-        disease_match = re.search(r"\b(not|isnt|isn't|arent|aren't|dying|sick|disease|pest|bug|yellow|rot|problem)\b|रोग|बीमारी|खराब|રોગ|જીવાત", q_low)
-        
-        asking_crops = (en_match or hi_match or gu_match) and not disease_match
+        mr_match = re.search(r"(कोणत[ेी]|सर्वोत्तम|सुचवा).*(पीक|पेरा|लावा)", q_low)
+        ta_match = re.search(r"(எந்த|சிறந்த|பரிந்துரை).*(பயிர்|வளர்|நடவு)", q_low)
+        te_match = re.search(r"(ఏ|ఉత్తమ|సూచించు).*(పంట|పండించు|వేయాలి)", q_low)
+        pa_match = re.search(r"(ਕਿਹੜੀ|ਸਭ ਤੋਂ ਵਧੀਆ|ਸੁਝਾਅ).*(ਫ਼ਸਲ|ਬੀਜਣਾ|ਲਾਉਣਾ)", q_low)
+        disease_match = re.search(
+            r"\b(not|isnt|isn't|arent|aren't|dying|sick|disease|pest|bug|yellow|rot|problem)\b"
+            r"|रोग|बीमारी|खराब|आजार"  # hi/mr
+            r"|રોગ|જીવાત"  # gu
+            r"|நோய்|பூச்சி|கெட்டு"  # ta
+            r"|వ్యాధి|పురుగు|పాడైంది"  # te
+            r"|ਰੋਗ|ਬਿਮਾਰੀ|ਖ਼ਰਾਬ",  # pa
+            q_low,
+        )
+
+        asking_crops = (
+            en_match or hi_match or gu_match or mr_match or ta_match or te_match or pa_match
+        ) and not disease_match
 
         if asking_crops and plot_ctx and "best crops to grow here: " in plot_ctx:
             crops = plot_ctx.split("best crops to grow here: ")[-1]
@@ -246,40 +260,19 @@ def _fallback_answer(question: str, picked: list[tuple[str, dict]], plot_ctx: st
     return "\n\n".join(lines)
 
 
-@lru_cache
-def _gemini_model():
-    """Configuring the SDK and building the model object turns out to carry
-    most of the "why is voice assistance slow" cost — profiling showed a
-    fresh process paying ~9-10s here on its *first* call alone, separate
-    from actual generation time (measured ~4-6s). Caching this means that
-    cost is paid once (ideally at server startup via warm_up() below), not
-    on whichever request happens to be first."""
-    import google.generativeai as genai
-
-    s = get_settings()
-    genai.configure(api_key=s.gemini_api_key)
-    return genai.GenerativeModel(s.gemini_model)
-
-
 async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
     lang_name = {
         "en": "English", "hi": "Hindi", "gu": "Gujarati",
         "mr": "Marathi", "ta": "Tamil", "te": "Telugu", "pa": "Punjabi",
     }.get(lang, "English")
-    try:
-        model = _gemini_model()
-        prompt = (
-            "You are a careful, practical agricultural advisor for small farmers in India. "
-            "Use the CONTEXT below to ground your answer if relevant. If the context does not cover it, provide general, safe agronomic advice based on your own knowledge. "
-            "If you mention this plot's size, use the figure and unit given in the context as-is — don't convert it to a different unit. "
-            f"Reply in {lang_name}, in plain language, 4-6 short sentences, no markdown headings.\n\n"
-            f"CONTEXT:\n{context}\n\nQUESTION: {question}"
-        )
-        resp = await model.generate_content_async(prompt)
-        return (resp.text or "").strip() or None
-    except Exception as exc:  # missing key, quota, network, SDK change
-        log.warning("Gemini call failed, using offline fallback: %s", exc)
-        return None
+    prompt = (
+        "You are a careful, practical agricultural advisor for small farmers in India. "
+        "Use the CONTEXT below to ground your answer if relevant. If the context does not cover it, provide general, safe agronomic advice based on your own knowledge. "
+        "If you mention this plot's size, use the figure and unit given in the context as-is — don't convert it to a different unit. "
+        f"Reply in {lang_name}, in plain language, 4-6 short sentences, no markdown headings.\n\n"
+        f"CONTEXT:\n{context}\n\nQUESTION: {question}"
+    )
+    return await gemini_service.generate(prompt)
 
 
 async def answer_question(
@@ -307,17 +300,8 @@ async def answer_question(
 
 
 async def warm_up() -> None:
-    """Pays the one-time google-generativeai import + gRPC-channel-setup
-    cost — profiled at roughly 9-15s on a cold process, separate from the
-    ~4-6s actual generation time — at server startup instead of on
-    whichever farmer's question happens to arrive first. A missing/invalid
-    key or a flaky network just means this is skipped; that's not fatal,
-    it only means the *first* real question pays the tax this was meant
-    to avoid, same as before this existed."""
-    if not get_settings().gemini_api_key:
-        return
-    try:
-        model = _gemini_model()
-        await model.generate_content_async("Reply with one word: ready")
-    except Exception as exc:
-        log.warning("Gemini warm-up skipped (assistant will still work, just slower on the first question): %s", exc)
+    """Delegates to the shared gemini service — see its warm_up() for what
+    this pays for and why. A missing/invalid key or a flaky network just
+    means it's skipped; the assistant still works, just slower on the
+    first question."""
+    await gemini_service.warm_up()

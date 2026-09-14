@@ -63,7 +63,8 @@ async def test_timeline_merges_activity(auth_client):
 async def test_farmers_cannot_see_each_others_plots(client):
     async def mk():
         phone = str(1000000000 + int(uuid.uuid4().int % 900000000))
-        b = (await client.post("/api/auth/otp/verify", json={"phone": phone, "otp": "123456"})).json()
+        req = (await client.post("/api/auth/otp/request", json={"phone": phone})).json()
+        b = (await client.post("/api/auth/otp/verify", json={"phone": phone, "otp": req["demo_otp"]})).json()
         return {"Authorization": f"Bearer {b['access_token']}"}
 
     a, b = await mk(), await mk()

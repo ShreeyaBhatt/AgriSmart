@@ -346,6 +346,11 @@ export default function Login() {
 
   const submitSignupName = (e) => {
     e.preventDefault();
+    // Trim here, not just on final submit — a leading space (easy to type
+    // on a mobile keyboard) would otherwise survive into profile.name and
+    // make user.name.split(" ")[0] render as an empty string later, i.e.
+    // the greeting would show with no name after it.
+    setProfile((f) => ({ ...f, name: f.name.trim() }));
     setStep("phone");
   };
 
@@ -406,7 +411,11 @@ export default function Login() {
     setError("");
     try {
       const crop = profile.crop === t("login.cropOther") ? profile.cropOther : profile.crop;
-      await completeProfile({ name: profile.name, location_label: profile.location, primary_crop: crop });
+      await completeProfile({
+        name: profile.name.trim(),
+        location_label: profile.location.trim(),
+        primary_crop: crop,
+      });
       navigate(dest, { replace: true });
     } catch (err) {
       setError(err.detail || err.message);

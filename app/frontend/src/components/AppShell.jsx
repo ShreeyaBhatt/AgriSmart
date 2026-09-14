@@ -90,7 +90,7 @@ export default function AppShell({ children }) {
                       {t("nav.guestTag")}
                     </span>
                   ) : (
-                    user.name?.split(" ")[0] || t("action.logout")
+                    user.name?.trim().split(" ")[0] || t("action.logout")
                   )}
                 </span>
               </button>
