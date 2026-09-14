@@ -49,6 +49,7 @@ class SustainabilityScore(BaseModel):
     score: float
     band: Literal["poor", "fair", "good", "excellent"]
     water_overuse_pct: float
+    water_deficit_pct: float
     chemical_overuse_pct: float
     crop_health_pct: float
     formula: str

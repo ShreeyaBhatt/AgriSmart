@@ -71,7 +71,37 @@ async def test_sustainability_overuse_and_disease_drag_score_down():
         disease_class="Tomato___Late_blight"))
     assert s.score < 60 and s.band in {"poor", "fair"}
     assert s.water_overuse_pct == 100.0
+    assert s.water_deficit_pct == 0
     assert len(s.tips) >= 2 and "clamp" in s.formula
+
+
+@pytest.mark.asyncio
+async def test_sustainability_under_irrigation_is_penalised_not_rewarded():
+    """A farmer applying 50mm against a 500mm requirement (severe under-
+    watering) used to score a perfect 100 with an "all within target"
+    message, because the formula only ever penalised *excess* water — a
+    deficit clamped to 0% overuse and was invisible to the score."""
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=50, water_recommended_mm=500,
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_overuse_pct == 0
+    assert s.water_deficit_pct == 90.0  # (500-50)/500 * 100
+    assert s.score < 80  # must not read "excellent" while 90% under-watered
+    assert s.band != "excellent"
+    assert any("below the crop's need" in tip for tip in s.tips)
+    assert not any("all within target" in tip for tip in s.tips)
+
+
+@pytest.mark.asyncio
+async def test_sustainability_within_optimal_irrigation_band_scores_well():
+    """90-110% of the recommendation is the soft 'optimal band' — neither
+    side of the two-sided formula should meaningfully penalise it."""
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=280, water_recommended_mm=300,  # ~93%
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_overuse_pct == 0
+    assert 0 < s.water_deficit_pct <= 10
+    assert s.band == "excellent"
 
 
 # --- Module E ------------------------------------------------------------
