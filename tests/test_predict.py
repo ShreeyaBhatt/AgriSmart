@@ -23,9 +23,21 @@ async def test_predict_rejects_non_image(auth_client):
     assert r.status_code == 415
 
 
-@pytest.mark.skipif(_HAS_MODEL, reason="model is trained")
 @pytest.mark.asyncio
-async def test_predict_is_graceful_without_a_trained_model(auth_client):
+async def test_predict_is_graceful_without_a_trained_model(auth_client, monkeypatch):
+    """Simulates missing weights via a monkeypatch rather than relying on
+    model/artifacts/weights.pt actually being absent — that made this test
+    (and its real-model counterpart below) mutually exclusive based on
+    whatever happened to be checked out, so exactly one of the two always
+    skipped. Patching run_inference itself means both run every time,
+    regardless of repo state."""
+    import model.infer as infer_module
+
+    def _raise(*_a, **_k):
+        raise FileNotFoundError("weights.pt not found")
+
+    monkeypatch.setattr(infer_module, "run_inference", _raise)
+
     client, headers, _ = auth_client
     png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
     r = await client.post("/api/predict", headers=headers,

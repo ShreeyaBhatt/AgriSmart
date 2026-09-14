@@ -5,7 +5,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..auth import create_access_token, get_current_user
-from ..config import get_settings
 from ..models.auth import (
     CompleteProfileRequest,
     OtpRequest,
@@ -16,6 +15,7 @@ from ..models.auth import (
     UserOut,
 )
 from ..models.user import User
+from ..services import otp as otp_service
 from ..services import users as users_repo
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -31,19 +31,30 @@ def _token_response(user: User, *, is_new: bool) -> TokenResponse:
 
 @router.post("/otp/request", response_model=OtpRequestOut)
 async def request_otp(body: OtpRequest) -> OtpRequestOut:
-    # Demo mode: no SMS provider is wired up, so there's nothing to send and
-    # nothing to store/expire — the fixed demo code from settings *is* the
-    # whole mechanism. It's echoed back here so the UI can show it directly.
-    return OtpRequestOut(phone=body.phone, demo_otp=get_settings().otp_demo_code)
+    try:
+        code = otp_service.request_otp(body.phone)
+    except otp_service.OtpCooldownError as exc:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"Please wait {int(exc.retry_after_s) + 1}s before requesting another code",
+        ) from exc
+    return OtpRequestOut(phone=body.phone, demo_otp=code)
 
 
 @router.post("/otp/verify", response_model=TokenResponse)
 async def verify_otp(body: OtpVerifyRequest) -> TokenResponse:
-    if body.otp != get_settings().otp_demo_code:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect OTP")
+    if not otp_service.verify_otp(body.phone, body.otp):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect or expired OTP")
     user = await users_repo.get_by_phone(body.phone)
     if user is None:
-        user = await users_repo.create_from_phone(body.phone)
+        try:
+            user = await users_repo.create_from_phone(body.phone)
+        except users_repo.DuplicatePhoneError:
+            # Lost a race with a concurrent verify for the same number —
+            # the other request's account is the real one, use it.
+            user = await users_repo.get_by_phone(body.phone)
+            if user is None:
+                raise
     return _token_response(user, is_new=not user.onboarding_complete)
 
 
@@ -60,11 +71,16 @@ async def link_phone(body: OtpVerifyRequest, user: User = Depends(get_current_us
     orphan everything the guest already saved."""
     if not user.is_guest:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "This account already has a phone number")
-    if body.otp != get_settings().otp_demo_code:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect OTP")
+    if not otp_service.verify_otp(body.phone, body.otp):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect or expired OTP")
     if await users_repo.get_by_phone(body.phone) is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "This phone number is already registered — log in with it instead")
-    updated = await users_repo.link_phone(user.id, body.phone)
+    try:
+        updated = await users_repo.link_phone(user.id, body.phone)
+    except users_repo.DuplicatePhoneError:
+        # TOCTOU: someone else registered/linked this exact number between
+        # the get_by_phone check above and this write.
+        raise HTTPException(status.HTTP_409_CONFLICT, "This phone number is already registered — log in with it instead")
     return UserOut.model_validate(updated, from_attributes=True)
 
 

@@ -50,8 +50,24 @@ class Settings(BaseSettings):
     mongo_url: str = "mongodb://localhost:27017"  # "mongomock://..." swaps in an in-memory fake (tests)
     mongo_db_name: str = "agrismart"
 
-    # --- OTP login — demo mode only, no SMS provider. This code is accepted for any phone. ---
-    otp_demo_code: str = "123456"
+    # --- OTP login ---
+    # Every free-tier SMS route we evaluated turned out unusable for a
+    # student-hackathon deployment: MSG91 has no free tier (pay-as-you-go
+    # only), Twilio trial accounts can only text a phone number pre-verified
+    # in the console (not real farmers' numbers), and Fast2SMS requires
+    # project-URL verification before it will send. So on-screen display *is*
+    # this deployment's delivery channel for now, gated by otp_show_code —
+    # see services/otp.py's _deliver() for exactly where to plug in a real
+    # provider (Twilio/MSG91/...) once one is available; nothing else needs
+    # to change. This is still a real improvement over a fixed shared code:
+    # each code is random per phone/request, held server-side hashed with an
+    # expiry, one-shot (can't be replayed), and capped on wrong attempts —
+    # unlike a single static value checked into source and valid forever for
+    # every account.
+    otp_ttl_s: int = 5 * 60
+    otp_max_attempts: int = 5
+    otp_resend_cooldown_s: int = 30
+    otp_show_code: bool = True
 
     # --- Weather (Module C) ---
     open_meteo_base_url: str = "https://api.open-meteo.com/v1/forecast"
@@ -59,9 +75,13 @@ class Settings(BaseSettings):
     weather_cache_ttl_s: int = 60 * 15  # 15 min; forecasts don't move much faster than this
     weather_cache_precision: int = 3  # round lat/lon to N decimals (~110 m) for the cache key
 
-    # --- GenAI assistant (Module E) ---
-    gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline card fallback
+    # --- GenAI assistant (Module E) / sustainability sanity-check (Module D) ---
+    gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline/deterministic fallback
     gemini_model: str = "gemini-flash-latest"
+    # Generation is normally ~4-6s (see services/gemini.py); this bounds the
+    # worst case so a slow/hung Gemini call always falls back to the
+    # deterministic path instead of stalling a farmer's request indefinitely.
+    gemini_timeout_s: float = 20.0
 
     # --- Local speech-to-text for the mic button (Module E) ---
     # "tiny"/"base"/"small" — bigger = better multilingual accuracy, slower,

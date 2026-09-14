@@ -90,8 +90,14 @@ if settings.frontend_dist_dir.is_dir():
     async def serve_spa(full_path: str):
         if full_path.startswith("api/") or full_path.startswith("uploads/"):
             raise HTTPException(status_code=404, detail="Not Found")
-        target = settings.frontend_dist_dir / full_path
-        if target.is_file():
+        # full_path comes straight from the URL and Path's `/` operator does
+        # not collapse ".." segments, so without resolving+containment-
+        # checking it, a request like "/../../../etc/passwd" (or an
+        # OS-appropriate traversal against this repo's own files, e.g.
+        # ".env") would resolve outside frontend_dist_dir and get served.
+        target = (settings.frontend_dist_dir / full_path).resolve()
+        dist_root = settings.frontend_dist_dir.resolve()
+        if target.is_relative_to(dist_root) and target.is_file():
             return FileResponse(target)
         index_file = settings.frontend_dist_dir / "index.html"
         if index_file.is_file():
