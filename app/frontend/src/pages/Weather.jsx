@@ -5,7 +5,7 @@ import Icon from "../components/Icon.jsx";
 import Stat from "../components/Stat.jsx";
 import LocationPicker from "../components/LocationPicker.jsx";
 import { api } from "../api.js";
-import { useT } from "../i18n/useT.js";
+import { useLang, useT } from "../i18n/useT.js";
 
 const SEV = {
   act: {
@@ -28,6 +28,7 @@ const SEV = {
 
 export default function Weather() {
   const t = useT();
+  const { lang } = useLang();
 
   const [plots, setPlots] = useState([]);
   const [plotId, setPlotId] = useState("");
@@ -70,6 +71,7 @@ export default function Weather() {
           lat,
           lon,
           last_disease: lastDisease,
+          lang,
         })
       );
     } catch (e) {
@@ -78,6 +80,15 @@ export default function Weather() {
       setBusy(false);
     }
   };
+
+  // The advice text is localized server-side at request time (like /predict),
+  // so it doesn't move with the UI when the farmer switches language
+  // afterwards — re-run the same lookup.
+  useEffect(() => {
+    if (!advice) return;
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   return (
     <div>
