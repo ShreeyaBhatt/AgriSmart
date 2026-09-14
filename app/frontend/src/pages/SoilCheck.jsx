@@ -6,6 +6,7 @@ import CropsPanel from "../components/CropsPanel.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import Icon from "../components/Icon.jsx";
 import { ProfileSkeleton, PanelsSkeleton } from "../components/Skeleton.jsx";
+import SoilLoadingExperience from "../components/SoilLoadingExperience.jsx";
 import { api } from "../api.js";
 import { useT } from "../i18n/useT.js";
 
@@ -66,10 +67,7 @@ export default function SoilCheck() {
             </div>
           )}
           {loading && (
-            <>
-              <ProfileSkeleton />
-              <PanelsSkeleton />
-            </>
+            <SoilLoadingExperience />
           )}
           {!loading && !result && !error && (
             <EmptyState icon="layers" title={t("soil.emptyTitle")} hint={t("soil.emptyHint")} />

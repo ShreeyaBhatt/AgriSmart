@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_current_user
-from ..db import get_session
+from ..db import SessionLocal, get_session
 from ..models.farm import PlotCreate, PlotOut, PlotUpdate, Timeline, TimelineEntry
 from ..models.orm import Diagnosis, FarmerAction, IrrigationEvent, Plot
 from ..models.user import User
@@ -50,6 +52,9 @@ def _diagnosis_title(d: Diagnosis, lang: str) -> str:
     return localized_label_for(d.predicted_class, lang) or d.predicted_class
 
 
+log = logging.getLogger(__name__)
+
+
 async def get_owned_plot(plot_id: str, session: AsyncSession, user: User) -> Plot:
     plot = await session.get(Plot, plot_id)
     if plot is None or plot.owner_id != user.id:
@@ -57,10 +62,41 @@ async def get_owned_plot(plot_id: str, session: AsyncSession, user: User) -> Plo
     return plot
 
 
-async def _attach_soil(plot: Plot) -> None:
-    profile = await build_soil_profile(plot.lat, plot.lon)
+async def _attach_soil(plot: Plot, use_cache: bool = True) -> None:
+    profile = await build_soil_profile(plot.lat, plot.lon, use_cache=use_cache)
     plot.soil_snapshot = profile.model_dump(mode="json")
     plot.soil_fetched_at = datetime.now(timezone.utc)
+    plot.soil_status = "ready"
+
+
+async def _background_attach_soil(plot_id: str) -> None:
+    """Background task: fetches soil without holding a DB session open during the wait."""
+    # 1. Quickly read lat/lon
+    async with SessionLocal() as session:
+        plot = await session.get(Plot, plot_id)
+        if plot is None:
+            return
+        lat, lon = plot.lat, plot.lon
+
+    # 2. Network call (takes up to 45s) — no DB transaction held!
+    try:
+        profile = await build_soil_profile(lat, lon)
+        snapshot = profile.model_dump(mode="json")
+        status = "ready"
+    except Exception:
+        log.exception("Background soil fetch failed for plot %s", plot_id)
+        snapshot = None
+        status = "failed"
+
+    # 3. Quickly write results
+    async with SessionLocal() as session:
+        plot = await session.get(Plot, plot_id)
+        if plot is not None:
+            if status == "ready":
+                plot.soil_snapshot = snapshot
+                plot.soil_fetched_at = datetime.now(timezone.utc)
+            plot.soil_status = status
+            await session.commit()
 
 
 @router.get("", response_model=list[PlotOut])
@@ -76,14 +112,24 @@ async def list_plots(
 @router.post("", response_model=PlotOut, status_code=status.HTTP_201_CREATED)
 async def create_plot(
     body: PlotCreate,
+    background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
 ) -> Plot:
-    plot = Plot(owner_id=user.id, name=body.name, lat=body.lat, lon=body.lon, area_ha=body.area_ha)
-    await _attach_soil(plot)
+    plot = Plot(
+        owner_id=user.id,
+        name=body.name,
+        lat=body.lat,
+        lon=body.lon,
+        area_ha=body.area_ha,
+        main_crop=body.main_crop,
+        soil_status="pending",
+    )
     session.add(plot)
     await session.commit()
     await session.refresh(plot)
+    # Fire soil fetch in the background — does NOT block the response.
+    background_tasks.add_task(_background_attach_soil, plot.id)
     return plot
 
 
@@ -111,6 +157,23 @@ async def update_plot(
     return plot
 
 
+@router.get("/{plot_id}/soil-status")
+async def get_soil_status(
+    plot_id: str,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Lightweight polling endpoint for the frontend to check if background soil fetch is done."""
+    plot = await get_owned_plot(plot_id, session, user)
+    return {
+        "ready": plot.soil_status == "ready",
+        "failed": plot.soil_status == "failed",
+        "soil_status": plot.soil_status,
+        "soil_snapshot": plot.soil_snapshot,
+        "soil_fetched_at": plot.soil_fetched_at,
+    }
+
+
 @router.delete("/{plot_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_plot(
     plot_id: str,
@@ -129,7 +192,7 @@ async def refresh_soil(
     user: User = Depends(get_current_user),
 ) -> Plot:
     plot = await get_owned_plot(plot_id, session, user)
-    await _attach_soil(plot)
+    await _attach_soil(plot, use_cache=False)
     await session.commit()
     await session.refresh(plot)
     return plot

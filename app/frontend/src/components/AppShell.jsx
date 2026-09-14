@@ -13,6 +13,7 @@ const NAV = [
   { to: "/weather", icon: "sun", key: "nav.weather" },
   { to: "/sustainability", icon: "chart", key: "nav.sustainability" },
   { to: "/assistant", icon: "chat", key: "nav.assistant" },
+  { to: "/settings", icon: "user", key: "nav.settings" },
 ];
 const BOTTOM = ["/", "/scan", "/weather", "/assistant", "/settings"];
 
