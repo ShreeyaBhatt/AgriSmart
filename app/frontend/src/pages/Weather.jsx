@@ -80,164 +80,173 @@ export default function Weather() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-lg font-bold tracking-tight text-ink">
+    <div>
+      <h1 className="mb-4 text-lg font-bold tracking-tight text-ink">
         {t("weather.title")}
       </h1>
 
-      <Card className="space-y-3 p-4">
-        {/* Explanation for plot vs direct location */}
-        <p className="text-xs leading-relaxed text-muted">
-          {plots.length > 0
-            ? "Select a saved plot for personalized weather advice, or choose a location below to check weather directly."
-            : "Add a plot to get personalized weather advice, or choose a location below to check weather directly."}
-        </p>
+      {/* Same left-form / right-results split as the Soil check page, so a
+          wide window is put to use instead of squeezing the map + form into
+          a narrow centered column with dead space on both sides. */}
+      <div className="grid items-start gap-5 md:grid-cols-[minmax(0,380px)_1fr]">
+        <div className="space-y-4 md:sticky md:top-20">
+          <Card className="space-y-3 p-4">
+            {/* Explanation for plot vs direct location */}
+            <p className="text-xs leading-relaxed text-muted">
+              {plots.length > 0
+                ? "Select a saved plot for personalized weather advice, or choose a location below to check weather directly."
+                : "Add a plot to get personalized weather advice, or choose a location below to check weather directly."}
+            </p>
 
-        {/* Saved plots */}
-        {plots.length > 0 && (
-          <label className="block text-[11px] font-medium text-faint">
-            {t("weather.plotLabel")}
+            {/* Saved plots */}
+            {plots.length > 0 && (
+              <label className="block text-[11px] font-medium text-faint">
+                {t("weather.plotLabel")}
 
-            <select
-              value={plotId}
-              onChange={(e) => setPlotId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
-            >
-              <option value="">Check weather by location</option>
+                <select
+                  value={plotId}
+                  onChange={(e) => setPlotId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
+                >
+                  <option value="">Check weather by location</option>
 
-              {plots.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        {/* Analyse selected plot */}
-        {plotId && (
-          <>
-            {error && (
-              <p className="text-xs text-rose-600">
-                {error}
-              </p>
+                  {plots.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
             )}
 
-            <button
-              onClick={run}
-              disabled={busy}
-              className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint"
-            >
-              {busy
-                ? t("weather.checking")
-                : t("weather.analyse")}
-            </button>
-          </>
-        )}
-      </Card>
-
-      {/* Direct location weather check */}
-      {!plotId && (
-        <LocationPicker
-          lat={coords.lat === "" ? null : Number(coords.lat)}
-          lon={coords.lon === "" ? null : Number(coords.lon)}
-          onChange={(la, lo) =>
-            setCoords({
-              lat: la,
-              lon: lo,
-            })
-          }
-          season=""
-          onSeason={() => {}}
-          onAnalyze={run}
-          loading={busy}
-          analyzeIcon="sun"
-          analyzeLabel={t("weather.analyse")}
-          analyzingLabel={t("weather.checking")}
-        />
-      )}
-
-      {!plotId && error && (
-        <p className="text-xs text-rose-600">
-          {error}
-        </p>
-      )}
-
-      {/* Weather results */}
-      {advice && (
-        <>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat
-              label={t("weather.rain24h")}
-              value={advice.summary.rain_prob_24h_pct}
-              unit="%"
-            />
-
-            <Stat
-              label={t("weather.rainSum24h")}
-              value={advice.summary.rain_sum_24h_mm}
-              unit="mm"
-            />
-
-            <Stat
-              label={t("weather.maxTemp")}
-              value={advice.summary.temp_max_c}
-              unit="°C"
-            />
-
-            <Stat
-              label={t("weather.humidity")}
-              value={advice.summary.humidity_mean_24h_pct}
-              unit="%"
-            />
-          </div>
-
-          <div className="space-y-2">
-            {advice.actions.map((a, i) => {
-              const s = SEV[a.severity] || SEV.info;
-
-              return (
-                <Card
-                  key={i}
-                  className="animate-fade-up p-4"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={clsx(
-                        "h-2 w-2 rounded-full",
-                        s.dot
-                      )}
-                    />
-
-                    <span className="text-sm font-semibold text-ink">
-                      {a.headline}
-                    </span>
-
-                    <span
-                      className={clsx(
-                        "ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ring-1",
-                        s.chip
-                      )}
-                    >
-                      {SEV[a.severity]
-                        ? t(`weather.severity.${a.severity}`)
-                        : a.severity}
-                    </span>
-                  </div>
-
-                  <p className="mt-1.5 text-sm text-muted">
-                    {a.detail}
+            {/* Analyse selected plot */}
+            {plotId && (
+              <>
+                {error && (
+                  <p className="text-xs text-rose-600">
+                    {error}
                   </p>
-                </Card>
-              );
-            })}
-          </div>
+                )}
 
-          <p className="text-center text-[11px] text-faint">
-            {t("weather.source")}
-          </p>
-        </>
-      )}
+                <button
+                  onClick={run}
+                  disabled={busy}
+                  className="w-full rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint"
+                >
+                  {busy
+                    ? t("weather.checking")
+                    : t("weather.analyse")}
+                </button>
+              </>
+            )}
+          </Card>
+
+          {/* Direct location weather check */}
+          {!plotId && (
+            <LocationPicker
+              lat={coords.lat === "" ? null : Number(coords.lat)}
+              lon={coords.lon === "" ? null : Number(coords.lon)}
+              onChange={(la, lo) =>
+                setCoords({
+                  lat: la,
+                  lon: lo,
+                })
+              }
+              season=""
+              onSeason={() => {}}
+              onAnalyze={run}
+              loading={busy}
+              analyzeIcon="sun"
+              analyzeLabel={t("weather.analyse")}
+              analyzingLabel={t("weather.checking")}
+            />
+          )}
+
+          {!plotId && error && (
+            <p className="text-xs text-rose-600">
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* Weather results */}
+        <div className="min-w-0 space-y-4">
+          {advice && (
+            <>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Stat
+                  label={t("weather.rain24h")}
+                  value={advice.summary.rain_prob_24h_pct}
+                  unit="%"
+                />
+
+                <Stat
+                  label={t("weather.rainSum24h")}
+                  value={advice.summary.rain_sum_24h_mm}
+                  unit="mm"
+                />
+
+                <Stat
+                  label={t("weather.maxTemp")}
+                  value={advice.summary.temp_max_c}
+                  unit="°C"
+                />
+
+                <Stat
+                  label={t("weather.humidity")}
+                  value={advice.summary.humidity_mean_24h_pct}
+                  unit="%"
+                />
+              </div>
+
+              <div className="grid gap-2 lg:grid-cols-2">
+                {advice.actions.map((a, i) => {
+                  const s = SEV[a.severity] || SEV.info;
+
+                  return (
+                    <Card
+                      key={i}
+                      className="animate-fade-up p-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={clsx(
+                            "h-2 w-2 rounded-full",
+                            s.dot
+                          )}
+                        />
+
+                        <span className="text-sm font-semibold text-ink">
+                          {a.headline}
+                        </span>
+
+                        <span
+                          className={clsx(
+                            "ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ring-1",
+                            s.chip
+                          )}
+                        >
+                          {SEV[a.severity]
+                            ? t(`weather.severity.${a.severity}`)
+                            : a.severity}
+                        </span>
+                      </div>
+
+                      <p className="mt-1.5 text-sm text-muted">
+                        {a.detail}
+                      </p>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              <p className="text-center text-[11px] text-faint">
+                {t("weather.source")}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

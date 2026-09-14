@@ -71,36 +71,40 @@ export default function Sustainability() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <div>
+    <div>
+      <div className="mb-4">
         <h1 className="text-lg font-bold tracking-tight text-ink">{t("sustainability.title")}</h1>
         <p className="text-sm text-muted">{t("sustainability.pageHint")}</p>
       </div>
 
-      <Card className="grid gap-3 p-4 sm:grid-cols-2">
-        <label className="text-[11px] font-medium text-faint">{t("sustainability.waterUsed")}
-          <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_used_mm} onChange={set("water_used_mm")} />
-        </label>
-        <label className="text-[11px] font-medium text-faint">{t("sustainability.waterRecommended")}
-          <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_recommended_mm} onChange={set("water_recommended_mm")} />
-        </label>
-        <label className="text-[11px] font-medium text-faint">{t("sustainability.chemUsed")}
-          <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_used_kg_ha} onChange={set("chemical_used_kg_ha")} />
-        </label>
-        <label className="text-[11px] font-medium text-faint">{t("sustainability.chemRecommended")}
-          <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_recommended_kg_ha} onChange={set("chemical_recommended_kg_ha")} />
-        </label>
-        <label className="text-[11px] font-medium text-faint sm:col-span-2">{t("sustainability.diseaseLabel")}
-          <input className={INPUT + " mt-1"} placeholder={t("sustainability.diseasePlaceholder")} value={f.disease_class} onChange={set("disease_class")} />
-        </label>
-        {error && <p className="text-xs text-rose-600 sm:col-span-2">{error}</p>}
-        <button onClick={run} disabled={busy}
-          className="rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint sm:col-span-2">
-          {busy ? "…" : t("sustainability.calculate")}
-        </button>
-      </Card>
+      {/* Same left-form / right-results split as Soil check / Weather, so a
+          wide window isn't wasted on a narrow centered form. */}
+      <div className="grid items-start gap-5 md:grid-cols-[minmax(0,380px)_1fr]">
+        <Card className="grid gap-3 p-4 sm:grid-cols-2 md:sticky md:top-20 md:grid-cols-1">
+          <label className="text-[11px] font-medium text-faint">{t("sustainability.waterUsed")}
+            <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_used_mm} onChange={set("water_used_mm")} />
+          </label>
+          <label className="text-[11px] font-medium text-faint">{t("sustainability.waterRecommended")}
+            <input className={INPUT + " mt-1"} inputMode="decimal" value={f.water_recommended_mm} onChange={set("water_recommended_mm")} />
+          </label>
+          <label className="text-[11px] font-medium text-faint">{t("sustainability.chemUsed")}
+            <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_used_kg_ha} onChange={set("chemical_used_kg_ha")} />
+          </label>
+          <label className="text-[11px] font-medium text-faint">{t("sustainability.chemRecommended")}
+            <input className={INPUT + " mt-1"} inputMode="decimal" value={f.chemical_recommended_kg_ha} onChange={set("chemical_recommended_kg_ha")} />
+          </label>
+          <label className="text-[11px] font-medium text-faint sm:col-span-2 md:col-span-1">{t("sustainability.diseaseLabel")}
+            <input className={INPUT + " mt-1"} placeholder={t("sustainability.diseasePlaceholder")} value={f.disease_class} onChange={set("disease_class")} />
+          </label>
+          {error && <p className="text-xs text-rose-600 sm:col-span-2 md:col-span-1">{error}</p>}
+          <button onClick={run} disabled={busy}
+            className="rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint sm:col-span-2 md:col-span-1">
+            {busy ? "…" : t("sustainability.calculate")}
+          </button>
+        </Card>
 
-      {result && (
+        <div className="min-w-0">
+        {result && (
         <Card className="animate-fade-up p-5">
           <div className="flex items-end gap-3">
             <span className={clsx("text-5xl font-bold tracking-tight", BAND[result.band])}>
@@ -188,7 +192,9 @@ export default function Sustainability() {
           </ul>
           <p className="mt-3 rounded-lg bg-canvas/60 p-2 font-mono text-[10px] text-faint">{result.formula}</p>
         </Card>
-      )}
+        )}
+        </div>
+      </div>
     </div>
   );
 }
