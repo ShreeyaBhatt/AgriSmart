@@ -113,6 +113,26 @@ async def test_build_soil_profile_happy_path(monkeypatch, sample_doc):
     assert profile.available_k_kg_ha == 305
 
 
+async def test_build_soil_profile_texture_override(monkeypatch, sample_doc):
+    async def fake_props(lat, lon):
+        return sample_doc["properties"]
+
+    async def fake_class(lat, lon, number_classes=3):
+        return sample_doc["classification"]
+
+    async def fake_admin(lat, lon):
+        return Admin("Vadodara", "Gujarat", "India")
+
+    monkeypatch.setattr(sp, "fetch_properties", fake_props)
+    monkeypatch.setattr(sp, "fetch_classification", fake_class)
+    monkeypatch.setattr(sp, "reverse_admin", fake_admin)
+
+    profile = await sp.build_soil_profile(22.31, 73.18, texture_override="sandy loam")
+
+    assert profile.texture_class == "sandy loam"
+    assert profile.source == "SoilGrids v2.0 + SHC (Vadodara)"
+
+
 async def test_build_soil_profile_offline_fallback(monkeypatch, sample_doc):
     async def boom(lat, lon):
         raise SoilGridsError("network down / all-null payload")
@@ -129,8 +149,8 @@ async def test_build_soil_profile_offline_fallback(monkeypatch, sample_doc):
 
     profile = await sp.build_soil_profile(22.31, 73.18, use_cache=False)
 
-    assert profile.source == "sample (offline)"
-    assert profile.texture_class == "clay"          # from the bundled sample
+    assert profile.source == "regional estimate (offline)"
+    assert profile.texture_class == "sandy clay loam"    # from the Default fallback
     assert profile.wrb_class == "Vertisols"         # real classification still used
     assert profile.available_p_kg_ha is None        # no district resolved
 
@@ -152,7 +172,7 @@ async def test_offline_fallback_keeps_shc_enrichment(monkeypatch, sample_doc):
 
     profile = await sp.build_soil_profile(22.31, 73.18, use_cache=False)
 
-    assert profile.source == "sample (offline)"     # honest about the physical data
+    assert profile.source == "regional estimate (offline)"     # honest about the physical data
     assert profile.available_p_kg_ha == 21          # real SHC nutrients still merged
     assert profile.shc_district == "Vadodara"
 
@@ -203,7 +223,7 @@ async def test_build_soil_profile_caches_offline_fallback(monkeypatch, sample_do
     p1 = await sp.build_soil_profile(21.0, 74.0)
     p2 = await sp.build_soil_profile(21.0, 74.0)
     assert calls["n"] == 1
-    assert p1.source == p2.source == "sample (offline)"
+    assert p1.source == p2.source == "regional estimate (offline)"
 
 
 async def test_build_soil_profile_respects_deadline(monkeypatch, sample_doc):
@@ -227,4 +247,4 @@ async def test_build_soil_profile_respects_deadline(monkeypatch, sample_doc):
     monkeypatch.setattr(sp, "reverse_admin", fake_admin)
 
     profile = await sp.build_soil_profile(21.0, 74.0, use_cache=False)
-    assert profile.source == "sample (offline)"
+    assert profile.source == "regional estimate (offline)"

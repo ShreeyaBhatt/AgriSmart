@@ -41,14 +41,20 @@ def _sql_literal(value: object) -> str:
 
 
 def _add_missing_columns(conn) -> None:
-    """SQLite-only lightweight auto-migration. There's no Alembic here (see
-    the project's "zero setup" philosophy), but create_all() only creates
-    *missing tables* — it never alters one that already exists. A column
-    added to an ORM model after someone's agrismart.db was first created
-    (e.g. Diagnosis.crop_warning, or Plot.main_crop/soil_status from an
-    earlier change) would otherwise 500 every request that touches that
-    table, with no warning until something actually hits it — confirmed
-    against this repo's own on-disk dev database, not hypothetical.
+    """SQLite-only lightweight auto-migration, run unconditionally on every
+    startup. Alembic (``alembic.ini`` / ``migrations/``) exists in this repo
+    for explicit, versioned, reviewable schema changes — use it for anything
+    beyond "add a column" — but nothing invokes ``alembic upgrade head``
+    automatically, so a machine that boots the app straight from a fresh
+    clone or an older on-disk agrismart.db (the project's "zero setup"
+    philosophy: no required manual migration step) would otherwise 500 on
+    every request touching a table that gained a column since. create_all()
+    only creates *missing tables* — it never alters one that already exists.
+    Confirmed against this repo's own on-disk dev database, not hypothetical.
+
+    This and Alembic don't conflict: Alembic's own bookkeeping table isn't
+    part of Base.metadata, so this function never touches it, and whichever
+    of the two adds a column first, the other just sees it already there.
 
     Handles the two shapes every column added here so far has had: a
     nullable column with no default, or a NOT NULL column with a plain
@@ -57,7 +63,7 @@ def _add_missing_columns(conn) -> None:
     the ALTER failing outright). A column needing anything more — a
     callable default, a NOT NULL column with neither — is logged and
     skipped rather than risking a destructive ALTER on someone's real data;
-    that needs a real migration.
+    that needs a real (Alembic) migration.
     """
     inspector = inspect(conn)
     existing_tables = set(inspector.get_table_names())

@@ -25,19 +25,102 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route
+        path="/login"
+        element={
+          user?.onboarding_complete ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Login />
+          )
+        }
+      />
 
-      <Route path="/" element={<Shell><Dashboard /></Shell>} />
-      <Route path="/scan" element={<Shell><ScanFlow /></Shell>} />
-      <Route path="/plots/new" element={<Shell><PlotNew /></Shell>} />
-      <Route path="/plots/:id" element={<Shell><PlotDetail /></Shell>} />
-      <Route path="/soil" element={<Shell><SoilCheck /></Shell>} />
-      <Route path="/weather" element={<Shell><Weather /></Shell>} />
-      <Route path="/sustainability" element={<Shell><Sustainability /></Shell>} />
-      <Route path="/assistant" element={<Shell><Assistant /></Shell>} />
-      <Route path="/settings" element={<Shell><Settings /></Shell>} />
+      <Route
+        path="/"
+        element={
+          <Shell>
+            <Dashboard />
+          </Shell>
+        }
+      />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/scan"
+        element={
+          <Shell>
+            <ScanFlow />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/plots/new"
+        element={
+          <Shell>
+            <PlotNew />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/plots/:id"
+        element={
+          <Shell>
+            <PlotDetail />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/soil"
+        element={
+          <Shell>
+            <SoilCheck />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/weather"
+        element={
+          <Shell>
+            <Weather />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/sustainability"
+        element={
+          <Shell>
+            <Sustainability />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/assistant"
+        element={
+          <Shell>
+            <Assistant />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <Shell>
+            <Settings />
+          </Shell>
+        }
+      />
+
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
     </Routes>
   );
 }
