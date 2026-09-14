@@ -209,7 +209,9 @@ def _sample_doc() -> dict[str, Any]:
     return json.loads(get_settings().soilgrids_sample_path.read_text(encoding="utf-8"))
 
 
-async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) -> SoilProfile:
+async def build_soil_profile(
+    lat: float, lon: float, *, use_cache: bool = True, skip_offline_cache: bool = False
+) -> SoilProfile:
     """Full pipeline: SoilGrids ``properties`` + ``classification`` -> 0-30 cm
     normalisation -> USDA texture -> Soil Health Card nutrient enrichment -> cache.
 
@@ -224,11 +226,18 @@ async def build_soil_profile(lat: float, lon: float, *, use_cache: bool = True) 
     20-30s each, sometimes timing out, compounding through retries into
     50-60s+ for one lookup. Past the deadline this gives up and falls back
     rather than let a farmer's plot-creation flow hang on it indefinitely.
+
+    Args:
+        skip_offline_cache: When True the short-TTL offline-fallback cache is
+            ignored even if ``use_cache=True``. Background plot-soil tasks set
+            this so that a previous transient failure for the same coordinates
+            (e.g. from an interactive /soil/lookup) does not prevent the task
+            from making a fresh attempt once SoilGrids has recovered.
     """
     key = _cache_key(lat, lon)
     if use_cache and (cached := _cache.get(key)) is not None:
         return cached
-    if use_cache and (cached := _offline_cache.get(key)) is not None:
+    if use_cache and not skip_offline_cache and (cached := _offline_cache.get(key)) is not None:
         return cached
 
     # --- Run all external calls concurrently ---

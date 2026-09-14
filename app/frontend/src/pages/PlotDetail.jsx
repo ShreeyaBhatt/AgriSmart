@@ -12,6 +12,7 @@ import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
 import { useLandUnit } from "../units/useLandUnit.js";
 import { LAND_UNITS, formatArea } from "../units/convert.js";
+import { usePlotSoil } from "../lib/PlotSoilContext.jsx";
 
 export default function PlotDetail() {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export default function PlotDetail() {
   const { unit, bighaRegion } = useLandUnit();
   const unitLabel = t(LAND_UNITS.find((u) => u.code === unit)?.key ?? "unit.ha");
   const navigate = useNavigate();
+  const { pendingPlot, soilStatus } = usePlotSoil();
   const [plot, setPlot] = useState(null);
   const [amendments, setAmendments] = useState(null);
   const [crops, setCrops] = useState(null);
@@ -46,6 +48,13 @@ export default function PlotDetail() {
   useEffect(() => {
     loadTimeline();
   }, [loadTimeline]);
+
+  // When the global soil poll finishes for THIS plot, re-fetch so the soil
+  // profile card appears without requiring a manual "Refresh soil" press.
+  useEffect(() => {
+    if (pendingPlot?.id !== id || soilStatus !== "ready") return;
+    api.getPlot(id).then(setPlot).catch(() => {});
+  }, [pendingPlot, soilStatus, id]);
 
   const remove = async () => {
     if (!confirm(t("plot.confirmDelete"))) return;
@@ -86,6 +95,21 @@ export default function PlotDetail() {
           </button>
         </div>
       </div>
+
+      {/* Soil loading banner — shown while background fetch is running for this plot */}
+      {pendingPlot?.id === id && soilStatus === "pending" && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 dark:border-brand-800 dark:bg-brand-900/20">
+          <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-brand-300 border-t-brand-600" />
+          <div>
+            <p className="text-sm font-medium text-brand-700 dark:text-brand-300">
+              {t("plotNew.soilFetchingBg")}
+            </p>
+            <p className="text-[11px] text-brand-500 dark:text-brand-400">
+              {t("plotNew.autoSoilHint")}
+            </p>
+          </div>
+        </div>
+      )}
 
       {plot.soil_snapshot && <SoilProfileCard profile={plot.soil_snapshot} />}
 

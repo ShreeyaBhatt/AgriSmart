@@ -1,10 +1,12 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import Icon from "./Icon.jsx";
 import LanguageSwitcher from "./LanguageSwitcher.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useT } from "../i18n/useT.js";
+import { useSoilCheck } from "../lib/SoilCheckContext.jsx";
+import { usePlotSoil } from "../lib/PlotSoilContext.jsx";
 
 const NAV = [
   { to: "/", icon: "home", key: "nav.home", end: true },
@@ -21,6 +23,8 @@ export default function AppShell({ children }) {
   const t = useT();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { loading: soilLoading } = useSoilCheck();
+  const { pendingPlot, soilStatus, dismiss } = usePlotSoil();
 
   const doLogout = () => {
     logout();
@@ -47,13 +51,25 @@ export default function AppShell({ children }) {
                 end={n.end}
                 className={({ isActive }) =>
                   clsx(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition",
+                    "relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition",
                     isActive ? "bg-brand-50 text-brand-700" : "text-muted hover:bg-canvas hover:text-ink"
                   )
                 }
               >
                 <Icon name={n.icon} className="h-4 w-4" />
                 {t(n.key)}
+                {n.to === "/soil" && soilLoading && (
+                  <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-600" />
+                  </span>
+                )}
+                {n.to === "/" && pendingPlot && soilStatus === "pending" && (
+                  <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -85,6 +101,64 @@ export default function AppShell({ children }) {
 
       <main className="mx-auto max-w-6xl px-4 py-5 pb-24 md:pb-8">{children}</main>
 
+      {/* Plot soil fetch toast — shown on any page while polling */}
+      {pendingPlot && (
+        <div
+          className={clsx(
+            "fixed bottom-20 right-4 z-30 flex w-72 items-start gap-3 rounded-2xl border p-4 shadow-xl backdrop-blur-sm transition-all md:bottom-6",
+            soilStatus === "ready"
+              ? "border-emerald-200 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/90"
+              : soilStatus === "failed"
+              ? "border-amber-200 bg-amber-50/95 dark:border-amber-800 dark:bg-amber-950/90"
+              : "border-brand-200 bg-surface/95 dark:border-brand-800"
+          )}
+        >
+          {/* status icon / spinner */}
+          {soilStatus === "ready" ? (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+              <Icon name="checkCircle" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </span>
+          ) : soilStatus === "failed" ? (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/50">
+              <Icon name="warning" className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </span>
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/40">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-300 border-t-brand-600" />
+            </span>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-ink">{pendingPlot.name}</p>
+            <p className="mt-0.5 text-[11px] text-muted">
+              {soilStatus === "ready"
+                ? t("plotNew.soilReady")
+                : soilStatus === "failed"
+                ? t("plotNew.soilFailed")
+                : t("plotNew.soilFetchingBg")}
+            </p>
+            {soilStatus !== "pending" && (
+              <Link
+                to={`/plots/${pendingPlot.id}`}
+                onClick={dismiss}
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                {t("plotNew.skipToPlot")}
+                <Icon name="arrowRight" className="h-3 w-3" />
+              </Link>
+            )}
+          </div>
+
+          <button
+            onClick={dismiss}
+            className="shrink-0 rounded-lg p-1 text-faint hover:bg-canvas"
+            aria-label="Dismiss"
+          >
+            <Icon name="close" className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md">
@@ -97,7 +171,7 @@ export default function AppShell({ children }) {
                 end={to === "/"}
                 className={({ isActive }) =>
                   clsx(
-                    "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition",
+                    "relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition",
                     isActive ? "text-brand-700" : "text-faint"
                   )
                 }
@@ -112,6 +186,12 @@ export default function AppShell({ children }) {
                         isActive ? "bg-brand-700" : "bg-transparent"
                       )}
                     />
+                    {to === "/" && pendingPlot && soilStatus === "pending" && (
+                      <span className="absolute right-3 top-1 flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                      </span>
+                    )}
                   </>
                 )}
               </NavLink>

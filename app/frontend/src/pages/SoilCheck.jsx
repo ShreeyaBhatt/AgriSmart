@@ -1,42 +1,19 @@
-import { useState } from "react";
 import LocationPicker from "../components/LocationPicker.jsx";
 import SoilProfileCard from "../components/SoilProfileCard.jsx";
 import AmendmentsPanel from "../components/AmendmentsPanel.jsx";
 import CropsPanel from "../components/CropsPanel.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import Icon from "../components/Icon.jsx";
-import { ProfileSkeleton, PanelsSkeleton } from "../components/Skeleton.jsx";
 import SoilLoadingExperience from "../components/SoilLoadingExperience.jsx";
-import { api } from "../api.js";
+import { useSoilCheck } from "../lib/SoilCheckContext.jsx";
 import { useT } from "../i18n/useT.js";
 
 export default function SoilCheck() {
   const t = useT();
-  const [lat, setLat] = useState(null);
-  const [lon, setLon] = useState(null);
-  const [season, setSeason] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
+  const { lat, setLat, lon, setLon, season, setSeason, loading, error, result, analyse } =
+    useSoilCheck();
 
-  const analyse = async () => {
-    if (lat == null || lon == null) return;
-    setLoading(true);
-    setError("");
-    try {
-      const [profile, amendments, crops] = await Promise.all([
-        api.soilLookup(lat, lon),
-        api.amendments(lat, lon),
-        api.crops(lat, lon, season),
-      ]);
-      setResult({ profile, amendments, crops });
-    } catch (e) {
-      setError(e.detail || e.message);
-      setResult(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleAnalyze = () => analyse(lat, lon, season);
 
   return (
     <div>
@@ -54,7 +31,7 @@ export default function SoilCheck() {
               setLon(lo);
             }}
             onSeason={setSeason}
-            onAnalyze={analyse}
+            onAnalyze={handleAnalyze}
             loading={loading}
           />
         </div>
@@ -66,9 +43,7 @@ export default function SoilCheck() {
               <span>{error}</span>
             </div>
           )}
-          {loading && (
-            <SoilLoadingExperience />
-          )}
+          {loading && <SoilLoadingExperience />}
           {!loading && !result && !error && (
             <EmptyState icon="layers" title={t("soil.emptyTitle")} hint={t("soil.emptyHint")} />
           )}
