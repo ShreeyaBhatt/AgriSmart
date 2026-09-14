@@ -15,7 +15,9 @@ export function AuthProvider({ children }) {
       return;
     }
     try {
-      setUser(await api.me());
+     const me = await api.me();
+      console.log("CURRENT USER:", JSON.stringify(me, null, 2));
+      setUser(me);
     } catch {
       tokenStore.set(null);
       setUser(null);
