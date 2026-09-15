@@ -61,24 +61,29 @@ export default function AppShell({ children }) {
                   )
                 }
               >
-                <Icon name={n.icon} className="h-4 w-4" />
-                {t(n.key)}
+                {({ isActive }) => (
+                  <>
+                    <Icon name={n.icon} className="h-4 w-4" />
+                    {t(n.key)}
 
-                {n.to === "/soil" && soilLoading && (
-                  <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-600" />
-                  </span>
+                    {n.to === "/soil" && !isActive && soilLoading && (
+                      <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-600" />
+                      </span>
+                    )}
+
+                    {n.to === "/" &&
+                      !isActive &&
+                      pendingPlot &&
+                      soilStatus === "pending" && (
+                        <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                        </span>
+                      )}
+                  </>
                 )}
-
-                {n.to === "/" &&
-                  pendingPlot &&
-                  soilStatus === "pending" && (
-                    <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
-                    </span>
-                  )}
               </NavLink>
             ))}
           </nav>
@@ -217,6 +222,7 @@ export default function AppShell({ children }) {
                     />
 
                     {to === "/" &&
+                      !isActive &&
                       pendingPlot &&
                       soilStatus === "pending" && (
                         <span className="absolute right-3 top-1 flex h-2.5 w-2.5">
