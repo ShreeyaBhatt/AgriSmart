@@ -15,7 +15,7 @@ from functools import lru_cache
 from typing import Any
 
 from ..config import get_settings
-from ..models.modules import AssistantAnswer
+from ..models.modules import ActionShortcut, AssistantAnswer
 from . import gemini as gemini_service
 from . import llm as llm_service
 from .units import describe_area
@@ -59,6 +59,15 @@ _INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "te": ["వర్షం", "వాతావరణం", "ఉష్ణోగ్రత", "సూచన", "గాలి", "నీటిపారుదల", "నీరు"],
         "pa": ["ਮੀਂਹ", "ਮੌਸਮ", "ਤਾਪਮਾਨ", "ਪੂਰਵ ਅਨੁਮਾਨ", "ਹਵਾ", "ਸਿੰਚਾਈ", "ਪਾਣੀ"],
     },
+    "concoctions": {
+        "en": ["jeevamrut", "jeevamrutha", "recipe", "concoction", "neem spray", "neem oil", "agniastra", "dashparni", "bio-pesticide", "organic spray", "kashayam"],
+        "hi": ["जीवामृत", "नीम तेल", "अग्नियास्त्र", "दशपर्णी", "जैविक कीटनाशक", "काढ़ा", "नुस्खा"],
+        "gu": ["જીવામૃત", "લીમડાનું તેલ", "અગ્નિસ્ત્ર", "દશપર્ણી", "જૈવિક દવા"],
+        "mr": ["जीवामृत", "कडुलिंब तेल", "अग्निअस्त्र", "दशपर्णी अर्क", "सेंद्रिय कीटकनाशक"],
+        "ta": ["ஜீவாமிர்தம்", "வேப்ப எண்ணெய்", "அக்னி அஸ்திரம்", "தசபர்ணி", "இயற்கை பூச்சிக்கொல்லி"],
+        "te": ["జీవామృతం", "వేప నూనె", "అగ్ని అస్త్రం", "దశపర్ణి కషాయం", "సేంద్రీయ పురుగుమందు"],
+        "pa": ["ਜੀਵਾਮ੍ਰਿਤ", "ਨਿੰਮ ਦਾ ਤੇਲ", "ਅਗਨੀਅਸਤਰ", "ਦਸ਼ਪਰਣੀ", "ਜੈਵਿਕ ਕੀਟਨਾਸ਼ਕ"],
+    },
     "soil": {
         "en": ["fertiliz", "fertilis", "npk", "nitrogen", "phosphorus", "potassium", "nutrient"],
         "hi": ["खाद", "उर्वरक", "नाइट्रोजन", "पोषक"],
@@ -96,13 +105,13 @@ _INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "pa": ["ਨਦੀਨ", "ਗੋਡੀ", "ਘਾਹ"],
     },
     "organic": {
-        "en": ["organic", "compost", "fym", "vermicompost", "jeevamrut", "panchagavya", "dung"],
-        "hi": ["जैविक", "कम्पोस्ट", "गोबर", "जीवामृत", "पंचगव्य", "वर्मीकम्पोस्ट", "देसी खाद"],
-        "gu": ["જૈવિક", "કમ્પોસ્ટ", "છાણ", "જીવામૃત", "વર્મીકમ્પોસ્ટ"],
-        "mr": ["सेंद्रिय", "कंपोस्ट", "शेणखत", "जीवामृत", "गांडूळखत"],
-        "ta": ["இயற்கை", "மக்கும் உரம்", "சாணம்", "ஜீவாமிர்தம்", "மண்புழு உரம்"],
-        "te": ["సేంద్రీయ", "కంపోస్ట్", "పేడ", "జీవామృతం", "వర్మీ కంపోస్ట్"],
-        "pa": ["ਜੈਵਿਕ", "ਕੰਪੋਸਟ", "ਰੂੜੀ", "ਜੀਵਾਮ੍ਰਿਤ", "ਗੰਡੋਆ ਖਾਦ"],
+        "en": ["organic", "compost", "fym", "vermicompost", "dung", "manure"],
+        "hi": ["जैविक", "कम्पोस्ट", "गोबर", "पंचगव्य", "वर्मीकम्पोस्ट", "देसी खाद"],
+        "gu": ["જૈવિક", "કમ્પોસ્ટ", "છાણ", "વર્મીકમ્પોસ્ટ"],
+        "mr": ["सेंद्रिय", "कंपोस्ट", "शेणखत", "गांडूळखत"],
+        "ta": ["இயற்கை", "மக்கும் உரம்", "சாணம்", "மண்புழு உரம்"],
+        "te": ["సేంద్రీయ", "కంపోస్ట్", "పేడ", "వర్మీ కంపోస్ట్"],
+        "pa": ["ਜੈਵਿਕ", "ਕੰਪੋਸਟ", "ਰੂੜੀ", "ਗੰਡੋਆ ਖਾਦ"],
     },
     "yellow_leaves": {
         "en": ["yellow", "yellow leaf", "yellow leaves", "yellowing", "pale leaves", "chlorosis"],
@@ -112,6 +121,15 @@ _INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "ta": ["மஞ்சள்", "மஞ்சள் இலை", "இலை மஞ்சள்", "மஞ்சளாதல்"],
         "te": ["పసుపు", "పసుపు ఆకులు", "ఆకులు పసుపు", "పసుపు రంగు"],
         "pa": ["ਪੀਲਾ", "ਪੀਲੇ", "ਪੀਲੇ ਪੱਤੇ", "ਪੱਤੇ ਪੀਲੇ", "ਪੀਲਾਪਣ"],
+    },
+    "schemes": {
+        "en": ["pm kisan", "pm-kisan", "fasal bima", "subsidy", "insurance", "soil health card", "government scheme", "yojana"],
+        "hi": ["पीएम किसान", "फसल बीमा", "सब्सिडी", "सरकारी योजना", "मृदा स्वास्थ्य कार्ड", "योजना"],
+        "gu": ["પીએમ કિસાન", "પાક વીમો", "સબસિડી", "સરકારી યોજના", "સોઇલ હેલ્થ કાર્ડ"],
+        "mr": ["पीएम किसान", "पीक विमा", "अनुदान", "शासकीय योजना", "सॉईल हेल्थ कार्ड"],
+        "ta": ["பிஎம் கிசான்", "பயிர் காப்பீடு", "மானியம்", "அரசு திட்டம்", "மண் நல அட்டை"],
+        "te": ["పీఎం కిసాన్", "పంట బీమా", "సబ్సిడీ", "ప్రభుత్వ పథకం", "సాయిల్ హెల్త్ కార్డు"],
+        "pa": ["ਪੀਐਮ ਕਿਸਾਨ", "ਫ਼ਸਲ ਬੀਮਾ", "ਸਬਸਿਡੀ", "ਸਰਕਾਰੀ ਸਕੀਮ", "ਸੋਇਲ ਹੈਲਥ ਕਾਰਡ"],
     },
 }
 
@@ -202,6 +220,17 @@ def _plot_context(plot: dict | None, land_unit: str = "ha", bigha_region: str | 
     area_label = describe_area(plot.get("area_ha"), land_unit, bigha_region)
     if area_label:
         bits.append(f"size: {area_label}")
+    if plot.get("main_crop"):
+        bits.append(f"crop: {plot['main_crop']}")
+    planting = plot.get("planting")
+    if planting:
+        bits.append(f"growth stage: {planting.get('stage')} ({planting.get('crop')})")
+    diag = plot.get("latest_diagnosis")
+    if diag:
+        bits.append(f"recent scan: {diag.get('disease')}")
+    weather = plot.get("weather_summary")
+    if weather:
+        bits.append(f"weather: rain {weather.get('rain_prob', 0)}% (~{weather.get('rain_mm', 0)}mm), max {weather.get('tmax')}°C, wind {weather.get('wind', 0)}km/h")
     if s.get("texture_class"):
         bits.append(f"soil: {s['texture_class']}, pH {s.get('ph')}, "
                     f"organic carbon {s.get('organic_carbon_pct')}%")
@@ -216,6 +245,7 @@ def _plot_context(plot: dict | None, land_unit: str = "ha", bigha_region: str | 
         except Exception as e:
             log.warning("Could not add crops to context: %s", e)
     return "; ".join(bits)
+
 
 
 # Localized fallback answer templates for when Gemini is unavailable
@@ -381,6 +411,24 @@ _LOCAL_FAQ = {
         "te": "సాధారణ నియమం: తరచుగా కొద్దిగా నీరు పెట్టడం కంటే, తక్కువసార్లు కానీ లోతుగా నీరు పెట్టండి — దీనివల్ల వేర్లు లోతుగా పెరిగి నీరు వృథా తగ్గుతుంది. ఆవిరైపోవడం తగ్గించడానికి ఉదయం లేదా సాయంత్రం నీరు పెట్టండి, మళ్ళీ నీరు పెట్టే ముందు కొన్ని అంగుళాల లోతులో నేల తేమను తనిఖీ చేయండి. ఈ సాధారణ సూచనకు బదులుగా ప్రత్యక్ష, వర్షం-ఆధారిత నీటిపారుదల సూచన పొందడానికి స్థానంతో ఒక పొలాన్ని జోడించండి.",
         "pa": "ਆਮ ਨਿਯਮ: ਵਾਰ-ਵਾਰ ਥੋੜ੍ਹਾ ਪਾਣੀ ਦੇਣ ਦੀ ਬਜਾਏ, ਘੱਟ ਵਾਰ ਪਰ ਡੂੰਘਾ ਪਾਣੀ ਦਿਓ — ਇਸ ਨਾਲ ਜੜ੍ਹਾਂ ਡੂੰਘੀਆਂ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਪਾਣੀ ਦੀ ਬਰਬਾਦੀ ਘਟਦੀ ਹੈ। ਭਾਫ਼ ਬਣਨਾ ਘਟਾਉਣ ਲਈ ਸਵੇਰੇ ਜਾਂ ਸ਼ਾਮ ਸਿੰਚਾਈ ਕਰੋ, ਅਤੇ ਦੁਬਾਰਾ ਪਾਣੀ ਦੇਣ ਤੋਂ ਪਹਿਲਾਂ ਕੁਝ ਇੰਚ ਹੇਠਾਂ ਮਿੱਟੀ ਦੀ ਨਮੀ ਜਾਂਚੋ। ਇਸ ਆਮ ਸਲਾਹ ਦੀ ਬਜਾਏ ਲਾਈਵ, ਮੀਂਹ-ਅਧਾਰਿਤ ਸਿੰਚਾਈ ਸੁਝਾਅ ਲਈ ਟਿਕਾਣੇ ਸਮੇਤ ਇੱਕ ਖੇਤ ਜੋੜੋ।",
     },
+    "concoctions": {
+        "en": "Organic Concoctions & Biopesticides:\n1) Neem Oil Spray: Mix 5 ml cold-pressed neem oil with 1 ml mild liquid soap in 1 L water. Spray early morning every 7-10 days against sucking pests (aphids, thrips, whiteflies).\n2) Jeevamrut: In 200 L water, mix 10 kg fresh cow dung, 10 L cow urine, 2 kg jaggery, 2 kg gram flour, and a handful of virgin forest/farm soil. Ferment in shade for 48 hours stirring twice daily. Apply 200 L/acre with irrigation.\n3) Dashparni Ark: Extract of 10 local bitter/medicinal leaves fermented with cow urine and dung — potent broad-spectrum natural pest repellent.",
+        "hi": "प्राकृतिक फसल सुरक्षा काढ़ा व घोल:\n1) नीम तेल स्प्रे: 1 लीटर पानी में 5 मिली नीम तेल और 1 मिली हल्का तरल साबुन मिलाएं। रस चूसक कीटों और इल्लियों के लिए सुबह-सुबह हर 7-10 दिन में छिड़कें।\n2) जीवामृत: 200 लीटर पानी में 10 किलो ताजा गोबर, 10 लीटर गोमूत्र, 2 किलो गुड़, 2 किलो बेसन और मुट्ठी भर उपजाऊ खेत की मिट्टी मिलाएं। छाया में 48 घंटे किण्वन करें और दिन में दो बार चलाएं। 200 लीटर/एकड़ सिंचाई के साथ दें।\n3) दशपर्णी अर्क: 10 कड़वी व औषधीय पत्तियों का गोमूत्र में तैयार अर्क — व्यापक जैविक कीट निवारक।",
+        "gu": "કુદરતી જૈવિક કીટનાશક અને જીવામૃત:\n1) લીમડાનું તેલ: 1 લિટર પાણીમાં 5 મિલી લીમડાનું તેલ અને 1 મિલી પ્રવાહી સાબુ મેળવી વહેલી સવારે છંટકાવ કરો.\n2) જીવામૃત: 200 લિટર પાણી, 10 કિલો છાણ, 10 લિટર ગૌમૂત્ર, 2 કિલો ગોળ, 2 કિલો બેસન અને મુઠ્ઠીભર વડ નીચેની માટી મેળવી 48 કલાક આથો લાવી પિયત સાથે આપો.\n3) દશપર્ણી અર્ક: 10 કડવા પાંદડાંમાંથી બનેલો અર્ક જે ચૂસિયા જીવાતો સામે અસરકારક છે.",
+        "mr": "नैसर्गिक कीटकनाशक व जीवामृत:\n1) निंबोळी अर्क/तेल: 1 लिटर पाण्यात 5 मिली कडुलिंब तेल आणि 1 मिली सौम्य साबण मिसळून रस शोषणाऱ्या किडींवर फवारा.\n2) जीवामृत: 200 लिटर पाण्यात 10 किलो ताजे शेण, 10 लिटर गोमूत्र, 2 किलो गूळ, 2 किलो बेसन आणि एक मूठ बांधाची माती एकत्र करून सावलीत 48 तास आंबवून सिंचनासोबत द्या.\n3) दशपर्णी अर्क: 10 प्रकारच्या कडवट वनस्पतींच्या पानांचा अर्क — नैसर्गिक कीड नियंत्रक.",
+        "ta": "இயற்கை பூச்சிவிரட்டி மற்றும் ஜீவாமிர்தம்:\n1) வேப்ப எண்ணெய் கரைசல்: 1 லிட்டர் தண்ணீரில் 5 மிலி வேப்ப எண்ணெய் + 1 மிலி திரவ சோப் கலந்து சாறு உறிஞ்சும் பூச்சிகளுக்கு தெளிக்கவும்.\n2) ஜீவாமிர்தம்: 200 லிட்டர் தண்ணீர், 10 கிலோ பசுஞ்சாணம், 10 லிட்டர் கோமியம், 2 கிலோ வெல்லம், 2 கிலோ பயறு மாவு, ஒரு கைப்பிடி வரப்பு மண் சேர்த்து 48 மணி நேரம் நொதிக்க வைத்து பாசனத்துடன் இடவும்.\n3) தசபர்ணி அசாறு: 10 மூலிகை இலைகளின் சாறு — சிறந்த இயற்கை பூச்சிவிரட்டி.",
+        "te": "సేంద్రీయ కషాయాలు & జీవామృతం:\n1) వేప నూనె స్ప్రే: 1 లీటరు నీటిలో 5 మి.లీ వేప నూనె + 1 మి.లీ సబ్బు ద్రవం కలిపి రసం పీల్చే పురుగుల నివారణకు పిచికారీ చేయండి.\n2) జీవామృతం: 200 లీటర్ల నీరు, 10 కిలోల ఆవు పేడ, 10 లీటర్ల ఆవు మూత్రం, 2 కిలోల బెల్లం, 2 కిలోల శనగపిండి, పిడికెడు పుట్టమట్టి కలిపి 48 గంటలు నిల్వ ఉంచి నీటితో పాటు అందించండి.\n3) దశపర్ణి కషాయం: 10 రకాల ఆకులతో తయారు చేసిన సహజ పురుగు నివారిణి.",
+        "pa": "ਜੈਵਿਕ ਕੀਟਨਾਸ਼ਕ ਅਤੇ ਜੀਵਾਮ੍ਰਿਤ:\n1) ਨਿੰਮ ਦਾ ਤੇਲ: 1 ਲੀਟਰ ਪਾਣੀ ਵਿੱਚ 5 ਮਿਲੀਲੀਟਰ ਨਿੰਮ ਦਾ ਤੇਲ + 1 ਮਿਲੀਲੀਟਰ ਹਲਕਾ ਸਾਬਣ ਘੋਲ ਕੇ ਰਸ ਚੂਸਣ ਵਾਲੇ ਕੀੜਿਆਂ 'ਤੇ ਸਪਰੇਅ ਕਰੋ।\n2) ਜੀਵਾਮ੍ਰਿਤ: 200 ਲੀਟਰ ਪਾਣੀ, 10 ਕਿਲੋ ਗਾਂ ਦਾ ਗੋਹਾ, 10 ਲੀਟਰ ਗਊਮੂਤਰ, 2 ਕਿਲੋ ਗੁੜ, 2 ਕਿਲੋ ਬੇਸਣ ਅਤੇ ਮੁੱਠੀ ਭਰ ਉਪਜਾਊ ਮਿੱਟੀ ਰਲਾ ਕੇ 48 ਘੰਟੇ ਛਾਂ ਵਿੱਚ ਰੱਖੋ ਅਤੇ ਸਿੰਚਾਈ ਨਾਲ ਵਰਤੋ।\n3) ਦਸ਼ਪਰਣੀ ਅਰਕ: 10 ਕੌੜੇ ਪੱਤਿਆਂ ਦਾ ਅਰਕ — ਸ਼ਕਤੀਸ਼ਾਲੀ ਕੁਦਰਤੀ ਕੀੜੇ ਮਾਰ ਘੋਲ।",
+    },
+    "schemes": {
+        "en": "Key Agricultural Support Schemes:\n1) PM-KISAN: Direct income support of Rs 6,000 per year in 3 equal installments of Rs 2,000 directly to farmer bank accounts.\n2) PM Fasal Bima Yojana (PMFBY): Low-cost crop insurance against weather, drought, flooding, and pest risks (1.5% premium for Rabi, 2% for Kharif).\n3) Soil Health Card: Periodic free soil fertility reports with personalized fertilizer advisories. Contact your local KVK or agricultural office for registration.",
+        "hi": "प्रमुख किसान कल्याण योजनाएं:\n1) पीएम-किसान (PM-KISAN): सभी पात्र किसान परिवारों को प्रति वर्ष 6,000 रुपये की वित्तीय सहायता (2,000 रुपये की 3 किस्तों में बैंक खाते में)।\n2) प्रधानमंत्री फसल बीमा योजना (PMFBY): प्राकृतिक आपदाओं व कीट प्रकोप से फसल क्षति पर सुरक्षा (खरीफ 2%, रबी 1.5% प्रीमियम)।\n3) मृदा स्वास्थ्य कार्ड (Soil Health Card): खेत की मिट्टी की जांच और संतुलित खाद सिफारिशें। नजदीकी कृषि विज्ञान केंद्र (KVK) से संपर्क करें।",
+        "gu": "ખેડૂત કલ્યાણકારી સરકારી યોજનાઓ:\n1) પીએમ-કિસાન: ખેડૂતોને વાર્ષિક રૂ. 6,000 ની સહાય (રૂ. 2,000 ના 3 હપ્તામાં સીધા ખાતામાં).\n2) પ્રધાનમંત્રી પાક વીમા યોજના (PMFBY): કુદરતી આપત્તિઓ સામે પાક સુરક્ષા (ખરીફ 2%, રવિ 1.5% પ્રીમિયમ).\n3) સોઇલ હેલ્થ કાર્ડ: જમીન ચકાસણી અને ખાતર માર્ગદર્શન માટે સ્થાનિક કેવીકે (KVK) નો સંપર્ક કરો.",
+        "mr": "शेतकरी कल्याणकारी शासकीय योजना:\n1) पीएम-किसान: पात्र शेतकरी कुटुंबांना दरवर्षी 6,000 रुपये थेट बँक खात्यात (2,000 रुपयांच्या 3 हप्त्यांमध्ये).\n2) प्रधानमंत्री पीक विमा योजना (PMFBY): नैसर्गिक आपत्ती आणि रोगराईपासून पिकांचे संरक्षण (खरीप 2%, रब्बी 1.5% हप्ता).\n3) सॉईल हेल्थ कार्ड: मोफत माती परीक्षण व संतुलित खत सल्ला. जवळच्या कृषी विज्ञान केंद्राशी संपर्क साधा.",
+        "ta": "முக்கிய விவசாய நலத்திட்டங்கள்:\n1) பிஎம்-கிசான்: விவசாயிகளுக்கு ஆண்டுதோறும் ரூ. 6,000 நிதி உதவி (ரூ. 2,000 வீதம் 3 தவணைகளில்).\n2) பிரதமரின் பயிர் காப்பீட்டுத் திட்டம் (PMFBY): இயற்கை இடர்பாடுகளிலிருந்து பயிர் பாதுகாப்பு (காரீஃப் 2%, ரபி 1.5% பிரீமியம்).\n3) மண் நல அட்டை: மண் பரிசோதனை மற்றும் உர பரிந்துரைகள் பெற வேளாண்மை அலுவலரை அணுகவும்.",
+        "te": "ప్రభుత్వ రైతు సంక్షేమ పథకాలు:\n1) పీఎం-కిసాన్: అర్హులైన రైతులకు ఏటా రూ. 6,000 ఆర్థిక సాయం (రూ. 2,000 చొప్పున 3 విడతల్లో).\n2) ప్రధానమంత్రి ఫసల్ బీమా యోజన (PMFBY): ప్రకృతి వైపరీత్యాల నుండి పంట రక్షణ (ఖరీఫ్ 2%, రబీ 1.5% ప్రీమియం).\n3) సాయిల్ హెల్త్ కార్డు: ఉచిత నేల పరీక్ష మరియు ఎరువుల సిఫార్సులు. స్థానిక వ్యవసాయ అధికారిని సంప్రదించండి.",
+        "pa": "ਮੁੱਖ ਕਿਸਾਨ ਭਲਾਈ ਸਕੀਮਾਂ:\n1) ਪੀਐਮ-ਕਿਸਾਨ: ਕਿਸਾਨਾਂ ਨੂੰ ਸਾਲਾਨਾ 6,000 ਰੁਪਏ ਦੀ ਵਿੱਤੀ ਸਹਾਇਤਾ (2,000 ਰੁਪਏ ਦੀਆਂ 3 ਕਿਸ਼ਤਾਂ ਵਿੱਚ)।\n2) ਪ੍ਰਧਾਨ ਮੰਤਰੀ ਫ਼ਸਲ ਬੀਮਾ ਯੋਜਨਾ (PMFBY): ਕੁਦਰਤੀ ਆਫ਼ਤਾਂ ਤੋਂ ਫ਼ਸਲ ਦਾ ਬੀਮਾ (ਸਾਉਣੀ 2%, ਹਾੜ੍ਹੀ 1.5% ਪ੍ਰੀਮੀਅਮ)।\n3) ਸੋਇਲ ਹੈਲਥ ਕਾਰਡ: ਮੁਫ਼ਤ ਮਿੱਟੀ ਜਾਂਚ ਅਤੇ ਸੰਤੁਲਿਤ ਖਾਦਾਂ ਦੀ ਸਲਾਹ। ਨੇੜਲੇ ਕੇਵੀਕੇ (KVK) ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+    },
 }
 
 
@@ -496,19 +544,32 @@ async def _fallback_answer(
             faq = _LOCAL_FAQ[intent]
             return faq.get(lang, faq["en"])
 
-        # Plot-contextual guidance if a plot has a main crop declared
-        if plot and plot.get("main_crop"):
-            crop_name = plot["main_crop"]
+        # Plot-contextual guidance if a plot has a main crop or planting declared
+        if plot and (plot.get("main_crop") or plot.get("planting") or plot.get("active_planting")):
+            crop_name = plot.get("main_crop") or (plot.get("planting") or {}).get("crop") or (plot.get("active_planting") or {}).get("crop") or "crop"
             crop_guidance = {
                 "en": f"For your {crop_name} crop on this plot: maintain steady soil moisture, inspect leaves weekly for signs of spots or wilting, and follow balanced nutrient applications. You can scan a leaf in the Scan tab for an instant disease diagnosis, or check your Plot page for tailored weather and soil advice.",
                 "hi": f"आपके इस खेत की {crop_name} फसल के लिए: उचित जल निकासी रखें, पत्तियों के नीचे नियमित रूप से कीड़े या धब्बे जांचें, और संतुलित खाद दें। रोग पहचान के लिए 'स्कैन' टैब में पत्ती की फोटो लें।",
                 "gu": f"તમારા આ પ્લોટના {crop_name} પાક માટે: જમીનમાં યોગ્ય ભેજ રાખો, પાંદડા નીચે નિયમિતપણે જીવાત કે ડાઘ તપાસો, અને સંતુલિત ખાતર આપો. સચોટ રોગ તપાસ માટે 'સ્કેન' ટેબમાં પાનનો ફોટો લો.",
                 "mr": f"तुमच्या या शेतातील {crop_name} पिकासाठी: पाण्याचा योग्य निचरा ठेवा, पानांखाली कीड किंवा डाग नियमित तपासा, आणि संतुलित खते द्या. अचूक रोग निदानासाठी 'स्कॅन' टॅबमध्ये पानाचा फोटो घ्या.",
                 "ta": f"இந்த நிலத்தின் {crop_name} பயிருக்கு: நல்ல வடிகால் வசதி செய்யுங்கள், இலைகளின் அடியில் பூச்சிகள் உள்ளதா என வாரந்தோறும் பாருங்கள், காலையில் நீர் பாய்ச்சுங்கள். நோய் பரிசோதனைக்கு 'ஸ்கேன்' பக்கத்தில் புகைப்படம் எடுக்கவும்.",
-                "te": f"ఈ పొలంలోని మీ {crop_name} పంట కోసం: నీరు నిలవకుండా చూడండి, ఆకుల కింద పురుగులు లేదా మచ్చల కోసం వారానికోసారి తనిఖీ చేయండి. 'స్కాన్' ట్యాబ్‌లో ఆకు ఫోటో తీసి పరీక్షించండి.",
+                "te": f"ఈ పొలంలోని మీ {crop_name} పంట కోసం: నీరు నిలవకుండా చూడండి, ఆకుల కింద పురుగులు లేదా మచ్చల కోసం వారానికోసారి తనిਖీ చేయండి. 'స్కాన్' ట్యాబ్‌లో ఆకు ఫోటో తీసి పరీక్షించండి.",
                 "pa": f"ਤੁਹਾਡੇ ਇਸ ਖੇਤ ਦੀ {crop_name} ਫ਼ਸਲ ਲਈ: ਪਾਣੀ ਦੀ ਨਿਕਾਸੀ ਚੰਗੀ ਰੱਖੋ, ਪੱਤਿਆਂ ਹੇਠਾਂ ਕੀੜੇ ਜਾਂ ਧੱਬੇ ਨਿਯਮਿਤ ਦੇਖੋ, ਅਤੇ ਸਵੇਰੇ ਪਾਣੀ ਦਿਓ। ਰੋਗ ਜਾਂਚ ਲਈ 'ਸਕੈਨ' ਟੈਬ ਵਿੱਚ ਪੱਤੇ ਦੀ ਫੋਟੋ ਲਓ.",
             }
-            return crop_guidance.get(lang, crop_guidance["en"])
+            base = crop_guidance.get(lang, crop_guidance["en"])
+            extra: list[str] = []
+            planting = plot.get("planting") or plot.get("active_planting")
+            if planting and planting.get("stage"):
+                extra.append(f"Current growth stage: {planting['stage']}.")
+            diag = plot.get("latest_diagnosis")
+            if diag and diag.get("disease"):
+                extra.append(f"Latest leaf scan: {diag['disease']}.")
+            weather = plot.get("weather_summary")
+            if weather:
+                extra.append(f"Weather alert: {weather.get('rain_prob', 0)}% rain probability (~{weather.get('rain_mm', 0)} mm).")
+            if extra:
+                return base + "\n\n" + " ".join(extra)
+            return base
 
         return tmpl["no_card"]
     key, c = picked[0]
@@ -542,11 +603,183 @@ async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
     return await gemini_service.generate(prompt)
 
 
+_FOLLOWUP_MAP: dict[str, dict[str, list[str]]] = {
+    "disease": {
+        "en": ["What is the safety waiting period before harvest?", "Is it safe to spray in today's weather?", "What organic alternatives can I use?"],
+        "hi": ["दवा छिड़कने के कितने दिन बाद तुड़ाई करें?", "क्या आज के मौसम में छिड़काव करना सुरक्षित है?", "क्या कोई जैविक विकल्प है?"],
+        "gu": ["દવા છાંટ્યા પછી કેટલા દિવસે વીણણી કરવી?", "શું આજના હવામાનમાં છંટકાવ કરવો યોગ્ય છે?", "શું કોઈ જૈવિક વિકલ્પ છે?"],
+        "mr": ["फवारणीनंतर किती दिवसांनी काढणी करावी?", "आजच्या हवामानात फवारणी करणे सुरक्षित आहे का?", "काही सेंद्रिय पर्याय आहे का?"],
+        "ta": ["மருந்து தெளித்த எத்தனை நாட்கள் கழித்து அறுவடை செய்ய வேண்டும்?", "இன்றைய வானிலையில் மருந்து தெளிப்பது பாதுகாப்பானதா?", "இயற்கை வழி முறை உள்ளதா?"],
+        "te": ["మందు పిచికారీ చేసిన ఎన్ని రోజులకు కోత కోయాలి?", "ఈ రోజు వాతావరణంలో పిచికారీ చేయడం సురక్షితమేనా?", "ఏదైనా సేంద్రీయ నివారణ ఉందా?"],
+        "pa": ["ਦਵਾਈ ਛਿੜਕਣ ਤੋਂ ਕਿੰਨੇ ਦਿਨ ਬਾਅਦ ਤੁੜਾਈ ਕਰੀਏ?", "ਕੀ ਅੱਜ ਦੇ ਮੌਸਮ ਵਿੱਚ ਸਪਰੇਅ ਕਰਨਾ ਸਹੀ ਹੈ?", "ਕੀ ਕੋਈ ਜੈਵਿਕ ਬਦਲ ਹੈ?"],
+    },
+    "greeting": {
+        "en": ["What crop should I plant this season?", "How to prepare organic Jeevamrut?", "Why are my leaves turning yellow?"],
+        "hi": ["इस मौसम में कौन सी फसल लगाएं?", "जीवामृत कैसे बनाएं?", "पत्तियां पीली क्यों पड़ रही हैं?"],
+        "gu": ["આ ઋતુમાં કયો પાક વાવવો?", "જીવામૃત કેવી રીતે બનાવવું?", "પાંદડા કેમ પીળા પડે છે?"],
+        "mr": ["या हंगामात कोणते पीक घ्यावे?", "जीवामृत कसे तयार करावे?", "पाने पिवळी का पडत आहेत?"],
+        "ta": ["இந்த பருவத்தில் என்ன பயிர் நடலாம்?", "ஜீவாமிர்தம் தயாரிப்பது எப்படி?", "இலைகள் ஏன் மஞ்சளாகின்றன?"],
+        "te": ["ఈ సీజన్‌లో ఏ పంట వేయాలి?", "జీవామృతం ఎలా తయారు చేయాలి?", "ఆకులు ఎందుకు పసుపు రంగులోకి మారుతున్నాయి?"],
+        "pa": ["ਇਸ ਮੌਸਮ ਵਿੱਚ ਕਿਹੜੀ ਫ਼ਸਲ ਬੀਜੀਏ?", "ਜੀਵਾਮ੍ਰਿਤ ਕਿਵੇਂ ਬਣਾਈਏ?", "ਪੱਤੇ ਪੀਲੇ ਕਿਉਂ ਪੈ ਰਹੇ ਹਨ?"],
+    },
+    "weather": {
+        "en": ["Is wind or rain going to wash off my spray?", "When is the best time to irrigate?", "How to protect crops from heat stress?"],
+        "hi": ["क्या बारिश या तेज हवा से दवा धुल जाएगी?", "सिंचाई का सबसे अच्छा समय कौन सा है?", "फसल को तेज धूप व गर्मी से कैसे बचाएं?"],
+        "gu": ["શું વરસાદ કે પવનથી દવા ધોવાઈ જશે?", "પિયત આપવાનો શ્રેષ્ઠ સમય કયો છે?", "પાકને ગરમીથી કેવી રીતે બચાવવો?"],
+        "mr": ["पाऊस किंवा वाऱ्यामुळे औषध वाहून जाईल का?", "पाणी देण्याची सर्वोत्तम वेळ कोणती?", "उष्णतेपासून पिकाचे रक्षण कसे करावे?"],
+        "ta": ["மழை அல்லது காற்றால் மருந்து வீணாகுமா?", "நீர்ப்பாசனம் செய்ய சிறந்த நேரம் எது?", "வெப்ப அழுத்தத்திலிருந்து பயிரை காப்பது எப்படி?"],
+        "te": ["వర్షం లేదా గాలి వల్ల మందు కొట్టుకుపోతుందా?", "నీరు పెట్టడానికి ఉత్తమ సమయం ఏది?", "ఎండ వేడిమి నుండి పంటను ఎలా కాపాడాలి?"],
+        "pa": ["ਕੀ ਮੀਂਹ ਜਾਂ ਹਵਾ ਨਾਲ ਦਵਾਈ ਧੁੜ ਜਾਵੇਗੀ?", "ਸਿੰਚਾਈ ਦਾ ਸਭ ਤੋਂ ਵਧੀਆ ਸਮਾਂ ਕਿਹੜਾ ਹੈ?", "ਫ਼ਸਲ ਨੂੰ ਗਰਮੀ ਤੋਂ ਕਿਵੇਂ ਬਚਾਈਏ?"],
+    },
+    "soil": {
+        "en": ["How to test soil pH and texture?", "How much vermicompost per acre?", "Which crops suit my soil type?"],
+        "hi": ["मिट्टी का pH और बनावट कैसे जांचें?", "प्रति एकड़ कितना वर्मीकम्पोस्ट डालें?", "मेरी मिट्टी के लिए कौन सी फसल उत्तम है?"],
+        "gu": ["જમીનનું pH અને પ્રકાર કેવી રીતે તપાસવું?", "એકર દીઠ કેટલું અળસિયાનું ખાતર નાખવું?", "મારી જમીન માટે કયો પાક શ્રેષ્ઠ છે?"],
+        "mr": ["मातीचा सामू (pH) कसा तपासावा?", "एकरला किती गांडूळखत द्यावे?", "माझ्या जमिनीसाठी कोणते पीक योग्य आहे?"],
+        "ta": ["மண் pH மற்றும் வகையை எப்படி அறிவது?", "ஒரு ஏக்கருக்கு எவ்வளவு மண்புழு உரம்?", "என் மண்ணுக்கு ஏற்ற பயிர் எது?"],
+        "te": ["నేల pH మరియు రకాన్ని ఎలా పరీక్షించాలి?", "ఎకరానికి ఎంత వర్మీ కంపోస్ట్ వేయాలి?", "నా నేలకు ఏ పంట అనుకూలం?"],
+        "pa": ["ਮਿੱਟੀ ਦਾ pH ਕਿਵੇਂ ਜਾਂਚੀਏ?", "ਪ੍ਰਤੀ ਏਕੜ ਕਿੰਨੀ ਗੰਡੋਆ ਖਾਦ ਪਾਈਏ?", "ਮੇਰੀ ਜ਼ਮੀਨ ਲਈ ਕਿਹੜੀ ਫ਼ਸਲ ਚੰਗੀ ਹੈ?"],
+    },
+    "yellow_leaves": {
+        "en": ["How to treat nitrogen deficiency?", "Could it be root rot or waterlogging?", "Recommend foliar micronutrient spray"],
+        "hi": ["नाइट्रोजन की कमी कैसे दूर करें?", "क्या यह जड़ सड़न या जलभराव हो सकता है?", "सूक्ष्म पोषक तत्वों का स्प्रे बताएं"],
+        "gu": ["નાઇટ્રોજનની ઉણપ કેવી રીતે દૂર કરવી?", "શું આ મૂળનો સડો હોઈ શકે?", "સૂક્ષ્મ પોષકતત્વોનો સ્પ્રે જણાવો"],
+        "mr": ["नत्राची कमतरता कशी भरून काढावी?", "हा मुळकूज किंवा अतिपाण्याचा परिणाम आहे का?", "सूक्ष्म अन्नद्रव्यांची फवारणी सांगा"],
+        "ta": ["நைட்ரஜன் பற்றாக்குறையை எப்படி சரிசெய்வது?", "இது வேர் அழுகல் காரணமா?", "நுண்ணூட்டச்சத்து தெளிப்பு பரிந்துரைக்கவும்"],
+        "te": ["నత్రజని లోపాన్ని ఎలా సరిదిద్దాలి?", "ఇది వేరు కుళ్లు లేదా నీరు నిలవడం వలనా?", "సూక్ష్మపోషకాల స్ప్రే సూచించండి"],
+        "pa": ["ਨਾਈਟ੍ਰੋਜਨ ਦੀ ਘਾਟ ਕਿਵੇਂ ਪੂਰੀ ਕਰੀਏ?", "ਕੀ ਇਹ ਜੜ੍ਹ ਗਲਣ ਕਾਰਨ ਹੋ ਸਕਦਾ ਹੈ?", "ਸੂਖ਼ਮ ਤੱਤਾਂ ਦੀ ਸਪਰੇਅ ਦੱਸੋ"],
+    },
+    "concoctions": {
+        "en": ["How to make Jeevamrut for 1 acre?", "What is the dilution ratio of neem oil?", "How to make Dashparni ark repellent?"],
+        "hi": ["1 एकड़ के लिए जीवामृत कैसे तैयार करें?", "नीम के तेल का सही अनुपात क्या है?", "दशपर्णी अर्क कैसे बनाएं?"],
+        "gu": ["1 એકર માટે જીવામૃત કેવી રીતે બનાવવું?", "લીમડાના તેલનું યોગ્ય પ્રમાણ શું છે?", "દશપર્ણી અર્ક કેવી રીતે બનાવવો?"],
+        "mr": ["1 एकरासाठी जीवामृत कसे बनवावे?", "कडुलिंब तेलाचे योग्य प्रमाण काय आहे?", "दशपर्णी अर्क कसा तयार करावा?"],
+        "ta": ["1 ஏக்கருக்கு ஜீவாமிர்தம் செய்வது எப்படி?", "வேப்ப எண்ணெய் கலவை விகிதம் என்ன?", "தசபர்ணி அசாறு தயாரிப்பது எப்படி?"],
+        "te": ["1 ఎకరానికి జీవామృతం ఎలా చేయాలి?", "వేప నూనె మోతాదు ఎంత?", "దశపర్ణి కషాయం తయారీ విధానం ఏమిటి?"],
+        "pa": ["1 ਏਕੜ ਲਈ ਜੀਵਾਮ੍ਰਿਤ ਕਿਵੇਂ ਬਣਾਈਏ?", "ਨਿੰਮ ਦੇ ਤੇਲ ਦੀ ਸਹੀ ਮਾਤਰਾ ਕੀ ਹੈ?", "ਦਸ਼ਪਰਣੀ ਅਰਕ ਕਿਵੇਂ ਤਿਆਰ ਕਰੀਏ?"],
+    },
+    "schemes": {
+        "en": ["How to check PM-KISAN beneficiary status?", "What documents are needed for PMFBY crop insurance?", "How to get a Soil Health Card?"],
+        "hi": ["पीएम-किसान लाभार्थी स्थिति कैसे जांचें?", "फसल बीमा (PMFBY) के लिए कौन से दस्तावेज चाहिए?", "मृदा स्वास्थ्य कार्ड कैसे प्राप्त करें?"],
+        "gu": ["પીએમ-કિસાન સ્ટેટસ કેવી રીતે ચેક કરવું?", "પીએમ પાક વીમા માટે કયા દસ્તાવેજો જોઈએ?", "સોઇલ હેલ્થ કાર્ડ કેવી રીતે મેળવવું?"],
+        "mr": ["पीएम-किसान लाभार्थी स्थिती कशी तपासावी?", "पीक विम्यासाठी कोणती कागदपत्रे लागतात?", "सॉईल हेल्थ कार्ड कसे मिळवावे?"],
+        "ta": ["பிஎம் கிசான் நிலையை எப்படி சரிபார்ப்பது?", "பயிர் காப்பீட்டிற்கு என்ன ஆவணங்கள் தேவை?", "மண் நல அட்டை பெறுவது எப்படி?"],
+        "te": ["పీఎం కిసాన్ స్టేటస్ ఎలా తనిఖీ చేయాలి?", "పంట బీమాకు ఏ పత్రాలు అవసరం?", "సాయిల్ హెల్త్ కార్డు ఎలా పొందాలి?"],
+        "pa": ["ਪੀਐਮ ਕਿਸਾਨ ਸਥਿਤੀ ਕਿਵੇਂ ਦੇਖੀਏ?", "ਫ਼ਸਲ ਬੀਮੇ ਲਈ ਕਿਹੜੇ ਕਾਗਜ਼ਾਤ ਚਾਹੀਦੇ ਹਨ?", "ਸੋਇਲ ਹੈਲਥ ਕਾਰਡ ਕਿਵੇਂ ਬਣਵਾਈਏ?"],
+    },
+    "general": {
+        "en": ["What disease symptoms should I look for?", "When is the next irrigation needed?", "What organic fertiliser is recommended?"],
+        "hi": ["फसल में किन रोग लक्षणों पर नजर रखें?", "अगली सिंचाई कब करनी चाहिए?", "कौन सी जैविक खाद उत्तम रहेगी?"],
+        "gu": ["પાકમાં કયા રોગના લક્ષણો જોવા મળે છે?", "આગામી સિંચાઈ ક્યારે કરવી?", "કયું જૈવિક ખાતર વાપરવું?"],
+        "mr": ["पिकात कोणत्या रोगाची लक्षणे पहावीत?", "पुढील पाणी कधी द्यावे?", "कोणते सेंद्रिय खत योग्य राहील?"],
+        "ta": ["பயிரில் என்ன நோய் அறிகுறிகளைப் பார்க்க வேண்டும்?", "அடுத்த பாசனம் எப்போது?", "என்ன இயற்கை உரம் பரிந்துரைக்கப்படுகிறது?"],
+        "te": ["పంటలో ఎలాంటి తెగుళ్ల లక్షణాలు చూడాలి?", "తదుపరి నీరు ఎప్పుడు పెట్టాలి?", "ఏ సేంద్రీయ ఎరువు సిఫార్సు చేయబడింది?"],
+        "pa": ["ਫ਼ਸਲ ਵਿੱਚ ਕਿਹੜੇ ਰੋਗਾਂ ਦੇ ਲੱਛਣ ਦੇਖਣੇ ਚਾਹੀਦੇ ਹਨ?", "ਅਗਲਾ ਪਾਣੀ ਕਦੋਂ ਲਾਈਏ?", "ਕਿਹੜੀ ਜੈਵਿਕ ਖਾਦ ਪਾਉਣੀ ਚਾਹੀਦੀ ਹੈ?"],
+    },
+}
+
+
+def _resolve_context_query(question: str, history: list | None = None) -> str:
+    """If the question is brief or uses pronouns ('how to treat it', 'what dose', 'can I spray'),
+    extract crop and disease context from previous turns in the conversation."""
+    if not history:
+        return question
+
+    q_low = question.lower()
+    cards_map = _cards()
+    crops_known = {c.get("crop", "").lower() for c in cards_map.values() if c.get("crop")} | {
+        "wheat", "rice", "paddy", "cotton", "sugarcane", "maize", "mustard", "chilli", "onion",
+        "garlic", "groundnut", "soybean", "potato", "tomato", "gram", "bajra", "jowar", "barley",
+    }
+    diseases_known = {c.get("disease", "").lower() for c in cards_map.values() if c.get("disease")} | {
+        "rust", "blight", "rot", "scab", "mildew", "spot", "mosaic", "curl", "smut", "wilt",
+    }
+
+    # If the user already asked about a specific crop or disease without pronouns, don't contaminate
+    has_own_crop = any(crop in q_low for crop in crops_known if len(crop) >= 4)
+    has_own_disease = any(dis in q_low for dis in diseases_known if len(dis) >= 4)
+    has_pronoun = any(p in q_low.split() for p in ["it", "this", "that", "same", "also", "too", "these", "those"])
+    if (has_own_crop or has_own_disease) and not has_pronoun:
+        return question
+
+    needs_context = (
+        len(question.split()) <= 6
+        or has_pronoun
+        or any(w in q_low for w in ["the disease", "cure", "spray", "treat", "dose", "chemical", "waiting period"])
+    )
+    if not needs_context:
+        return question
+
+    context_words: list[str] = []
+    for msg in reversed(history[-4:]):
+        if isinstance(msg, dict):
+            content = (msg.get("content") or msg.get("text") or msg.get("answer") or "").lower()
+        else:
+            content = (getattr(msg, "content", None) or getattr(msg, "text", None) or getattr(msg, "answer", None) or "").lower()
+
+        for crop in crops_known:
+            if crop and crop in content and crop not in context_words and not has_own_crop:
+                context_words.append(crop)
+        for dis in diseases_known:
+            if dis and dis in content and dis not in context_words and not has_own_disease:
+                context_words.append(dis)
+        if len(context_words) >= 2:
+            break
+
+    if context_words:
+        return f"{question} {' '.join(context_words)}"
+    return question
+
+
+def _generate_followups(
+    question: str, intent: str | None, picked: list[tuple[str, dict]], plot: dict | None, lang: str = "en"
+) -> list[str]:
+    key = "general"
+    if picked:
+        key = "disease"
+    elif intent in _FOLLOWUP_MAP:
+        key = intent
+    elif intent == "organic":
+        key = "soil"
+    elif intent == "weeding":
+        key = "general"
+
+    lang_map = _FOLLOWUP_MAP.get(key, _FOLLOWUP_MAP["general"])
+    return lang_map.get(lang, lang_map["en"])
+
+
+def _generate_shortcuts(
+    question: str, intent: str | None, picked: list[tuple[str, dict]], plot: dict | None
+) -> list[ActionShortcut]:
+    shortcuts: list[ActionShortcut] = []
+    q_low = question.lower()
+
+    if picked or intent in ("pest", "yellow_leaves") or any(w in q_low for w in ["leaf", "spot", "disease", "rot", "blight", "rust", "scan", "photo"]):
+        shortcuts.append(ActionShortcut(label="Scan Leaf Diagnosis", icon="camera", route="/scan"))
+
+    if intent in ("weather", "irrigation") or any(w in q_low for w in ["weather", "rain", "temperature", "wind", "spray", "water"]):
+        shortcuts.append(ActionShortcut(label="3-Day Weather Advisory", icon="sun", route="/weather"))
+
+    if intent in ("soil", "organic") or any(w in q_low for w in ["soil", "fertiliz", "npk", "ph", "compost", "manure"]):
+        shortcuts.append(ActionShortcut(label="Soil Analysis & NPK", icon="flask", route="/soil"))
+
+    if plot and plot.get("id"):
+        shortcuts.append(ActionShortcut(label=f"Plot: {plot.get('name', 'Farm')}", icon="sprout", route=f"/plots/{plot['id']}"))
+
+    if not shortcuts:
+        shortcuts.append(ActionShortcut(label="Scan Leaf Diagnosis", icon="camera", route="/scan"))
+        shortcuts.append(ActionShortcut(label="Weather Forecast", icon="sun", route="/weather"))
+
+    return shortcuts[:3]
+
+
 async def answer_question(
     question: str, *, lang: str = "en", plot: dict | None = None, last_class: str | None = None,
     land_unit: str = "ha", bigha_region: str | None = None,
+    history: list[dict] | None = None,
 ) -> AssistantAnswer:
-    picked = _retrieve(question, last_class)
+    resolved_q = _resolve_context_query(question, history)
+    picked = _retrieve(resolved_q, last_class)
     plot_ctx = _plot_context(plot, land_unit, bigha_region)
     grounded_on = [k for k, _ in picked] + (["plot"] if plot_ctx else [])
 
@@ -558,24 +791,40 @@ async def answer_question(
     context = "\n".join(context_parts) or "(no matching card)"
 
     s = get_settings()
+    intent = _detect_intent(question) or _detect_intent(resolved_q)
 
     # Tier 2: Local SLM Provider (CPU in-process)
     if s.llm_provider in ("local", "auto"):
         prompt = llm_service.build_grounded_prompt(question, context, lang=lang)
         llm_text = await llm_service.generate(prompt)
         if llm_text:
-            return AssistantAnswer(answer=llm_text, grounded_on=grounded_on, used_llm=True, lang=lang)
+            return AssistantAnswer(
+                answer=llm_text,
+                grounded_on=grounded_on,
+                used_llm=True,
+                lang=lang,
+                engine="Local SLM (Qwen2.5-0.5B)",
+                suggested_followups=_generate_followups(question, intent, picked, plot, lang),
+                action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+            )
 
     # Gemini Cloud LLM (optional fallback or when explicitly chosen)
     if (s.llm_provider == "gemini" or s.llm_provider == "auto") and s.gemini_api_key:
         llm_text = await _gemini_answer(question, context, lang)
         if llm_text:
-            return AssistantAnswer(answer=llm_text, grounded_on=grounded_on, used_llm=True, lang=lang)
+            return AssistantAnswer(
+                answer=llm_text,
+                grounded_on=grounded_on,
+                used_llm=True,
+                lang=lang,
+                engine="Gemini Cloud",
+                suggested_followups=_generate_followups(question, intent, picked, plot, lang),
+                action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+            )
 
     # Tier 3: Zero-Latency Circuit Breaker Fallback
     answer = await _fallback_answer(question, picked, plot, plot_ctx, last_class, lang)
     if not picked:
-        intent = _detect_intent(question)
         if intent == "weather" and plot and plot.get("lat") is not None:
             grounded_on.append("weather")
         elif intent == "soil" and plot and (plot.get("soil_snapshot") or {}).get("texture_class"):
@@ -586,7 +835,17 @@ async def answer_question(
             grounded_on.append("faq:organic")
         elif plot and plot.get("main_crop"):
             grounded_on.append("plot:crop")
-    return AssistantAnswer(answer=answer, grounded_on=grounded_on, used_llm=False, lang=lang)
+
+    return AssistantAnswer(
+        answer=answer,
+        grounded_on=grounded_on,
+        used_llm=False,
+        lang=lang,
+        engine="Tier 1 Deterministic Core",
+        suggested_followups=_generate_followups(question, intent, picked, plot, lang),
+        action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+    )
+
 
 
 async def warm_up() -> None:

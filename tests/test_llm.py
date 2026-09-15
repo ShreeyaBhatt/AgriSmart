@@ -62,7 +62,7 @@ async def test_assistant_expanded_agronomy_intents():
     assert "faq:weeding" in ans_weed.grounded_on
 
     # Organic / compost intent
-    ans_org = await answer_question("How to prepare organic compost or jeevamrut?", lang="en")
+    ans_org = await answer_question("How to prepare organic compost or fym manure?", lang="en")
     assert "organic" in ans_org.answer.lower() or "compost" in ans_org.answer.lower() or "manure" in ans_org.answer.lower()
     assert "faq:organic" in ans_org.grounded_on
 
