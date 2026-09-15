@@ -113,11 +113,6 @@ export default function Sustainability() {
             <span className={clsx("mb-1 text-sm font-semibold capitalize", BAND[result.band])}>
               {BAND_KEY[result.band] ? t(BAND_KEY[result.band]) : result.band}
             </span>
-            {result.ai_validated && (
-              <span className="mb-1 ml-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-semibold text-brand-700 ring-1 ring-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800">
-                <Icon name="spark" className="h-3 w-3" /> AI Verified
-              </span>
-            )}
           </div>
           {/* Always shown, not just when a risk is present — the score/band
               answers "how efficient is this farm", not "is anything wrong

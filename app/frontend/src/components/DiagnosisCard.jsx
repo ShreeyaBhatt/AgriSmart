@@ -66,11 +66,7 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
   return (
     <Card className="animate-fade-up overflow-hidden border-2">
       <div className="px-5 pt-4 pb-4">
-        <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
-          <Icon name="camera" className="h-4 w-4" /> {t("scan.title")}
-        </div>
-
-        <div className={clsx("mt-2 flex items-center gap-3 rounded-2xl border-2 px-4 py-3", tier.banner)}>
+        <div className={clsx("flex items-center gap-3 rounded-2xl border-2 px-4 py-3", tier.banner)}>
           <span className={clsx("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", tier.badge)}>
             <Icon name={tier.icon} className="h-5 w-5" />
           </span>
@@ -150,9 +146,6 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
         </div>
       </div>
 
-      {diagnosis.model_version && (
-        <p className="px-5 pb-3 text-[10px] text-faint">{t("scan.modelLabel")} {diagnosis.model_version}</p>
-      )}
     </Card>
   );
 }

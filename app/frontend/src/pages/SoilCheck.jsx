@@ -15,7 +15,7 @@ export default function SoilCheck() {
   const { lat, setLat, lon, setLon, season, setSeason, textureOverride, loading, error, result, analyse } =
     useSoilCheck();
 
-  const handleAnalyze = () => analyse(lat, lon, season, undefined, lang);
+  const handleAnalyze = () => analyse(lat, lon, season, null, lang);
 
   // The amendments/crops text returned by /recommend/* is localized
   // server-side at request time (like /predict), so it doesn't move with the
@@ -40,6 +40,7 @@ export default function SoilCheck() {
             onChange={(la, lo) => {
               setLat(la);
               setLon(lo);
+              setTextureOverride(null);
             }}
             onSeason={setSeason}
             onAnalyze={handleAnalyze}

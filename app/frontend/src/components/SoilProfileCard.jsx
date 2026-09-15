@@ -62,6 +62,7 @@ function TextureDropdown({ currentTexture, onChange }) {
     setOpen(false);
   };
 
+  const isOverridden = Boolean(currentTexture && TEXTURES.some(t => t.value === currentTexture));
   const currentLabel = TEXTURES.find(t => t.value === currentTexture)?.label || "Override...";
 
   return (
@@ -83,8 +84,16 @@ function TextureDropdown({ currentTexture, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
+        <div className="absolute left-0 top-full mt-1.5 w-52 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
           <div className="flex flex-col gap-0.5">
+            <button
+              type="button"
+              onClick={() => choose(null)}
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/30 border-b border-line mb-1 transition"
+            >
+              <span>Auto (GPS Detected)</span>
+              <Icon name="refresh" className="h-3 w-3 text-brand-500" />
+            </button>
             {TEXTURES.map((t) => {
               const active = t.value === currentTexture;
               return (
@@ -130,11 +139,7 @@ export default function SoilProfileCard({ profile: p, onTextureOverride }) {
       )}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-b from-brand-50/60 to-transparent dark:from-brand-900/30 dark:to-transparent px-5 pt-4 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-brand-700">
-            <Icon name="layers" className="h-4 w-4" />
-            {t("plot.soil")}
-          </div>
-          <div className="mt-1 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold capitalize tracking-tight text-ink">
               {p.texture_class || t("soil.unknownTexture")}
             </h2>
@@ -144,9 +149,6 @@ export default function SoilProfileCard({ profile: p, onTextureOverride }) {
           </div>
           <p className="mt-0.5 text-xs text-muted">
             {p.wrb_class ? `${p.wrb_class} (WRB)` : t("soil.wrbNA")}
-            {p.wrb_probability != null && (
-              <span className="text-faint"> · p={p.wrb_probability}</span>
-            )}
           </p>
         </div>
         <SourceBadge source={p.source} t={t} />

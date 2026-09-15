@@ -86,12 +86,7 @@ export default function AgentAdvisorCard({ plotId, lang = "en" }) {
             <Icon name="spark" className="h-4 w-4" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-ink">Autonomous Agronomic Advisor</h2>
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-950/40 dark:text-emerald-300">
-                100% Sovereign Core
-              </span>
-            </div>
+            <h2 className="text-sm font-bold text-ink">Autonomous Agronomic Advisor</h2>
             <p className="text-[11px] text-muted">
               {advisory.crop || "Crop"} · {advisory.growth_stage || "Active Stage"}
             </p>
@@ -235,9 +230,6 @@ export default function AgentAdvisorCard({ plotId, lang = "en" }) {
               </div>
             )}
 
-            <div className="border-t border-line pt-2 text-[10px] text-muted">
-              🛡 Guaranteed Zero Hallucination: Decisions and recipes are executed deterministically by the sovereign offline core before presentation formatting.
-            </div>
           </div>
         )}
       </div>
