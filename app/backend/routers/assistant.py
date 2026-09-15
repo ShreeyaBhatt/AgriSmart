@@ -6,7 +6,8 @@ import asyncio
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +16,14 @@ from ..db import get_session
 from ..models.modules import AssistantAnswer, AssistantRequest, TranscribeOut
 from ..models.orm import Diagnosis, Planting, Plot
 from ..models.user import User
-from ..services.assistant import answer_question
+from ..services.assistant import (
+    _TTS_CACHE,
+    _clean_text_for_speech,
+    answer_question,
+    generate_tts_audio,
+    prewarm_tts,
+    stream_tts_audio,
+)
 from ..services.transcribe import transcribe
 from ..services import weather as weather_service
 
@@ -88,7 +96,7 @@ async def ask(
 
     history_list = [m.model_dump() for m in req.history] if req.history else None
 
-    return await answer_question(
+    ans = await answer_question(
         req.question,
         lang=req.lang,
         plot=plot_ctx,
@@ -97,6 +105,14 @@ async def ask(
         bigha_region=req.bigha_region,
         history=history_list,
     )
+    # Proactively warm TTS in background so audio is ready when frontend plays it!
+    try:
+        text_to_speak = ans.speech_text or ans.answer
+        asyncio.create_task(prewarm_tts(text_to_speak, ans.lang or req.lang))
+    except Exception as exc:
+        log.debug("TTS prewarm scheduling error: %s", exc)
+
+    return ans
 
 
 @router.post("/transcribe", response_model=TranscribeOut)
@@ -120,3 +136,47 @@ async def transcribe_audio(
         log.exception("transcription failed")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Transcription failed: {exc}")
     return TranscribeOut(text=text)
+
+
+@router.get("/tts")
+async def text_to_speech(
+    text: str,
+    lang: str = "en",
+) -> Response:
+    if not text.strip():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No text provided")
+
+    clean = _clean_text_for_speech(text)
+    tts_lang = (lang or "en").lower().split("-")[0].split("_")[0].strip()
+    cache_key = (clean, tts_lang)
+
+    # 1. Instant cache hit (<0.05ms)
+    if cache_key in _TTS_CACHE:
+        return Response(
+            content=_TTS_CACHE[cache_key],
+            media_type="audio/mpeg",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+
+    # 2. In-flight prewarm hit (awaits task kicked off during /ask)
+    try:
+        audio_bytes = await prewarm_tts(clean, tts_lang)
+        if audio_bytes:
+            return Response(
+                content=audio_bytes,
+                media_type="audio/mpeg",
+                headers={"Cache-Control": "public, max-age=86400"},
+            )
+    except Exception:
+        pass
+
+    # 3. Streaming response for low first-chunk latency (~400ms)
+    try:
+        return StreamingResponse(
+            stream_tts_audio(clean, tts_lang),
+            media_type="audio/mpeg",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    except Exception as exc:
+        log.exception("TTS streaming generation failed")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"TTS generation failed: {exc}")

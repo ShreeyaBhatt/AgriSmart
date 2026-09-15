@@ -41,17 +41,24 @@ _SCRIPT_RANGES = {
 
 
 def _looks_like_wrong_script(text: str, lang: str) -> bool:
-    """True if ``text`` is dominated by a script other than the one expected
-    for ``lang`` — a sign Whisper mis-transcribed into an unrelated language
-    rather than genuinely hearing that script."""
-    lo, hi = _SCRIPT_RANGES.get(lang, (None, None))
-    if lo is None:
-        return False
+    """True if ``text`` is dominated by an unrelated non-Indian, non-Latin
+    script (e.g. Perso-Arabic, Cyrillic, CJK) that Whisper occasionally
+    hallucinates during background noise or silence."""
     letters = [c for c in text if c.isalpha()]
     if not letters:
         return False
-    in_script = sum(1 for c in letters if lo <= ord(c) <= hi)
-    return in_script / len(letters) < 0.5
+    # Check if letters are dominated by foreign hallucinated scripts (Arabic, Cyrillic, CJK, Thai)
+    foreign = sum(
+        1
+        for c in letters
+        if (
+            0x0600 <= ord(c) <= 0x06FF  # Arabic / Perso-Arabic
+            or 0x0400 <= ord(c) <= 0x04FF  # Cyrillic
+            or 0x4E00 <= ord(c) <= 0x9FFF  # CJK
+            or 0x0E00 <= ord(c) <= 0x0E7F  # Thai
+        )
+    )
+    return (foreign / len(letters)) > 0.4
 
 
 @lru_cache
@@ -83,7 +90,16 @@ def transcribe(audio_bytes: bytes, suffix: str, lang: str = "en") -> str:
             # hearing one — treat it the same as "no speech detected" instead
             # of handing garbled text to the user and the LLM as their question.
             log.warning("Discarding transcript in unexpected script for lang=%s", lang)
-            return ""
+            text = ""
+        if not text:
+            # If nothing was recognized under forced language, attempt auto-detect
+            try:
+                segments_auto, _info_auto = model.transcribe(path, vad_filter=True)
+                candidate = " ".join(seg.text.strip() for seg in segments_auto).strip()
+                if candidate and not _looks_like_wrong_script(candidate, _info_auto.language):
+                    text = candidate
+            except Exception as auto_exc:
+                log.debug("Auto-detect transcribe fallback error: %s", auto_exc)
         return text
     finally:
         Path(path).unlink(missing_ok=True)

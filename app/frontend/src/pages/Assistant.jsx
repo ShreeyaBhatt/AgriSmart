@@ -7,10 +7,7 @@ import { useLang, useT } from "../i18n/useT.js";
 import { useLandUnit } from "../units/useLandUnit.js";
 
 const LOCALE = { en: "en-IN", hi: "hi-IN", gu: "gu-IN", mr: "mr-IN", ta: "ta-IN", te: "te-IN", pa: "pa-IN" };
-// MediaRecorder + our own backend (faster-whisper) — not the browser's
-// built-in SpeechRecognition, which always phones home to Google's cloud
-// speech service even on "localhost". This way voice input only ever needs
-// this app's own backend, so it keeps working with no internet at all.
+// MediaRecorder + local backend (faster-whisper) — 100% keyless, offline-capable sovereign speech
 const MIC_SUPPORTED =
   typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined";
 const MIC_MIME_CANDIDATES = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
@@ -120,25 +117,25 @@ function FormattedAnswer({ text }) {
 const STARTER_PROMPTS = [
   {
     icon: "camera",
-    title: "Crop Disease & Cure",
+    titleKey: "assistant.starterDiseaseTitle",
     promptKey: "assistant.starterDisease",
     borderColor: "hover:border-emerald-400",
   },
   {
     icon: "sun",
-    title: "Spray Weather Safety",
+    titleKey: "assistant.starterWeatherTitle",
     promptKey: "assistant.starterWeather",
     borderColor: "hover:border-amber-400",
   },
   {
     icon: "flask",
-    title: "Soil Health & Nutrients",
+    titleKey: "assistant.starterSoilTitle",
     promptKey: "assistant.starterSoil",
     borderColor: "hover:border-blue-400",
   },
   {
     icon: "sprout",
-    title: "Organic Concoctions",
+    titleKey: "assistant.starterConcoctionTitle",
     promptKey: "assistant.starterConcoction",
     borderColor: "hover:border-teal-400",
   },
@@ -176,6 +173,9 @@ export default function Assistant() {
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
   const stopTimerRef = useRef(null);
+  const audioRef = useRef(null);
+  const playIdRef = useRef(0);
+  const utteranceRef = useRef(null);
 
   useEffect(() => {
     api.listPlots().then(setPlots).catch(() => {});
@@ -193,41 +193,154 @@ export default function Assistant() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
+  // Stop any active speech and recording immediately whenever user switches the language
+  useEffect(() => {
+    stopAudio();
+    stopRecording();
+  }, [lang]);
+
+  // Prime speech synthesis voice cache so getVoices() is ready without delay
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      const updateVoices = () => {
+        window.speechSynthesis.getVoices();
+      };
+      updateVoices();
+      window.speechSynthesis.addEventListener("voiceschanged", updateVoices);
+      return () => {
+        window.speechSynthesis.removeEventListener("voiceschanged", updateVoices);
+      };
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
+      stopAudio();
+      stopRecording();
       if (stopTimerRef.current) clearTimeout(stopTimerRef.current);
       if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
     };
   }, []);
 
-  const say = (text, idx = null) => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
+  const stopAudio = () => {
+    playIdRef.current++;
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.onended = null;
+        audioRef.current.onerror = null;
+        audioRef.current.src = "";
+      } catch {
+        /* ignore */
+      }
+      audioRef.current = null;
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume?.();
+      } catch {
+        /* ignore */
+      }
+    }
+    utteranceRef.current = null;
+    setSpeakingIdx(null);
+  };
+
+  const fallbackSpeak = (cleanText, langCode, currentPlayId) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      audioRef.current = null;
+      setSpeakingIdx(null);
+      setVoiceWarning(t("assistant.noVoiceForLang"));
+      return;
+    }
+
+    try {
+      window.speechSynthesis.resume?.();
+      const targetLocale = LOCALE[langCode] || "en-IN";
+      const voices = window.speechSynthesis.getVoices() || [];
+      const matchedVoice = voices.find(
+        (v) => v.lang === targetLocale || v.lang.toLowerCase().startsWith(langCode.toLowerCase())
+      );
+
+      const u = new SpeechSynthesisUtterance(cleanText);
+      u.lang = targetLocale;
+      if (matchedVoice) u.voice = matchedVoice;
+      utteranceRef.current = u;
+
+      u.onend = () => {
+        if (playIdRef.current === currentPlayId) {
+          utteranceRef.current = null;
+          setSpeakingIdx(null);
+        }
+      };
+      u.onerror = () => {
+        if (playIdRef.current === currentPlayId) {
+          utteranceRef.current = null;
+          setSpeakingIdx(null);
+          setVoiceWarning(t("assistant.noVoiceForLang"));
+        }
+      };
+
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      audioRef.current = null;
+      setSpeakingIdx(null);
+      setVoiceWarning(t("assistant.noVoiceForLang"));
+    }
+  };
+
+  const say = async (text, idx = null, targetLang = null) => {
+    if (!text) return;
+    if (idx === null && !speak) return;
 
     if (idx !== null && speakingIdx === idx) {
+      stopAudio();
+      return;
+    }
+
+    stopAudio();
+    const currentPlayId = ++playIdRef.current;
+    if (idx !== null) setSpeakingIdx(idx);
+    setVoiceWarning("");
+
+    const langCode = targetLang || lang || "en";
+    const clean = text
+      .replace(/[*#_`•\n]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 300);
+
+    if (!clean) {
       setSpeakingIdx(null);
       return;
     }
 
-    const target = LOCALE[lang] || "en-IN";
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0 && !voices.some((v) => v.lang === target || v.lang.startsWith(target.slice(0, 2)))) {
-      setVoiceWarning(t("assistant.noVoiceForLang"));
-      setSpeakingIdx(null);
-      return;
+    // Primary: Pre-warmed & Cached Server TTS (ultra-low latency ~2ms, clear natural speech for en + all Indic languages)
+    try {
+      const url = `/api/assistant/tts?text=${encodeURIComponent(clean)}&lang=${encodeURIComponent(langCode)}`;
+      const audio = new Audio(url);
+      audio.preload = "auto";
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        if (playIdRef.current === currentPlayId) {
+          audioRef.current = null;
+          setSpeakingIdx(null);
+        }
+      };
+
+      audio.onerror = () => {
+        if (playIdRef.current !== currentPlayId) return;
+        fallbackSpeak(clean, langCode, currentPlayId);
+      };
+
+      await audio.play();
+    } catch (err) {
+      if (playIdRef.current !== currentPlayId) return;
+      fallbackSpeak(clean, langCode, currentPlayId);
     }
-    setVoiceWarning("");
-    const clean = text.replace(/[*#_`]/g, "");
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = target;
-    if (idx !== null) setSpeakingIdx(idx);
-    u.onend = () => setSpeakingIdx(null);
-    u.onerror = () => {
-      setSpeakingIdx(null);
-      setVoiceWarning(t("assistant.noVoiceForLang"));
-    };
-    window.speechSynthesis.speak(u);
   };
 
   const copyText = (text, idx) => {
@@ -250,14 +363,15 @@ export default function Assistant() {
       } catch {
         /* ignore */
       }
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-      setSpeakingIdx(null);
+      stopAudio();
     }
   };
 
   const send = async (text) => {
     const q = (text ?? input).trim();
     if (!q || busy) return;
+
+    stopAudio();
 
     const userMsg = { role: "user", text: q, timestamp: Date.now() };
     const nextMessages = [...messages, userMsg];
@@ -289,7 +403,7 @@ export default function Assistant() {
       };
       setMessages([...nextMessages, assistantMsg]);
       if (speak) {
-        say(res.answer, nextMessages.length);
+        say(res.speech_text || res.answer, nextMessages.length, res.lang || lang);
       }
     } catch (e) {
       setMessages([
@@ -313,10 +427,18 @@ export default function Assistant() {
       stopTimerRef.current = null;
     }
     const rec = recorderRef.current;
-    if (rec && rec.state !== "inactive") rec.stop();
+    if (rec && rec.state !== "inactive") {
+      try {
+        rec.stop();
+      } catch {
+        /* ignore */
+      }
+    }
+    setRecording(false);
   };
 
   const startRecording = async () => {
+    stopAudio();
     if (!MIC_SUPPORTED || recording || transcribing) return;
     setMicError("");
     try {
@@ -332,7 +454,7 @@ export default function Assistant() {
         setRecording(false);
         const blob = new Blob(chunksRef.current, { type: mimeType || "audio/webm" });
         chunksRef.current = [];
-        if (blob.size < 500) return;
+        if (blob.size < 400) return;
         setTranscribing(true);
         try {
           const { text } = await api.transcribe(blob, lang);
@@ -364,7 +486,10 @@ export default function Assistant() {
     }
   };
 
-  const toggleMic = () => (recording ? stopRecording() : startRecording());
+  const toggleMic = () => {
+    stopAudio();
+    return recording ? stopRecording() : startRecording();
+  };
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col" style={{ minHeight: "75vh" }}>
@@ -383,7 +508,7 @@ export default function Assistant() {
               <h1 className="text-lg font-bold tracking-tight text-ink">{t("assistant.title")}</h1>
               <span className="hidden items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-700 sm:inline-flex dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-300">
                 <Icon name="shield" className="h-3 w-3" />
-                Offline Safety Core
+                {t("assistant.offlineSafetyBadge")}
               </span>
             </div>
             <p className="flex items-center gap-1.5 text-xs text-muted">
@@ -415,7 +540,7 @@ export default function Assistant() {
             onClick={() => {
               setSpeak((s) => {
                 const next = !s;
-                if (!next && window.speechSynthesis) window.speechSynthesis.cancel();
+                if (!next) stopAudio();
                 return next;
               });
             }}
@@ -468,7 +593,7 @@ export default function Assistant() {
                       <Icon name={sp.icon} className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-ink">{sp.title}</p>
+                      <p className="text-xs font-semibold text-ink">{t(sp.titleKey)}</p>
                       <p className="line-clamp-2 text-[11px] text-muted">{t(sp.promptKey)}</p>
                     </div>
                   </button>
@@ -486,23 +611,20 @@ export default function Assistant() {
                 </div>
               ) : (
                 <div className="max-w-[90%] space-y-3 rounded-2xl rounded-bl-xs border border-line bg-surface p-4 shadow-xs">
-                  {/* Bot Header with Engine Badge */}
+                  {/* Bot Header */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2">
                     <div className="flex items-center gap-2">
                       <span className="flex h-5 w-5 items-center justify-center rounded bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
                         <Icon name="spark" className="h-3 w-3" />
                       </span>
                       <span className="text-xs font-semibold text-ink">AgriSmart AI</span>
-                      <span className="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
-                        {m.engine || (m.used_llm ? "Gemini Cloud" : "Tier 1 Safety Core")}
-                      </span>
                     </div>
 
                     {/* Speech and Copy buttons */}
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => say(m.answer, i)}
+                        onClick={() => say(m.speech_text || m.answer, i, m.lang || lang)}
                         className={`inline-flex items-center gap-1 rounded px-1.5 py-1 text-[11px] transition ${
                           speakingIdx === i
                             ? "bg-brand-100 font-semibold text-brand-800 dark:bg-brand-900/60 dark:text-brand-200"
@@ -554,7 +676,10 @@ export default function Assistant() {
                         <button
                           key={scIdx}
                           type="button"
-                          onClick={() => navigate(sc.route)}
+                          onClick={() => {
+                            stopAudio();
+                            navigate(sc.route);
+                          }}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-brand-300 bg-brand-50/80 px-2.5 py-1.5 text-xs font-semibold text-brand-800 transition hover:border-brand-400 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-900/40 dark:text-brand-200"
                         >
                           <Icon name={sc.icon || "arrowRight"} className="h-3.5 w-3.5" />
@@ -662,7 +787,12 @@ export default function Assistant() {
             ref={textareaRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              stopAudio();
+              setInput(e.target.value);
+            }}
+            onFocus={stopAudio}
+            onKeyDown={stopAudio}
             placeholder={t("assistant.placeholder")}
             disabled={busy}
             className="flex-1 rounded-lg border border-line bg-canvas/60 px-3.5 py-2 text-sm text-ink outline-none transition focus:border-brand-500 focus:bg-surface"

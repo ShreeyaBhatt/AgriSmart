@@ -162,3 +162,117 @@ async def test_assistant_plot_telemetry_fusion():
     assert "tomato" in ans.answer.lower()
     assert "flowering" in ans.answer.lower() or "early blight" in ans.answer.lower() or "rain" in ans.answer.lower()
     assert "plot:crop" in ans.grounded_on
+
+
+@pytest.mark.asyncio
+async def test_assistant_multilingual_disease_fallback():
+    # Test Hindi disease query produces Hindi crop, disease, and precautions
+    ans_hi = await answer_question("टमाटर पछेती झुलसा", lang="hi")
+    assert "टमाटर" in ans_hi.answer
+    assert "झुलसा" in ans_hi.answer
+    assert ans_hi.action_shortcuts[0].label == "पत्ती रोग स्कैन"
+
+    # Test Gujarati disease query produces Gujarati shortcuts
+    ans_gu = await answer_question("ટામેટા પાછોતરો સુકારો", lang="gu")
+    assert "પાંદડા રોગ સ્કેન" in [s.label for s in ans_gu.action_shortcuts]
+
+    # Test Marathi disease query produces Marathi crop and precautions
+    ans_mr = await answer_question("टोमॅटो करपा रोग", lang="mr")
+    assert "टोमॅटो" in ans_mr.answer
+    assert "पानांचे रोग स्कॅन" in [s.label for s in ans_mr.action_shortcuts]
+
+
+@pytest.mark.asyncio
+async def test_assistant_tts_generation():
+    from app.backend.services.assistant import (
+        _TTS_CACHE,
+        _clean_text_for_speech,
+        generate_tts_audio,
+        prewarm_tts,
+        stream_tts_audio,
+    )
+
+    # Generates valid audio bytes in Hindi
+    hi_audio = generate_tts_audio("नमस्ते किसान भाई, एग्रीस्मार्ट में आपका स्वागत है", lang="hi")
+    assert len(hi_audio) > 1000
+    assert hi_audio.startswith(b"\xff\xfb") or b"ID3" in hi_audio[:10] or len(hi_audio) > 5000
+
+    # Generates valid audio in English with cache hit
+    en_audio1 = generate_tts_audio("Welcome to AgriSmart", lang="en")
+    en_audio2 = generate_tts_audio("Welcome to AgriSmart", lang="en")
+    assert en_audio1 == en_audio2
+
+    # Verify speech cleaner produces concise, natural spoken text
+    long_raw = "Tomato — Early Blight. 1. Copper oxychloride @ 2.5 g/L. 2. Remove leaves. Avoid overhead irrigation."
+    cleaned = _clean_text_for_speech(long_raw)
+    assert "2.5 g/L" in cleaned
+    assert len(cleaned) <= 240
+
+    # Verify stream_tts_audio yields chunks and populates cache
+    chunks = list(stream_tts_audio("Testing streaming TTS latency.", lang="en"))
+    assert len(chunks) >= 1
+    assert sum(len(c) for c in chunks) > 500
+
+
+@pytest.mark.asyncio
+async def test_assistant_answer_speech_text_populated():
+    ans = await answer_question("What is tomato early blight?", lang="en")
+    assert ans.speech_text is not None
+    assert len(ans.speech_text) <= 240
+    assert "early blight" in ans.speech_text.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_multilingual_inflection_retrieval():
+    from app.backend.services.assistant import _retrieve
+
+    # Gujarati with inflectional suffix -માં
+    gu_picks = _retrieve("ટામેટામાં આગોતરો સુકારો કેવી રીતે મટે?", None)
+    assert len(gu_picks) > 0
+    assert "Tomato" in gu_picks[0][0]
+
+    # Tamil with inflectional suffix
+    ta_picks = _retrieve("தக்காளியில் இலை கருகல் நோய்", None)
+    assert len(ta_picks) > 0
+    assert "Tomato" in ta_picks[0][0]
+
+    # Telugu with inflectional suffix
+    te_picks = _retrieve("టమోటాలో ముందస్తు తెగులు", None)
+    assert len(te_picks) > 0
+    assert "Tomato" in te_picks[0][0]
+
+    # Punjabi with inflectional suffix
+    pa_picks = _retrieve("ਟਮਾਟਰਾਂ ਵਿੱਚ ਝੁਲਸ ਰੋਗ", None)
+    assert len(pa_picks) > 0
+    assert "Tomato" in pa_picks[0][0]
+
+
+def test_transcribe_script_filter():
+    from app.backend.services.transcribe import _looks_like_wrong_script
+
+    # Indic scripts and Latin words must NEVER be discarded
+    assert not _looks_like_wrong_script("टमाटर में रोग", "hi")
+    assert not _looks_like_wrong_script("ટામેટામાં આગોતરો સુકારો", "gu")
+    assert not _looks_like_wrong_script("tamatar early blight spray", "hi")
+    assert not _looks_like_wrong_script("தக்காளி கருகல்", "ta")
+    assert not _looks_like_wrong_script("టమోటా తెగులు", "te")
+    assert not _looks_like_wrong_script("ਟਮਾਟਰ ਝੁਲਸ", "pa")
+
+    # Unrelated foreign script hallucinated during silence must be flagged
+    assert _looks_like_wrong_script("مرحبا بكم في هذا الصباح", "hi")
+
+
+@pytest.mark.asyncio
+async def test_assistant_multilingual_context_resolution():
+    from app.backend.services.assistant import _resolve_context_query
+
+    # Hindi follow-up with pronoun "इसकी"
+    hi_history = [{"role": "user", "text": "टमाटर में अगेती झुलसा"}, {"role": "assistant", "text": "यह एक फफूंद रोग है।"}]
+    res_hi = _resolve_context_query("इसकी रोकथाम की दवा क्या है?", hi_history)
+    assert "टमाटर" in res_hi or "tomato" in res_hi or "झुलसा" in res_hi
+
+    # Gujarati follow-up with pronoun "આની"
+    gu_history = [{"role": "user", "text": "ટામેટામાં સુકારો"}, {"role": "assistant", "text": "આ ફૂગજન્ય રોગ છે."}]
+    res_gu = _resolve_context_query("આની દવા જણાવો", gu_history)
+    assert "ટામેટા" in res_gu or "tomato" in res_gu or "સૂકારો" in res_gu
+

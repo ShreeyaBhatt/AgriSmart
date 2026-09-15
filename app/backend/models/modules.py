@@ -89,6 +89,7 @@ class AssistantAnswer(BaseModel):
     engine: str = "Tier 1 Deterministic Core"
     suggested_followups: list[str] = Field(default_factory=list)
     action_shortcuts: list[ActionShortcut] = Field(default_factory=list)
+    speech_text: str | None = None
 
 
 class TranscribeOut(BaseModel):

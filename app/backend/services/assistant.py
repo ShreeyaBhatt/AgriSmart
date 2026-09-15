@@ -8,9 +8,12 @@ Either way the answer is grounded in the same corpus.
 
 from __future__ import annotations
 
+import asyncio
+import io
 import json
 import logging
 import re
+from collections.abc import Iterator
 from functools import lru_cache
 from typing import Any
 
@@ -21,12 +24,8 @@ from . import llm as llm_service
 from .units import describe_area
 
 log = logging.getLogger(__name__)
-_WORD = re.compile(r"[\w]{2,}", re.UNICODE)
-# Expanded stop words to reduce retrieval bias. Generic crop and disease terms
-# that appear in *many* cards should not drive retrieval — they'd give
-# artificially high match scores to cards that simply mention them often
-# (e.g. "Maize — Common Rust" was always winning because "common" and "rust"
-# are generic words).
+_WORD = re.compile(r"[^\s.,!?;:\-_/\\@#$%^&*()+=\[\]{}|<>~`।॥0-9]{2,}", re.UNICODE)
+# Expanded stop words to reduce retrieval bias across English and 6 Indic languages.
 _STOP = {
     "the", "and", "for", "with", "how", "what", "why", "when", "should", "does",
     "can", "are", "was", "were", "this", "that", "have", "has", "from", "into",
@@ -36,6 +35,18 @@ _STOP = {
     "common", "affected", "infection", "infected", "damage", "damaged",
     "problem", "issue", "solution", "remedy", "organic", "chemical",
     "fungicide", "pesticide", "fertilizer", "fertiliser", "soil", "water",
+    # Hindi
+    "में", "का", "की", "के", "है", "हैं", "क्या", "कैसे", "को", "से", "पर", "और", "बताएं", "दीजिए",
+    # Gujarati
+    "માં", "નો", "ની", "નું", "ના", "છે", "કેવી", "રીતે", "શું", "કેમ", "અને", "પર", "જણાવો", "આપો",
+    # Marathi
+    "मध्ये", "चा", "ची", "चे", "आहे", "आहेत", "काय", "कसे", "आणि", "वर", "सांगा",
+    # Tamil
+    "என்ன", "எப்படி", "மற்றும்", "இல்", "க்கு", "சொல்லுங்கள்",
+    # Telugu
+    "లో", "యొక్క", "మరియు", "ఎలా", "ఏమిటి", "చెప్పండి",
+    # Punjabi
+    "ਵਿੱਚ", "ਦਾ", "ਦੀ", "ਦੇ", "ਹੈ", "ਹਨ", "ਕੀ", "ਕਿਵੇਂ", "ਅਤੇ", "ਦੱਸੋ",
 }
 
 # Rich intents the offline fallback answers with practical guidance instead of
@@ -160,8 +171,19 @@ def reset_cache() -> None:
     _cards.cache_clear()
 
 
+def _indic_norm(w: str) -> str:
+    """Normalize common vowel variants across Indic scripts for robust root matching."""
+    return (
+        w.replace("ુ", "ૂ").replace("િ", "ી")
+        .replace("ु", "ू").replace("ि", "ी")
+        .replace("ி", "ீ").replace("ு", "ூ")
+        .replace("ి", "ీ").replace("ు", "ూ")
+        .replace("ਿ", "ੀ").replace("ੁ", "ੂ")
+    )
+
+
 def _keywords(text: str) -> set[str]:
-    return {w for w in _WORD.findall(text.lower()) if w not in _STOP}
+    return {w for w in _WORD.findall(text.lower()) if w not in _STOP and len(w) >= 2}
 
 
 def _retrieve(question: str, last_class: str | None) -> list[tuple[str, dict]]:
@@ -186,8 +208,20 @@ def _retrieve(question: str, last_class: str | None) -> list[tuple[str, dict]]:
             f"{card.get('crop_pa','')} {card.get('disease_pa','')}"
         )
         hay_kw = _keywords(hay)
-        # Require at least one keyword match in the card name / crop / disease
-        name_score = len(qk & hay_kw)
+
+        # Name score: exact match (+2) or stem/inflection match (+1)
+        name_score = 0
+        for q in qk:
+            q_norm = _indic_norm(q)
+            for h in hay_kw:
+                h_norm = _indic_norm(h)
+                if q_norm == h_norm:
+                    name_score += 2
+                    break
+                elif len(q_norm) >= 3 and len(h_norm) >= 3 and (q_norm in h_norm or h_norm in q_norm):
+                    name_score += 1
+                    break
+
         if not name_score:
             continue
         # Bonus from symptom text, but capped to avoid symptom text dominating
@@ -573,16 +607,31 @@ async def _fallback_answer(
 
         return tmpl["no_card"]
     key, c = picked[0]
-    name = c.get("disease") or f"healthy {c.get('crop', 'crop')}"
-    lines = [f"{c.get('crop', '')} — {name}".strip(" —")]
-    if c.get("symptoms"):
-        lines.append(f"{tmpl['signs']}: {c['symptoms']}")
-    if c.get("organic"):
-        lines.append(f"{tmpl['organic']}: {c['organic']}")
-    if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
-        lines.append(f"{tmpl['chemical']}: {c['chemical']}")
-    if c.get("prevention"):
-        lines.append(f"{tmpl['prevention']}: {c['prevention']}")
+    if lang != "en":
+        crop_val = c.get(f"crop_{lang}") or c.get("crop", "")
+        disease_val = c.get(f"disease_{lang}") or c.get("disease") or f"healthy {crop_val}"
+        lines = [f"{crop_val} — {disease_val}".strip(" —")]
+        precautions = c.get(f"precautions_{lang}")
+        if precautions and isinstance(precautions, list):
+            p_text = "\n".join(f"• {p}" for p in precautions)
+            lines.append(f"{tmpl['prevention']}:\n{p_text}")
+        elif c.get("prevention"):
+            lines.append(f"{tmpl['prevention']}: {c['prevention']}")
+        if c.get("organic"):
+            lines.append(f"{tmpl['organic']}: {c['organic']}")
+        if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
+            lines.append(f"{tmpl['chemical']}: {c['chemical']}")
+    else:
+        name = c.get("disease") or f"healthy {c.get('crop', 'crop')}"
+        lines = [f"{c.get('crop', '')} — {name}".strip(" —")]
+        if c.get("symptoms"):
+            lines.append(f"{tmpl['signs']}: {c['symptoms']}")
+        if c.get("organic"):
+            lines.append(f"{tmpl['organic']}: {c['organic']}")
+        if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
+            lines.append(f"{tmpl['chemical']}: {c['chemical']}")
+        if c.get("prevention"):
+            lines.append(f"{tmpl['prevention']}: {c['prevention']}")
     if plot_ctx:
         lines.append(tmpl["plot_advice"].format(ctx=plot_ctx))
     return "\n\n".join(lines)
@@ -691,21 +740,45 @@ def _resolve_context_query(question: str, history: list | None = None) -> str:
         "wheat", "rice", "paddy", "cotton", "sugarcane", "maize", "mustard", "chilli", "onion",
         "garlic", "groundnut", "soybean", "potato", "tomato", "gram", "bajra", "jowar", "barley",
     }
+    for c in cards_map.values():
+        for lang_code in ["hi", "gu", "mr", "ta", "te", "pa"]:
+            c_val = c.get(f"crop_{lang_code}")
+            if c_val:
+                crops_known.add(c_val.lower())
+
     diseases_known = {c.get("disease", "").lower() for c in cards_map.values() if c.get("disease")} | {
         "rust", "blight", "rot", "scab", "mildew", "spot", "mosaic", "curl", "smut", "wilt",
     }
+    for c in cards_map.values():
+        for lang_code in ["hi", "gu", "mr", "ta", "te", "pa"]:
+            d_val = c.get(f"disease_{lang_code}")
+            if d_val:
+                diseases_known.add(d_val.lower())
 
-    # If the user already asked about a specific crop or disease without pronouns, don't contaminate
-    has_own_crop = any(crop in q_low for crop in crops_known if len(crop) >= 4)
-    has_own_disease = any(dis in q_low for dis in diseases_known if len(dis) >= 4)
-    has_pronoun = any(p in q_low.split() for p in ["it", "this", "that", "same", "also", "too", "these", "those"])
+    pronouns = {
+        "it", "this", "that", "same", "also", "too", "these", "those",
+        "इसका", "इसकी", "इसके", "यह", "ये", "वही", "उसी",
+        "આનો", "આની", "આનું", "આ", "તે", "એનો", "એની",
+        "याचा", "याची", "याचे", "हे", "ते", "त्याचा", "त्याची",
+        "இதன்", "இதற்கு", "இந்த", "அதை",
+        "దీని", "దీనికి", "ఈ", "దాన్ని",
+        "ਇਸਦਾ", "ਇਸਦੀ", "ਇਸਦੇ", "ਇਹ", "ਉਸਦਾ",
+    }
+
+    # If user already asked about a specific crop or disease without pronouns, don't contaminate
+    has_own_crop = any(crop in q_low for crop in crops_known if len(crop) >= 3)
+    has_own_disease = any(dis in q_low for dis in diseases_known if len(dis) >= 3)
+    has_pronoun = any(p in q_low.split() or p in q_low for p in pronouns)
     if (has_own_crop or has_own_disease) and not has_pronoun:
         return question
 
     needs_context = (
         len(question.split()) <= 6
         or has_pronoun
-        or any(w in q_low for w in ["the disease", "cure", "spray", "treat", "dose", "chemical", "waiting period"])
+        or any(w in q_low for w in [
+            "the disease", "cure", "spray", "treat", "dose", "chemical", "waiting period",
+            "दवा", "इलाज", "छिड़काव", "દવા", "સારવાર", "ઔષધ", "औषध", "फवारणी", "மருந்து", "மందు", "ਦਵਾਈ"
+        ])
     )
     if not needs_context:
         return question
@@ -749,28 +822,205 @@ def _generate_followups(
 
 
 def _generate_shortcuts(
-    question: str, intent: str | None, picked: list[tuple[str, dict]], plot: dict | None
+    question: str, intent: str | None, picked: list[tuple[str, dict]], plot: dict | None, lang: str = "en"
 ) -> list[ActionShortcut]:
+    labels = {
+        "scan": {
+            "en": "Scan Leaf Diagnosis",
+            "hi": "पत्ती रोग स्कैन",
+            "gu": "પાંદડા રોગ સ્કેન",
+            "mr": "पानांचे रोग स्कॅन",
+            "ta": "இலை நோய் ஸ்கேன்",
+            "te": "ఆకు వ్యాధి స్కాన్",
+            "pa": "ਪੱਤਾ ਰੋਗ ਸਕੈਨ",
+        },
+        "weather": {
+            "en": "3-Day Weather Advisory",
+            "hi": "3-दिवसीय मौसम सलाह",
+            "gu": "3-દિવસીય હવામાન સલાહ",
+            "mr": "3-दिवसीय हवामान सल्ला",
+            "ta": "3-நாள் வானிலை ஆலோசனை",
+            "te": "3-రోజుల వాతావరణ సలహా",
+            "pa": "3-ਦਿਨਾ ਮੌਸਮ ਸਲਾਹ",
+        },
+        "soil": {
+            "en": "Soil Analysis & NPK",
+            "hi": "मिट्टी परीक्षण व NPK",
+            "gu": "જમીન ચકાસણી અને NPK",
+            "mr": "माती परीक्षण आणि NPK",
+            "ta": "மண் பரிசோதனை & NPK",
+            "te": "నేల పరీక్ష & NPK",
+            "pa": "ਮਿੱਟੀ ਪਰਖ ਅਤੇ NPK",
+        },
+        "plot_prefix": {
+            "en": "Plot",
+            "hi": "खेत",
+            "gu": "પ્લોટ",
+            "mr": "शेत",
+            "ta": "வயல்",
+            "te": "పొలం",
+            "pa": "ਖੇਤ",
+        },
+    }
+
     shortcuts: list[ActionShortcut] = []
     q_low = question.lower()
 
-    if picked or intent in ("pest", "yellow_leaves") or any(w in q_low for w in ["leaf", "spot", "disease", "rot", "blight", "rust", "scan", "photo"]):
-        shortcuts.append(ActionShortcut(label="Scan Leaf Diagnosis", icon="camera", route="/scan"))
+    scan_lbl = labels["scan"].get(lang, labels["scan"]["en"])
+    weather_lbl = labels["weather"].get(lang, labels["weather"]["en"])
+    soil_lbl = labels["soil"].get(lang, labels["soil"]["en"])
+    plot_prefix = labels["plot_prefix"].get(lang, labels["plot_prefix"]["en"])
 
-    if intent in ("weather", "irrigation") or any(w in q_low for w in ["weather", "rain", "temperature", "wind", "spray", "water"]):
-        shortcuts.append(ActionShortcut(label="3-Day Weather Advisory", icon="sun", route="/weather"))
+    if picked or intent in ("pest", "yellow_leaves") or any(w in q_low for w in ["leaf", "spot", "disease", "rot", "blight", "rust", "scan", "photo", "रोग", "बीमारी", "રોગ", "कीड", "நோய்", "వ్యాధి", "ਬਿਮਾਰੀ"]):
+        shortcuts.append(ActionShortcut(label=scan_lbl, icon="camera", route="/scan"))
 
-    if intent in ("soil", "organic") or any(w in q_low for w in ["soil", "fertiliz", "npk", "ph", "compost", "manure"]):
-        shortcuts.append(ActionShortcut(label="Soil Analysis & NPK", icon="flask", route="/soil"))
+    if intent in ("weather", "irrigation") or any(w in q_low for w in ["weather", "rain", "temperature", "wind", "spray", "water", "मौसम", "हवाમાન", "हवामान", "வானிலை", "వాతావరణం", "ਮੌਸਮ", "सिंचाई", "પાણી", "पाणी"]):
+        shortcuts.append(ActionShortcut(label=weather_lbl, icon="sun", route="/weather"))
+
+    if intent in ("soil", "organic") or any(w in q_low for w in ["soil", "fertiliz", "npk", "ph", "compost", "manure", "मिट्टी", "माती", "જમીન", "மண்", "నేల", "ਮਿੱਟੀ", "खाद", "खत", "જીવામૃત", "జీవామృతం"]):
+        shortcuts.append(ActionShortcut(label=soil_lbl, icon="flask", route="/soil"))
 
     if plot and plot.get("id"):
-        shortcuts.append(ActionShortcut(label=f"Plot: {plot.get('name', 'Farm')}", icon="sprout", route=f"/plots/{plot['id']}"))
+        plot_name = plot.get("name") or "Farm"
+        shortcuts.append(ActionShortcut(label=f"{plot_prefix}: {plot_name}", icon="sprout", route=f"/plots/{plot['id']}"))
 
     if not shortcuts:
-        shortcuts.append(ActionShortcut(label="Scan Leaf Diagnosis", icon="camera", route="/scan"))
-        shortcuts.append(ActionShortcut(label="Weather Forecast", icon="sun", route="/weather"))
+        shortcuts.append(ActionShortcut(label=scan_lbl, icon="camera", route="/scan"))
+        shortcuts.append(ActionShortcut(label=weather_lbl, icon="sun", route="/weather"))
 
     return shortcuts[:3]
+
+
+_TTS_CACHE: dict[tuple[str, str], bytes] = {}
+_IN_FLIGHT_TTS: dict[tuple[str, str], asyncio.Future] = {}
+_MAX_TTS_CACHE = 512
+
+
+def _clean_text_for_speech(text: str, max_chars: int = 240) -> str:
+    """Format agricultural answer into a natural, concise spoken message
+    suitable for immediate single-request speech synthesis."""
+    if not text:
+        return "AgriSmart"
+    cleaned = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    cleaned = re.sub(r"[*_`#•]+", " ", cleaned)
+    # Strip list item prefixes e.g. "1. " or "2. " safely without touching decimals like "2.5 g/L"
+    cleaned = re.sub(r"(?:(?<=\s)|^)\d+\.\s+", "", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    if len(cleaned) <= max_chars:
+        return cleaned
+
+    # Split on sentence terminals: period, danda (Hindi/Indic), question mark, exclamation mark
+    sentences = re.split(r"([.।?!]+(?:\s+|$))", cleaned)
+    acc = ""
+    i = 0
+    while i < len(sentences):
+        part = sentences[i]
+        punct = sentences[i + 1] if i + 1 < len(sentences) else ""
+        candidate = (acc + " " + part + punct).strip() if acc else (part + punct).strip()
+        if len(candidate) <= max_chars:
+            acc = candidate
+            i += 2
+        else:
+            break
+
+    if acc and len(acc) >= 30:
+        return acc
+
+    # Fallback to word boundary
+    truncated = cleaned[:max_chars].rsplit(" ", 1)[0]
+    return truncated.rstrip(".,:;।") + "."
+
+
+def stream_tts_audio(text: str, lang: str = "en") -> Iterator[bytes]:
+    """Stream audio chunks from gTTS with low first-chunk latency (~400ms)
+    and cache the complete audio upon completion."""
+    valid_langs = {"en", "hi", "gu", "mr", "ta", "te", "pa"}
+    normalized = (lang or "en").lower().split("-")[0].split("_")[0].strip()
+    tts_lang = normalized if normalized in valid_langs else "en"
+
+    clean = _clean_text_for_speech(text)
+    cache_key = (clean, tts_lang)
+    if cache_key in _TTS_CACHE:
+        yield _TTS_CACHE[cache_key]
+        return
+
+    from gtts import gTTS
+
+    chunks: list[bytes] = []
+    try:
+        tts = gTTS(text=clean, lang=tts_lang, tld="co.in" if tts_lang == "en" else "com")
+        for chunk in tts.stream():
+            chunks.append(chunk)
+            yield chunk
+    except Exception:
+        try:
+            tts = gTTS(text=clean, lang=tts_lang)
+            for chunk in tts.stream():
+                chunks.append(chunk)
+                yield chunk
+        except Exception:
+            return
+
+    if chunks:
+        full_audio = b"".join(chunks)
+        if len(_TTS_CACHE) >= _MAX_TTS_CACHE:
+            _TTS_CACHE.pop(next(iter(_TTS_CACHE)))
+        _TTS_CACHE[cache_key] = full_audio
+
+
+def generate_tts_audio(text: str, lang: str = "en") -> bytes:
+    valid_langs = {"en", "hi", "gu", "mr", "ta", "te", "pa"}
+    normalized = (lang or "en").lower().split("-")[0].split("_")[0].strip()
+    tts_lang = normalized if normalized in valid_langs else "en"
+
+    clean = _clean_text_for_speech(text)
+    cache_key = (clean, tts_lang)
+    if cache_key in _TTS_CACHE:
+        return _TTS_CACHE[cache_key]
+
+    fp = io.BytesIO()
+    try:
+        from gtts import gTTS
+        tts = gTTS(text=clean, lang=tts_lang, tld="co.in" if tts_lang == "en" else "com")
+        tts.write_to_fp(fp)
+    except Exception:
+        fp = io.BytesIO()
+        from gtts import gTTS
+        tts = gTTS(text=clean, lang=tts_lang)
+        tts.write_to_fp(fp)
+
+    audio_bytes = fp.getvalue()
+    if len(_TTS_CACHE) >= _MAX_TTS_CACHE:
+        _TTS_CACHE.pop(next(iter(_TTS_CACHE)))
+    _TTS_CACHE[cache_key] = audio_bytes
+    return audio_bytes
+
+
+async def prewarm_tts(text: str, lang: str = "en") -> bytes:
+    """Asynchronously pre-warm TTS cache so frontend audio request hits instantly."""
+    valid_langs = {"en", "hi", "gu", "mr", "ta", "te", "pa"}
+    normalized = (lang or "en").lower().split("-")[0].split("_")[0].strip()
+    tts_lang = normalized if normalized in valid_langs else "en"
+
+    clean = _clean_text_for_speech(text)
+    cache_key = (clean, tts_lang)
+    if cache_key in _TTS_CACHE:
+        return _TTS_CACHE[cache_key]
+    if cache_key in _IN_FLIGHT_TTS:
+        return await _IN_FLIGHT_TTS[cache_key]
+
+    loop = asyncio.get_running_loop()
+    fut = loop.run_in_executor(None, generate_tts_audio, clean, tts_lang)
+    _IN_FLIGHT_TTS[cache_key] = fut
+    try:
+        data = await fut
+        return data
+    except Exception as exc:
+        log.warning("TTS prewarm background task failed: %s", exc)
+        return b""
+    finally:
+        _IN_FLIGHT_TTS.pop(cache_key, None)
 
 
 async def answer_question(
@@ -805,7 +1055,8 @@ async def answer_question(
                 lang=lang,
                 engine="Local SLM (Qwen2.5-0.5B)",
                 suggested_followups=_generate_followups(question, intent, picked, plot, lang),
-                action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+                action_shortcuts=_generate_shortcuts(question, intent, picked, plot, lang),
+                speech_text=_clean_text_for_speech(llm_text),
             )
 
     # Gemini Cloud LLM (optional fallback or when explicitly chosen)
@@ -819,7 +1070,8 @@ async def answer_question(
                 lang=lang,
                 engine="Gemini Cloud",
                 suggested_followups=_generate_followups(question, intent, picked, plot, lang),
-                action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+                action_shortcuts=_generate_shortcuts(question, intent, picked, plot, lang),
+                speech_text=_clean_text_for_speech(llm_text),
             )
 
     # Tier 3: Zero-Latency Circuit Breaker Fallback
@@ -843,14 +1095,21 @@ async def answer_question(
         lang=lang,
         engine="Tier 1 Deterministic Core",
         suggested_followups=_generate_followups(question, intent, picked, plot, lang),
-        action_shortcuts=_generate_shortcuts(question, intent, picked, plot),
+        action_shortcuts=_generate_shortcuts(question, intent, picked, plot, lang),
+        speech_text=_clean_text_for_speech(answer),
     )
 
 
 
 async def warm_up() -> None:
-    """Delegates to the shared gemini service — see its warm_up() for what
-    this pays for and why. A missing/invalid key or a flaky network just
-    means it's skipped; the assistant still works, just slower on the
-    first question."""
+    """Delegates to shared gemini service and pre-warms common starter prompt TTS."""
     await gemini_service.warm_up()
+    try:
+        starters = [
+            ("Welcome to AgriSmart. Ask about crop diseases, weather alerts, and soil health.", "en"),
+            ("एग्रीस्मार्ट में आपका स्वागत है। फसल रोग, मौसम और खाद की जानकारी के लिए पूछें।", "hi"),
+        ]
+        for s_text, s_lang in starters:
+            asyncio.create_task(prewarm_tts(s_text, s_lang))
+    except Exception:
+        pass
