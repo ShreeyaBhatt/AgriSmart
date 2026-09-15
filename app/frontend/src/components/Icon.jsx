@@ -111,6 +111,7 @@ const PATHS = {
     </>
   ),
   chevronRight: <path d="m9 6 6 6-6 6" />,
+  chevronDown: <path d="m6 9 6 6 6-6" />,
   image: (
     <>
       <rect x="3" y="4" width="18" height="16" rx="2" />

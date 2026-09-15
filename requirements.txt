@@ -22,8 +22,9 @@ scikit-learn>=1.3
 pillow>=10.0
 numpy>=1.26
 
-# ── Module E (GenAI assistant) — optional, offline fallback if unset ──
+# ── Module E (GenAI assistant & local SLM) — optional, offline fallback if unset ──
 google-generativeai>=0.8
+transformers>=4.40
 # Local speech-to-text for the assistant's mic button — runs on this server,
 # not a cloud service, so voice input works with no internet at all (only
 # the browser <-> this backend round-trip is needed). ~150MB model download
