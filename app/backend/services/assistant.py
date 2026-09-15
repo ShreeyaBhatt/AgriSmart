@@ -61,6 +61,52 @@ _INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "te": ["నమస్కారం", "హలో", "హాయ్", "నువ్వు ఎవరు", "ఏం చేయగలవు"],
         "pa": ["ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ", "ਨਮਸਤੇ", "ਹੈਲੋ", "ਤੁਸੀਂ ਕੌਣ ਹੋ", "ਕੀ ਕਰ ਸਕਦੇ ਹੋ"],
     },
+    "spray_weather": {
+        "en": [
+            "should i spray", "can i spray", "spray today", "spray tomorrow",
+            "spray today or tomorrow", "today or tomorrow", "when to spray",
+            "when should i spray", "safe to spray", "is it safe to spray",
+            "spray pesticide", "spray insecticide", "spray fungicide",
+            "spray chemical", "time to spray", "wash off", "wash my spray",
+            "spray drift", "spray in rain", "spray in wind", "rain after spray",
+            "wind or rain", "wash away"
+        ],
+        "hi": [
+            "स्प्रे करें या नहीं", "आज स्प्रे करें", "कल स्प्रे करें", "क्या आज छिड़काव",
+            "छिड़काव करें या नहीं", "छिड़काव का सही समय", "कब स्प्रे करें",
+            "दवा धुल", "धुल जाएगी", "बारिश में स्प्रे", "हवा में स्प्रे"
+        ],
+        "gu": [
+            "આજે સ્પ્રે કરવો કે કાલે", "શું આજે સ્પ્રે કરી શકાય", "છંટકાવ કરવો કે નહીં",
+            "છંટકાવ નો સમય", "ક્યારે સ્પ્રે કરવો", "દવા ધોવાઈ", "ધોવાઈ જશે",
+            "વરસાદમાં સ્પ્રે", "પવનમાં સ્પ્રે"
+        ],
+        "mr": [
+            "आज फवारणी करावी का", "उद्या फवारणी करावी का", "फवारणी कधी करावी",
+            "फवारणी करावी की नाही", "औषध वाहून", "वाहून जाईल", "पावसात फवारणी", "वाऱ्यात फवारणी"
+        ],
+        "ta": [
+            "இன்று தெளிக்கலாமா", "நாளை தெளிக்கலாமா", "மருந்து தெளிக்கலாமா",
+            "எப்போது தெளிக்க வேண்டும்", "மருந்து வீணாகு", "மழையில் மருந்து", "காற்று மருந்து", "கழுவிச் செல்ல"
+        ],
+        "te": [
+            "ఈ రోజు పిచికారీ చేయవచ్చా", "రేపు పిచికారీ చేయవచ్చా", "పిచికారీ ఎప్పుడు చేయాలి",
+            "మందు కొట్టుకు", "కొట్టుకుపోతుందా", "వర్షంలో పిచికారీ"
+        ],
+        "pa": [
+            "ਕੀ ਅੱਜ ਸਪਰੇਅ ਕਰੀਏ", "ਕੱਲ੍ਹ ਸਪਰੇਅ ਕਰੀਏ", "ਸਪਰੇਅ ਕਦੋਂ ਕਰੀਏ",
+            "ਦਵਾਈ ਧੁੜ", "ਧੋਤੀ ਜਾਵੇਗੀ", "ਮੀਂਹ ਵਿੱਚ ਸਪਰੇਅ"
+        ],
+    },
+    "heat_stress": {
+        "en": ["heat stress", "heatwave", "high temperature", "protect from heat", "sunburn", "hot weather"],
+        "hi": ["तेज धूप", "गर्मी", "लू", "तापमान से बचा", "धूप से बचा"],
+        "gu": ["લૂ", "ગરમી", "વધારે તાપમાન", "ગરમીથી બચાવ"],
+        "mr": ["उष्णता", "उन्हाळा", "जास्त तापमान", "उष्णतेपासून रक्षण"],
+        "ta": ["வெப்ப அழுத்தம்", "அதிக வெப்பம்", "வெப்பத்திலிருந்து காக்க"],
+        "te": ["ఎండ వేడిమి", "తీవ్ర ఉష్ణోగ్రత", "వేడి నుండి"],
+        "pa": ["ਗਰਮੀ", "ਲੂ", "ਵੱਧ ਤਾਪਮਾਨ", "ਗਰਮੀ ਤੋਂ ਬਚਾਅ"],
+    },
     "weather": {
         "en": ["rain", "weather", "temperature", "forecast", "wind", "humid", "irrigat", "water"],
         "hi": ["बारिश", "मौसम", "तापमान", "पूर्वानुमान", "हवा", "नमी", "सिंचाई", "पानी"],
@@ -142,6 +188,15 @@ _INTENT_KEYWORDS: dict[str, dict[str, list[str]]] = {
         "te": ["పీఎం కిసాన్", "పంట బీమా", "సబ్సిడీ", "ప్రభుత్వ పథకం", "సాయిల్ హెల్త్ కార్డు"],
         "pa": ["ਪੀਐਮ ਕਿਸਾਨ", "ਫ਼ਸਲ ਬੀਮਾ", "ਸਬਸਿਡੀ", "ਸਰਕਾਰੀ ਸਕੀਮ", "ਸੋਇਲ ਹੈਲਥ ਕਾਰਡ"],
     },
+    "agent": {
+        "en": ["agent", "autonomous agent", "advisory", "directive", "what should i do", "what to do today", "farm advice", "recommendation for today", "action plan", "what actions"],
+        "hi": ["एजेंट", "सलाह", "आज क्या करें", "खेत की सलाह", "कार्य योजना", "सुझाव"],
+        "gu": ["એજન્ટ", "સલાહ", "આજે શું કરવું", "ખેતર સલાહ", "કાર્ય યોજના"],
+        "mr": ["एजंट", "सल्ला", "आज काय करावे", "शेताचा सल्ला", "कार्य योजना"],
+        "ta": ["ஏஜென்ட்", "ஆலோசனை", "இன்று என்ன செய்வது", "பண்ணை ஆலோசனை"],
+        "te": ["ఏజెంట్", "సలహా", "ఈ రోజు ఏమి చేయాలి", "వ్యవసాయ సలహా"],
+        "pa": ["ਏਜੰਟ", "ਸਲਾਹ", "ਅੱਜ ਕੀ ਕਰੀਏ", "ਖੇਤ ਦੀ ਸਲਾਹ"],
+    },
 }
 
 
@@ -186,12 +241,47 @@ def _keywords(text: str) -> set[str]:
     return {w for w in _WORD.findall(text.lower()) if w not in _STOP and len(w) >= 2}
 
 
+def _is_disease_treatment_query(question: str) -> bool:
+    q = question.lower()
+    # Explicit operational/timing questions must NEVER be treated as disease card queries
+    if any(phrase in q for phrase in [
+        "should i spray", "can i spray", "spray today", "spray tomorrow",
+        "today or tomorrow", "when to spray", "safe to spray", "is it safe to spray",
+        "spray now", "spray or not", "should i water", "should i irrigate",
+        "आज स्प्रे", "कल स्प्रे", "छिड़काव करें या नहीं",
+        "આજે સ્પ્રે", "છંટકાવ કરવો કે નહીં",
+        "आज फवारणी", "फवारणी करावी का",
+        "இன்று தெளிக்கலாமா", "ఈ రోజు పిచికారీ", "ਕੀ ਅੱਜ ਸਪਰੇਅ",
+    ]):
+        return False
+
+    disease_words = {
+        "cure", "treat", "treatment", "medicine", "fungicide", "pesticide", "pesticides", "chemical",
+        "remedy", "control", "symptom", "symptoms", "disease", "infection", "waiting period", "harvest",
+        "pathogen", "blight", "rot", "rust", "scab", "mildew", "spot",
+        "wilt", "curl", "smut", "mosaic", "yellowing", "chlorosis",
+        "इलाज", "दवा", "उपचार", "रोग", "लक्षण", "फफूंद", "कीटनाशक", "तुड़ाई",
+        "સારવાર", "દવા", "રોગ", "લક્ષણો", "જંતુનાશક", "વીણણી",
+        "औषध", "उपचार", "रोग", "लक्षणे", "कीटकनाशक", "काढणी",
+        "மருந்து", "சிகிச்சை", "நோய்", "அறிகுறிகள்", "பூச்சிக்கொல்லி", "அறுவடை",
+        "మందు", "చికిత్స", "వ్యాధి", "లక్షణాలు", "పురుగుమందు", "కోత",
+        "ਦਵਾਈ", "ਇਲਾਜ", "ਰੋਗ", "ਲੱਛਣ", "ਕੀਟਨਾਸ਼ਕ", "ਤੁੜਾਈ",
+    }
+    return any(w in q for w in disease_words)
+
+
 def _retrieve(question: str, last_class: str | None) -> list[tuple[str, dict]]:
     cards = _cards()
-    if last_class and last_class in cards:
-        picked = [(last_class, cards[last_class])]
-    else:
-        picked = []
+    picked = []
+    intent = _detect_intent(question)
+    is_operational = intent in (
+        "weather", "irrigation", "soil", "sowing", "weeding", "schemes",
+        "greeting", "spray_weather", "heat_stress", "agent",
+    )
+    if last_class and last_class in cards and not is_operational:
+        if _is_disease_treatment_query(question):
+            picked = [(last_class, cards[last_class])]
+
     qk = _keywords(question)
     if not qk:
         # All tokens were stop words — fall back to the last-class card or nothing
@@ -436,6 +526,33 @@ _LOCAL_FAQ = {
         "te": "విత్తే సమయం పంట మరియు మీ స్థానిక సీజన్‌పై ఆధారపడి ఉంటుంది: సాధారణంగా ఖరీఫ్ పంటలను మొదటి నమ్మదగిన వర్షాల తర్వాత మరియు రబీ పంటలను చలికాలం మొదట్లో విత్తండి. ధృవీకరించిన విత్తనాలను వాడండి, విత్తే ముందు నేల ద్వారా వ్యాపించే వ్యాధుల నుండి రక్షణకు విత్తన శుద్ధి చేయండి, గాలి ప్రసరణ కోసం వరుసల మధ్య తగినంత అంతరం ఉంచండి.",
         "pa": "ਬਿਜਾਈ ਦਾ ਸਮਾਂ ਫ਼ਸਲ ਅਤੇ ਤੁਹਾਡੇ ਸਥਾਨਕ ਮੌਸਮ 'ਤੇ ਨਿਰਭਰ ਕਰਦਾ ਹੈ: ਆਮ ਤੌਰ 'ਤੇ ਸਾਉਣੀ ਦੀਆਂ ਫ਼ਸਲਾਂ ਪਹਿਲੀ ਭਰੋਸੇਯੋਗ ਮਾਨਸੂਨ ਬਾਰਿਸ਼ ਤੋਂ ਬਾਅਦ ਅਤੇ ਹਾੜ੍ਹੀ ਦੀਆਂ ਫ਼ਸਲਾਂ ਠੰਢ ਸ਼ੁਰੂ ਹੁੰਦੇ ਹੀ ਬੀਜੋ। ਪ੍ਰਮਾਣਿਤ ਬੀਜ ਵਰਤੋ, ਬਿਜਾਈ ਤੋਂ ਪਹਿਲਾਂ ਮਿੱਟੀ-ਜਨਿਤ ਰੋਗਾਂ ਤੋਂ ਬਚਾਅ ਲਈ ਬੀਜ ਸੋਧ ਕਰੋ, ਅਤੇ ਹਵਾ ਲਈ ਕਤਾਰਾਂ ਵਿਚਕਾਰ ਲੋੜੀਂਦੀ ਦੂਰੀ ਰੱਖੋ।",
     },
+    "spray_weather": {
+        "en": "Weather & Spraying Guidelines:\n1) Rain wash-off: Do not spray pesticides, fungicides, or foliar nutrients if rain is expected within 4 to 6 hours. Most chemical and organic sprays require 2 to 4 hours of dry foliage to absorb or adhere properly; rain earlier than that washes the active ingredients off leaves into the soil and runoff, wasting money and reducing pest control.\n2) Wind drift: Never spray when wind speed exceeds 15 km/h. High winds cause spray droplets to drift away from target foliage onto neighboring plots or into the air.\n3) Ideal spray window: Calm early mornings (after dew dries) or late afternoons with wind under 10 km/h and temperatures below 30°C.",
+        "hi": "स्प्रे और मौसम संबंधी महत्वपूर्ण नियम:\n1) बारिश से धुलाई: यदि अगले 4-6 घंटों में बारिश की संभावना हो तो कीटनाशक, फफूंदनाशक या टॉनिक का छिड़काव न करें। दवा को पत्तियों में समाने के लिए 2-4 घंटे का सूखा समय चाहिए, अन्यथा बारिश पूरी दवा बहा देती है।\n2) हवा का बहाव: हवा की गति 15 किमी/घंटा से अधिक होने पर स्प्रे कभी न करें। तेज हवा से दवा उड़कर लक्ष्य से भटक जाती है।\n3) सर्वोत्तम समय: सुबह (ओस सूखने के बाद) या देर शाम, जब हवा 10 किमी/घंटा से कम हो और तापमान 30°C से नीचे रहे।",
+        "gu": "સ્પ્રે અને હવામાન માર્ગદર્શિકા:\n1) વરસાદથી ધોવાણ: જો આગામી 4 થી 6 કલાકમાં વરસાદની શક્યતા હોય તો કીટનાશક કે ફૂગનાશકનો છંટકાવ ન કરવો. પાંદડા પર દવા ચોંટવા 2 થી 4 કલાક સૂકો સમય જરૂરી છે, નહીં તો વરસાદ દવા ધોઈ નાખશે.\n2) પવન: પવનની ગતિ 15 કિમી/કલાકથી વધુ હોય ત્યારે સ્પ્રે ટાળો જેથી દવાનું ડ્રિફ્ટિંગ ન થાય.\n3) શ્રેષ્ઠ સમય: વહેલી સવારે (ઝાકળ સુકાઈ ગયા પછી) અથવા સાંજે શાંત વાતાવરણમાં છંટકાવ કરવો.",
+        "mr": "फवारणी आणि हवामान मार्गदर्शक:\n1) पावसामुळे वाहून जाणे: पुढील 4 ते 6 तासांत पावसाची शक्यता असल्यास कोणतीही फवारणी करू नका. औषध पानांवर शोषले जाण्यासाठी किमान 2-4 तास पाऊस नसावा, अन्यथा औषध वाहून जाते.\n2) वारा: वाऱ्याचा वेग ताशी 15 किमीपेक्षा जास्त असल्यास फवारणी टाळावी.\n3) योग्य वेळ: सकाळी (दव सुकल्यावर) किंवा संध्याकाळी शांत वाऱ्यात फवारणी करावी.",
+        "ta": "தெளிப்பு மற்றும் வானிலை வழிகாட்டுதல்:\n1) மழை பாதிப்பு: அடுத்த 4-6 மணி நேரத்திற்குள் மழை பெய்யும் வாய்ப்பிருந்தால் பூச்சிக்கொல்லி தெளிக்க வேண்டாம். மருந்து இலையில் ஒட்ட 2-4 மணி நேரம் தேவை, மழை பெய்தால் மருந்து வீணாகும்.\n2) காற்று: காற்றின் வேகம் மணிக்கு 15 கிமீ மேல் இருந்தால் தெளிக்காதீர்கள்.\n3) சிறந்த நேரம்: அதிகாலை (பனி காய்ந்த பின்) அல்லது மாலையில் காற்று குறைவாக இருக்கும் போது தெளிக்கவும்.",
+        "te": "స్ప్రే & వాతావరణ మార్గదర్శకాలు:\n1) వర్షం ప్రభావం: రాబోయే 4-6 గంటల్లో వర్షం కురిసే అవకాశం ఉంటే ఎటువంటి మందులు పిచికారీ చేయవద్దు. మందు ఆకులకు అంటుకోవడానికి 2-4 గంటల పొడి వాతావరణం అవసరం.\n2) గాలి: గంటకు 15 కి.మీ కంటే ఎక్కువ గాలి వేగం ఉన్నప్పుడు పిచికారీ చేయవద్దు.\n3) ఉత్తమ సమయం: ఉదయం (మంచు ఆరిన తర్వాత) లేదా సాయంత్రం వేళల్లో పిచికారీ చేయండి.",
+        "pa": "ਸਪਰੇਅ ਅਤੇ ਮੌਸਮ ਨਿਯਮ:\n1) ਮੀਂਹ ਨਾਲ ਧੋਣਾ: ਜੇਕਰ ਅਗਲੇ 4-6 ਘੰਟਿਆਂ ਵਿੱਚ ਮੀਂਹ ਪੈਣ ਦੀ ਸੰਭਾਵਨਾ ਹੋਵੇ ਤਾਂ ਸਪਰੇਅ ਨਾ ਕਰੋ। ਦਵਾਈ ਪੱਤਿਆਂ ਵਿੱਚ ਰਚਣ ਲਈ 2-4 ਘੰਟੇ ਸੁੱਕਾ ਸਮਾਂ ਚਾਹੀਦਾ ਹੈ।\n2) ਹਵਾ: ਜੇਕਰ ਹਵਾ ਦੀ ਰਫ਼ਤਾਰ 15 ਕਿਲੋਮੀਟਰ/ਘੰਟਾ ਤੋਂ ਵੱਧ ਹੋਵੇ ਤਾਂ ਸਪਰੇਅ ਟਾਲੋ।\n3) ਸਹੀ ਸਮਾਂ: ਸਵੇਰੇ (ਤ੍ਰੇਲ ਸੁੱਕਣ ਤੋਂ ਬਾਅਦ) ਜਾਂ ਸ਼ਾਮ ਨੂੰ ਸ਼ਾਂਤ ਮੌਸਮ ਵਿੱਚ ਸਪਰੇਅ ਕਰੋ।",
+    },
+    "heat_stress": {
+        "en": "Protecting Crops from Heat Stress:\n1) Water management: Apply light, frequent irrigations during pre-dawn (4:00-7:00 AM) or evening to cool the root zone.\n2) Mulching: Spread organic crop residues or straw mulch (5-7 cm layer) to lower soil temperatures by 3-5°C and conserve moisture.\n3) Foliar care: Avoid nitrogen fertilizers during peak heatwaves; spray 1% potassium nitrate (KNO3) or kaolin clay spray to protect canopy foliage from solar scorching.",
+        "hi": "फसलों को तेज धूप व गर्मी से बचाने के उपाय:\n1) सिंचाई: सुबह 4 से 7 बजे के बीच हल्की सिंचाई करें ताकि जड़ों का तापमान कम रहे।\n2) मल्चिंग: खेत में पुआल या सूखी पत्तियों की 5-7 सेमी मोटी परत बिछाएं, इससे मिट्टी का तापमान 3-5°C कम रहता है।\n3) छिड़काव: लू के दौरान भारी नाइट्रोजन खाद न दें; पत्तियों पर पोटैशियम या सिलिकॉन आधारित स्प्रे से फसल सुरक्षित रखें।",
+        "gu": "પાકને ગરમી અને લૂથી બચાવવાના ઉપાય:\n1) પિયત: વહેલી સવારે (4 થી 7 વાગ્યે) હળવું પિયત આપો જેથી મૂળ ઠંડા રહે.\n2) મલ્ચિંગ: જમીન પર સૂકા ઘાસ કે પાંદડાનું 5-7 સેમી મલ્ચિંગ કરો જેથી જમીનનું તાપમાન 3-5°C ઓછું રહે.\n3) બપોરના સમયે કોઈ સ્પ્રે ન કરવો.",
+        "mr": "पिकांना उष्णतेच्या लाटेपासून वाचवण्यासाठी उपाय:\n1) सिंचन: सकाळी 4 ते 7 च्या दरम्यान हलके पाणी द्या जेणेकरून मुळांचा भाग थंड राहील.\n2) आच्छादन (मल्चिंग): पिकांच्या बुंध्याशी पाचट किंवा गवताचे आच्छादन करा, यामुळे जमिनीचे तापमान 3-5°C कमी राहते.\n3) भर उन्हात कोणतीही फवारणी करू नका.",
+        "ta": "வெப்ப அழுத்தத்திலிருந்து பயிர்களை பாதுகாக்கும் முறைகள்:\n1) பாசனம்: அதிகாலையில் (4-7 மணி) லேசான பாசனம் செய்து வேர் பகுதியை குளிர்ச்சியாக வைக்கவும்.\n2) மூடாக்கு: வைக்கோல் கொண்டு மூடாக்கு இடுவதால் மண் வெப்பநிலை 3-5°C குறையும்.\n3) கடுமையான வெயில் நேரத்தில் தெளிப்பு செய்யாதீர்கள்.",
+        "te": "ఎండ వేడిమి నుండి పంటలను కాపాడే చర్యలు:\n1) నీరు: ఉదయం 4 నుండి 7 గంటల మధ్య తేలికపాటి తడులు ఇవ్వండి.\n2) మల్చింగ్: ఎండుగడ్డితో మల్చింగ్ చేయడం వల్ల నేల ఉష్ణోగ్రత 3-5°C తగ్గుతుంది.\n3) తీవ్రమైన ఎండలో స్ప్రే చేయవద్దు.",
+        "pa": "ਫ਼ਸਲਾਂ ਨੂੰ ਗਰਮੀ ਤੋਂ ਬਚਾਉਣ ਦੇ ਤਰੀਕੇ:\n1) ਸਿੰਚਾਈ: ਸਵੇਰੇ 4 ਤੋਂ 7 ਵਜੇ ਦਰਮਿਆਨ ਹਲਕਾ ਪਾਣੀ ਲਾਓ ਤਾਂ ਜੋ ਜੜ੍ਹਾਂ ਠੰਢੀਆਂ ਰਹਿਣ।\n2) ਮਲਚਿੰਗ: ਪਰਾਲੀ ਨਾਲ ਮਲਚਿੰਗ ਕਰੋ, ਇਸ ਨਾਲ ਜ਼ਮੀਨ ਦਾ ਤਾਪਮਾਨ 3-5°C ਘਟਦਾ ਹੈ।\n3) ਦੁਪਹਿਰ ਦੀ ਤੇਜ਼ ਧੁੱਪ ਵਿੱਚ ਸਪਰੇਅ ਨਾ ਕਰੋ।",
+    },
+    "weather": {
+        "en": "Weather Advisory Guidance: Weather conditions directly govern irrigation timing, disease development, and spray efficacy. To view live 3-day temperature, rain probabilities, wind speeds, and smart advisories tailored specifically to your farm, add a plot with GPS coordinates or select your plot in the header above.",
+        "hi": "मौसम सलाह: मौसम की स्थिति सिंचाई के समय, रोग फैलाव और दवा छिड़काव को सीधे प्रभावित करती है। अपने खेत के लिए सटीक 3-दिवसीय पूर्वानुमान, बारिश की संभावना और मौसम सलाह पाने के लिए जीपीएस स्थान सहित खेत जोड़ें या ऊपर खेत चुनें।",
+        "gu": "હવામાન સલાહ: હવામાન પિયત, રોગચાળો અને સ્પ્રે પર સીધી અસર કરે છે. તમારા ખેતર માટે 3-દિવસીય સચોટ વરસાદ અને પવનની આગાહી મેળવવા પ્લોટ પસંદ કરો.",
+        "mr": "हवामान सल्ला: हवामानाचा सिंचन, रोगप्रसार आणि फवारणीवर थेट परिणाम होतो. आपल्या शेताचा थेट 3 दिवसांचा अंदाज आणि सल्ला पाहण्यासाठी स्थानासह शेत जोडा.",
+        "ta": "வானிலை ஆலோசனை: உங்கள் நிலத்திற்கான நேரடி 3-நாள் வானிலை முன்னறிவிப்பு மற்றும் பாசன ஆலோசனைகளைப் பெற இருப்பிடத்துடன் வயலைச் சேர்க்கவும்.",
+        "te": "వాతావరణ సలహా: మీ పొలానికి సంబంధించిన ప్రత్యక్ష 3 రోజుల సూచనలు మరియు నీటిపారుదల సలహాల కోసం స్థానంతో పొలాన్ని ఎంచుకోండి.",
+        "pa": "ਮੌਸਮ ਸਲਾਹ: ਆਪਣੇ ਖੇਤ ਲਈ ਲਾਈਵ 3-ਦਿਨਾ ਮੌਸਮ ਅਤੇ ਸਿੰਚਾਈ ਸਲਾਹ ਲਈ ਟਿਕਾਣੇ ਸਮੇਤ ਖੇਤ ਜੋੜੋ।",
+    },
     "irrigation": {
         "en": "As a general rule, water deeply but less often rather than little and often — this grows deeper roots and wastes less water. Irrigate early morning or evening to cut evaporation, and check soil moisture a few inches down before watering again. Add a plot with a location to get a live, rain-based irrigation recommendation instead of this general rule.",
         "hi": "सामान्य नियम: कम बार लेकिन गहरी सिंचाई करें, बार-बार थोड़ा पानी देने से बेहतर — इससे जड़ें गहरी होती हैं और पानी कम बर्बाद होता है। वाष्पीकरण कम करने के लिए सुबह या शाम सिंचाई करें, और दोबारा पानी देने से पहले कुछ इंच नीचे मिट्टी की नमी जांचें। इस सामान्य सलाह की जगह लाइव, बारिश-आधारित सिंचाई सुझाव पाने के लिए स्थान सहित एक खेत जोड़ें।",
@@ -463,27 +580,117 @@ _LOCAL_FAQ = {
         "te": "ప్రభుత్వ రైతు సంక్షేమ పథకాలు:\n1) పీఎం-కిసాన్: అర్హులైన రైతులకు ఏటా రూ. 6,000 ఆర్థిక సాయం (రూ. 2,000 చొప్పున 3 విడతల్లో).\n2) ప్రధానమంత్రి ఫసల్ బీమా యోజన (PMFBY): ప్రకృతి వైపరీత్యాల నుండి పంట రక్షణ (ఖరీఫ్ 2%, రబీ 1.5% ప్రీమియం).\n3) సాయిల్ హెల్త్ కార్డు: ఉచిత నేల పరీక్ష మరియు ఎరువుల సిఫార్సులు. స్థానిక వ్యవసాయ అధికారిని సంప్రదించండి.",
         "pa": "ਮੁੱਖ ਕਿਸਾਨ ਭਲਾਈ ਸਕੀਮਾਂ:\n1) ਪੀਐਮ-ਕਿਸਾਨ: ਕਿਸਾਨਾਂ ਨੂੰ ਸਾਲਾਨਾ 6,000 ਰੁਪਏ ਦੀ ਵਿੱਤੀ ਸਹਾਇਤਾ (2,000 ਰੁਪਏ ਦੀਆਂ 3 ਕਿਸ਼ਤਾਂ ਵਿੱਚ)।\n2) ਪ੍ਰਧਾਨ ਮੰਤਰੀ ਫ਼ਸਲ ਬੀਮਾ ਯੋਜਨਾ (PMFBY): ਕੁਦਰਤੀ ਆਫ਼ਤਾਂ ਤੋਂ ਫ਼ਸਲ ਦਾ ਬੀਮਾ (ਸਾਉਣੀ 2%, ਹਾੜ੍ਹੀ 1.5% ਪ੍ਰੀਮੀਅਮ)।\n3) ਸੋਇਲ ਹੈਲਥ ਕਾਰਡ: ਮੁਫ਼ਤ ਮਿੱਟੀ ਜਾਂਚ ਅਤੇ ਸੰਤੁਲਿਤ ਖਾਦਾਂ ਦੀ ਸਲਾਹ। ਨੇੜਲੇ ਕੇਵੀਕੇ (KVK) ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
     },
+    "agent": {
+        "en": "AgriSmart Autonomous Agent (Module G) evaluates live weather, soil profile, crop growth stage, and leaf scan diagnoses into real-time operational directives. To run the autonomous agent for your fields, please select or create a plot in the Plots tab.",
+        "hi": "एग्रीस्मार्ट स्वायत्त एजेंट (Module G) मौसम, मिट्टी, फसल अवस्था और पत्ती रोग स्कैन को मिलाकर रीयल-टाइम कृषि निर्देश देता है। अपने खेत के लिए स्वायत्त एजेंट चलाने के लिए, कृपया 'खेत' टैब में खेत चुनें या जोड़ें।",
+        "gu": "એગ્રીસ્માર્ટ સ્વાયત્ત એજન્ટ હવામાન, જમીન, પાક વૃદ્ધિ અને પાંદડા રોગ નિદાનને જોડીને રીઅલ-ટાઇમ ખેતી નિર્દેશો આપે છે. તમારા ખેતર માટે સ્વાયત્ત એજન્ટ ચલાવવા માટે, 'પ્લોટ' ટેબમાં પ્લોટ પસંદ કરો અથવા ઉમેરો.",
+        "mr": "अ‍ॅग्रीस्मार्ट स्वायत्त एजंट हवामान, माती, पिकाची वाढ आणि रोग निदान एकत्र करून थेट शेती सल्ला देतो. आपल्या शेतासाठी स्वायत्त एजंट चालवण्यासाठी, 'शेत' टॅबमध्ये शेत निवडा किंवा जोडा.",
+        "ta": "அக்ரிஸ்மார்ட் தன்னாட்சி முகவர் வானிலை, மண், பயிர் வளர்ச்சி நிலை மற்றும் இலை நோய் கண்டறிதலை இணைத்து நிகழ்நேர வழிகாட்டுதலை வழங்குகிறது. உங்கள் நிலத்திற்கு தன்னாட்சி முகவரை இயக்க, 'நிலம்' பக்கத்தில் நிலத்தைத் தேர்ந்தெடுக்கவும்.",
+        "te": "అగ్రిస్మార్ట్ అటానమస్ ఏజెంట్ వాతావరణం, నేల, పంట దశ మరియు ఆకు వ్యాధి నిర్ధారణను కలిపి ప్రత్యక్ష వ్యవసాయ ఆదేశాలను అందిస్తుంది. మీ పొలం కోసం అటానమస్ ఏజెంట్‌ను నడపడానికి, దయచేసి 'పొలం' ట్యాబ్‌లో పొలాన్ని ఎంచుకోండి.",
+        "pa": "ਐਗਰੀਸਮਾਰਟ ਖ਼ੁਦਮੁਖ਼ਤਿਆਰ ਏਜੰਟ ਮੌਸਮ, ਮਿੱਟੀ, ਫ਼ਸਲ ਦੇ ਵਾਧੇ ਅਤੇ ਪੱਤਾ ਰੋਗ ਜਾਂਚ ਨੂੰ ਜੋੜ ਕੇ ਰੀਅਲ-ਟਾਈਮ ਖੇਤੀ ਨਿਰਦੇਸ਼ ਦਿੰਦਾ ਹੈ। ਆਪਣੇ ਖੇਤ ਲਈ ਖ਼ੁਦਮੁਖ਼ਤਿਆਰ ਏਜੰਟ ਚਲਾਉਣ ਲਈ, ਕਿਰਪਾ ਕਰਕੇ 'ਖੇਤ' ਟੈਬ ਵਿੱਚ ਖੇਤ ਚੁਣੋ ਜਾਂ ਸ਼ਾਮਲ ਕਰੋ।",
+    },
 }
 
 
-async def _weather_intent_answer(plot: dict | None, last_class: str | None, lang: str) -> str | None:
-    """Grounded in the same rule engine as Module C (weather.build_advice) —
-    covers both weather questions and irrigation-timing questions (its rule
-    set already includes "delay irrigation, rain is coming"). None if there's
-    no plot location to fetch a forecast for."""
+async def _weather_or_agent_intent_answer(
+    plot: dict | None,
+    last_class: str | None,
+    lang: str,
+    question: str = "",
+) -> str | None:
+    """Grounded in the Bonus Module G Autonomous Agent (ReAct Decision Loop)
+    and Module C Weather rule engine. Gathers live weather, crop stage, soil,
+    and pathogen risks to formulate precision operational directives.
+    Returns None if there's no plot location to fetch a forecast for."""
     if not plot or plot.get("lat") is None or plot.get("lon") is None:
         return None
     try:
         from . import weather as weather_service
+        from . import agent as agent_service
 
         fc = await weather_service.fetch_forecast(plot["lat"], plot["lon"])
+
+        crop_name = (
+            plot.get("main_crop")
+            or (plot.get("planting") or {}).get("crop")
+            or (plot.get("active_planting") or {}).get("crop")
+            or "Crop"
+        )
+        stage_name = (
+            (plot.get("planting") or {}).get("stage")
+            or (plot.get("active_planting") or {}).get("stage")
+        )
+        diag = plot.get("latest_diagnosis") or (
+            {"predicted_class": last_class, "abstained": False} if last_class else None
+        )
+        advisory = agent_service.evaluate_advisory(
+            plot_id=str(plot.get("id") or "plot"),
+            plot_name=plot.get("name") or "Your Farm",
+            crop=crop_name,
+            stage=stage_name,
+            soil_snapshot=plot.get("soil_snapshot"),
+            last_diagnosis=diag,
+            forecast=fc,
+            lang=lang,
+        )
+
         advice = weather_service.build_advice(
-            plot["lat"], plot["lon"], fc, last_disease=last_class, lang=lang)
+            plot["lat"], plot["lon"], fc, last_disease=last_class, lang=lang
+        )
     except Exception as exc:
-        log.warning("Weather intent lookup failed, falling through: %s", exc)
+        log.warning("Weather/Agent intent lookup failed, falling through: %s", exc)
         return None
-    lines = [f"{a.headline} — {a.detail}" for a in advice.actions[:2]]
-    return "\n\n".join(lines) if lines else None
+
+    urgency_badges = {
+        "critical": "🚨 CRITICAL",
+        "warning": "⚠️ ATTENTION",
+        "advisory": "ℹ️ ADVISORY",
+        "normal": "✅ OPTIMAL",
+    }
+    badge = urgency_badges.get(advisory.urgency, "🤖 ADVISORY")
+
+    headers = {
+        "en": f"🤖 **Autonomous Farm Agent Directive** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "hi": f"🤖 **स्वायत्त कृषि एजेंट निर्देश** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "gu": f"🤖 **સ્વાયત્ત કૃષિ એજન્ટ નિર્દેશ** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "mr": f"🤖 **स्वायत्त कृषी एजंट सल्ला** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "ta": f"🤖 **தன்னாட்சி பண்ணை முகவர் வழிகாட்டுதல்** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "te": f"🤖 **స్వయంప్రతిపత్తి గల వ్యవసాయ ఏజెంట్ ఆదేశం** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+        "pa": f"🤖 **ਖ਼ੁਦਮੁਖ਼ਤਿਆਰ ਖੇਤੀ ਏਜੰਟ ਨਿਰਦੇਸ਼** ({advisory.plot_name} — {advisory.crop}):\n{badge}: **{advisory.headline}** ({advisory.time_window})",
+    }
+    header_text = headers.get(lang, headers["en"])
+
+    actions = [f"{i}. {act.directive}" for i, act in enumerate(advisory.decision_trace.action_plan, 1)]
+    actions_block = "\n".join(actions)
+
+    w_details = []
+    for wa in advice.actions[:2]:
+        w_line = f"• {wa.headline} — {wa.detail}"
+        if not any(wa.headline.lower() in a.lower() for a in actions):
+            w_details.append(w_line)
+
+    trace_lines = []
+    if advisory.decision_trace.conflicts_detected:
+        for c in advisory.decision_trace.conflicts_detected:
+            trace_lines.append(f"• Conflict Detected: {c}")
+    for r in advisory.decision_trace.rules_applied:
+        trace_lines.append(f"• Rule Applied: {r}")
+    trace_lines.append(f"• Decision Latency: {advisory.decision_trace.execution_time_ms:.1f}ms (Tier 1 ReAct Core)")
+    trace_block = "\n".join(trace_lines)
+
+    result_parts = [
+        header_text,
+        f"**Directives:**\n{actions_block}",
+    ]
+    if w_details:
+        result_parts.append(f"**Field Telemetry:**\n" + "\n".join(w_details))
+    result_parts.append(f"**Agent Decision Trace:**\n{trace_block}")
+
+    return "\n\n".join(result_parts)
+
+
+async def _weather_intent_answer(plot: dict | None, last_class: str | None, lang: str) -> str | None:
+    return await _weather_or_agent_intent_answer(plot, last_class, lang)
 
 
 async def _soil_intent_answer(plot: dict | None) -> str | None:
@@ -512,6 +719,239 @@ async def _soil_intent_answer(plot: dict | None) -> str | None:
     return "\n\n".join(lines) if lines else None
 
 
+def _format_disease_card_aspect(
+    question: str,
+    picked: list[tuple[str, dict]],
+    plot_ctx: str,
+    lang: str = "en",
+) -> str:
+    key, c = picked[0]
+    tmpl = _FALLBACK_TEMPLATES.get(lang, _FALLBACK_TEMPLATES["en"])
+    q_low = question.lower()
+
+    if lang != "en":
+        crop_val = c.get(f"crop_{lang}") or c.get("crop", "")
+        disease_val = c.get(f"disease_{lang}") or c.get("disease") or f"healthy {crop_val}"
+    else:
+        crop_val = c.get("crop", "")
+        disease_val = c.get("disease") or f"healthy {crop_val}"
+
+    precautions_list = c.get(f"precautions_{lang}")
+    if precautions_list and isinstance(precautions_list, list):
+        prevention_text = "\n".join(f"• {p}" for p in precautions_list)
+    else:
+        prevention_text = c.get("prevention", "Maintain field hygiene and crop rotation.")
+
+    organic_text = c.get("organic", "Neem-based organic protectant or bio-fungicide.")
+    chemical_text = c.get("chemical", "Standard protective fungicide.")
+    symptoms_text = c.get("symptoms", "Inspect foliage and stems for lesions or spots.")
+
+    # Detect specific query aspect
+    is_waiting_period = any(w in q_low for w in [
+        "waiting period", "safety waiting", "before harvest", "pre-harvest", "phi", "withdrawal",
+        "तुड़ाई", "प्रतीक्षा अवधि", "કાપણી", "પ્રતીક્ષા", "काढणी", "அறுவடை", "కోత", "ਵਾਢੀ"
+    ])
+
+    is_pesticide_query = not is_waiting_period and any(w in q_low for w in [
+        "what pesticide", "which pesticide", "what chemical", "which chemical",
+        "pesticides should i use", "pesticide should i use", "chemical control",
+        "what fungicide", "which fungicide", "what medicine", "which medicine",
+        "dose", "कीटनाशक", "कौन सी दवा", "रासायनिक दवा", "જંતુનાશક", "કઈ દવા",
+        "कीटकनाशक", "कोणते औषध", "பூச்சிக்கொல்லி", "என்ன மருந்து", "పురుగుమందు", "ఏ మందు", "ਕੀਟਨਾਸ਼ਕ"
+    ])
+
+    is_organic_query = not is_waiting_period and not is_pesticide_query and any(w in q_low for w in [
+        "organic alternative", "organic control", "organic cure", "biological control",
+        "natural alternative", "जैविक विकल्प", "जैविक उपाय", "જૈવિક વિકલ્પ", "सेंद्रિય पर्याय",
+        "இயற்கை மாற்று", "సేంద్రీయ ప్రత్యామ్నాయం", "ਜੈਵਿਕ ਬਦਲ"
+    ])
+
+    is_symptom_query = not is_waiting_period and not is_pesticide_query and not is_organic_query and any(w in q_low for w in [
+        "symptom", "symptoms", "signs", "identify", "look for", "look like",
+        "लक्षण", "पहचान", "लक्षणे", "અறிகுறிகள்", "లక్షణాలు", "ਲੱਛਣ"
+    ])
+
+    is_prevention_query = not is_waiting_period and not is_pesticide_query and not is_organic_query and not is_symptom_query and any(w in q_low for w in [
+        "how to prevent", "prevention", "preventive measure", "how to avoid",
+        "रोकथाम", "बचाव", "અટકાવ", "નિવારણ", "प्रतिबंध", "தடுப்பு", "నివారణ", "ਰੋਕਥਾਮ"
+    ])
+
+    # 1. ASPECT: Safety Waiting Period before Harvest
+    if is_waiting_period:
+        titles = {
+            "en": f"⏱️ Safety Waiting Period (Pre-Harvest Interval) for {crop_val} — {disease_val}:",
+            "hi": f"⏱️ {crop_val} — {disease_val} के लिए तुड़ाई पूर्व प्रतीक्षा अवधि (Waiting Period):",
+            "gu": f"⏱️ {crop_val} — {disease_val} માટે વીણણી પહેલાનો સુરક્ષા સમય (Waiting Period):",
+            "mr": f"⏱️ {crop_val} — {disease_val} साठी काढणीपूर्वीचा सुरक्षा कालावधी (Waiting Period):",
+            "ta": f"⏱️ {crop_val} — {disease_val} அறுவடைக்கு முந்தைய பாதுகாப்பு காத்திருப்பு காலம்:",
+            "te": f"⏱️ {crop_val} — {disease_val} కోతకు ముందు వేచి ఉండాల్సిన సమయం (Waiting Period):",
+            "pa": f"⏱️ {crop_val} — {disease_val} ਲਈ ਤੁੜਾਈ ਤੋਂ ਪਹਿਲਾਂ ਉਡੀਕ ਸਮਾਂ (Waiting Period):",
+        }
+        title = titles.get(lang, titles["en"])
+
+        details = {
+            "en": (
+                f"• Chemical Treatments ({chemical_text}):\n"
+                f"  Maintain a strict waiting period of 7–10 days after spraying before harvesting edible fruits or leaves to avoid chemical residues.\n"
+                f"• Copper / Contact Protectants:\n"
+                f"  Wait at least 3–5 days after application before picking produce.\n"
+                f"• Organic / Bio-solutions ({organic_text}):\n"
+                f"  Safe to harvest within 1–2 days after application as bio-protectants leave minimal residue.\n"
+                f"• Harvesting Advice:\n"
+                f"  Never spray immediately before harvest. Always wash all harvested produce thoroughly with clean running water before consumption or taking to market."
+            ),
+            "hi": (
+                f"• रासायनिक कीटनाशक/फफूंदनाशक ({chemical_text}):\n"
+                f"  दवा छिड़कने के बाद फल या पत्तियां तोडऩे से पहले कम से कम 7 से 10 दिन का अंतराल अवश्य रखें ताकि कीटनाशक अवशेष समाप्त हो सकें।\n"
+                f"• कॉपर फफूंदनाशक:\n"
+                f"  छिड़काव के कम से कम 3 से 5 दिन बाद ही तुड़ाई करें।\n"
+                f"• जैविक उपचार ({organic_text}):\n"
+                f"  जैविक या नीम आधारित स्प्रे के 1-2 दिन बाद तुड़ाई करना सुरक्षित है।\n"
+                f"• सुरक्षा सलाह:\n"
+                f"  तुड़ाई के 48 घंटे पहले कोई भी रासायनिक स्प्रे न करें। उपयोग या बिक्री से पहले फल-सब्जियों को साफ पानी से अच्छी तरह धोएं।"
+            ),
+            "gu": (
+                f"• રાસાયણિક છંટકાવ ({chemical_text}):\n"
+                f"  દવા છાંટ્યા પછી વીણણી કરતાં પહેલાં ઓછામાં ઓછા 7 થી 10 દિવસનો ગાળો રાખો જેથી રાસાયણિક અંશ દૂર થાય.\n"
+                f"• કોપર દવાઓ:\n"
+                f"  છંટકાવના 3 થી 5 દિવસ પછી વીણણી કરવી.\n"
+                f"• જૈવિક ઉપાયો ({organic_text}):\n"
+                f"  જૈવિક દવાઓ માટે 1 થી 2 દિવસનો સમય સલામત છે.\n"
+                f"• સલાહ: હંમેશાં ઉપજને વાપરતાં પહેલાં ચોખ્ખા પાણીથી બરાબર ધોઈ લો."
+            ),
+            "mr": (
+                f"• रासायनिक फवारणी ({chemical_text}):\n"
+                f"  औषध फवारल्यानंतर काढणीपूर्वी किमान 7 ते 10 दिवसांचा सुरक्षा कालावधी ठेवावा.\n"
+                f"• तांबे/कॉपर बुरशीनाशके:\n"
+                f"  फवारणीनंतर किमान 3 ते 5 दिवसांनी काढणी करावी.\n"
+                f"• सेंद्रिय उपचार ({organic_text}):\n"
+                f"  सेंद्रिय फवारणीनंतर 1-2 दिवसांत काढणी करणे सुरक्षित असते.\n"
+                f"• सल्ला: काढणीनंतर फळे/भाज्या स्वच्छ पाण्याने धुऊनच बाजारात न्याव्यात."
+            ),
+            "ta": (
+                f"• வேதியியல் மருந்துகள் ({chemical_text}):\n"
+                f"  மருந்து தெளித்த பிறகு அறுவடை செய்வதற்கு முன் 7 முதல் 10 நாட்கள் காத்திருக்க வேண்டும்.\n"
+                f"• காப்பர் மருந்துகள்: தெளித்த 3-5 நாட்களுக்குப் பின் அறுவடை செய்யவும்.\n"
+                f"• இயற்கை வழிகள் ({organic_text}): 1-2 நாட்களில் அறுவடை செய்யலாம்.\n"
+                f"• ஆலோசனை: விளைபொருட்களைப் பயன்படுத்துவதற்கு முன் நல்ல தண்ணீரில் நன்கு கழுவவும்."
+            ),
+            "te": (
+                f"• రసాయన మందులు ({chemical_text}):\n"
+                f"  మందు పిచికారీ చేసిన తర్వాత పంట కోయడానికి కనీసం 7 నుండి 10 రోజుల విరామం పాటించాలి.\n"
+                f"• కాపర్ మందులు: పిచికారీ చేసిన 3-5 రోజుల తర్వాత కోత కోయండి.\n"
+                f"• సేంద్రీయ పద్ధతులు ({organic_text}): 1-2 రోజుల తర్వాత కోయడం సురక్షితం.\n"
+                f"• సలహా: మార్కెట్‌కు తీసుకెళ్లే ముందు పంటను శుభ్రమైన నీటితో కడగాలి."
+            ),
+            "pa": (
+                f"• ਰਸਾਇਣਕ ਦਵਾਈਆਂ ({chemical_text}):\n"
+                f"  ਸਪਰੇਅ ਕਰਨ ਤੋਂ ਬਾਅਦ ਤੁੜਾਈ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਘੱਟੋ-ਘੱਟ 7 ਤੋਂ 10 ਦਿਨਾਂ ਦਾ ਸਮਾਂ ਰੱਖੋ।\n"
+                f"• ਕਾਪਰ ਸਪਰੇਅ: ਸਪਰੇਅ ਦੇ 3-5 ਦਿਨਾਂ ਬਾਅਦ ਤੁੜਾਈ ਕਰੋ।\n"
+                f"• ਜੈਵਿਕ ਇਲਾਜ ({organic_text}): 1-2 ਦਿਨਾਂ ਬਾਅਦ ਤੁੜਾਈ ਕਰਨਾ ਸੁਰੱਖਿਅਤ ਹੈ।\n"
+                f"• ਸਲਾਹ: ਵਰਤੋਂ ਤੋਂ ਪਹਿਲਾਂ ਫਲਾਂ ਅਤੇ ਸਬਜ਼ੀਆਂ ਨੂੰ ਸਾਫ਼ ਪਾਣੀ ਨਾਲ ਧੋਵੋ।"
+            ),
+        }
+        return f"{title}\n\n{details.get(lang, details['en'])}"
+
+    # 2. ASPECT: Targeted Chemical / Pesticide Guidance
+    if is_pesticide_query:
+        titles = {
+            "en": f"💊 Recommended Chemical & Pesticide Control for {crop_val} — {disease_val}:",
+            "hi": f"💊 {crop_val} — {disease_val} के लिए अनुशंसित रासायनिक कीटनाशक/दवा नियंत्रण:",
+            "gu": f"💊 {crop_val} — {disease_val} માટે ભલામણ કરેલ રાસાયણિક/કીટનાશક નિયંત્રણ:",
+            "mr": f"💊 {crop_val} — {disease_val} साठी शिफारस केलेले रासायनिक/कीटकनाशक नियंत्रण:",
+            "ta": f"💊 {crop_val} — {disease_val} க்கான பரிந்துரைக்கப்பட்ட வேதியியல்/பூச்சிக்கொல்லி கட்டுப்பாடு:",
+            "te": f"💊 {crop_val} — {disease_val} కోసం సిఫార్సు చేయబడిన రసాయన/పురుగుమందు నియంత్రణ:",
+            "pa": f"💊 {crop_val} — {disease_val} ਲਈ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀਆਂ ਰਸਾਇਣਕ/ਕੀਟਨਾਸ਼ਕ ਦਵਾਈਆਂ:",
+        }
+        title = titles.get(lang, titles["en"])
+
+        spray_window = {
+            "en": "Spray in early morning (6:00–9:00 AM) or late afternoon (4:00–6:00 PM) on calm, dry days (wind <15 km/h) with no rain expected within 4 hours.",
+            "hi": "शांत मौसम में सुबह (6:00–9:00 बजे) या शाम (4:00–6:00 बजे) छिड़काव करें। यदि 4 घंटे में बारिश की संभावना हो तो छिड़काव टालें।",
+            "gu": "શાંત અને સૂકા વાતાવરણમાં સવારે કે સાંજે છંટકાવ કરવો. આગામી 4 કલાકમાં વરસાદની શક્યતા હોય તો છંટકાવ મોકૂફ રાખવો.",
+            "mr": "सकाळी किंवा संध्याकाळी कोरड्या हवामानात फवारणी करावी. पाऊस येणार असल्यास फवारणी करू नये.",
+            "ta": "அமைதியான, வறண்ட வானிலையில் காலையில் அல்லது மாலையில் தெளிக்கவும். மழை வர வாய்ப்பிருந்தால் தெளிக்க வேண்டாம்.",
+            "te": "ఉదయం లేదా సాయంత్రం వేళల్లో పిచికారీ చేయండి. వర్షం పడే అవకాశం ఉంటే పిచికారీ వాయిదా వేయండి.",
+            "pa": "ਸਵੇਰੇ ਜਾਂ ਸ਼ਾਮ ਨੂੰ ਸ਼ਾਂਤ ਮੌਸਮ ਵਿੱਚ ਸਪਰੇਅ ਕਰੋ। ਜੇਕਰ ਮੀਂਹ ਪੈਣ ਦੀ ਸੰਭਾਵਨਾ ਹੋਵੇ ਤਾਂ ਸਪਰੇਅ ਨਾ ਕਰੋ।",
+        }.get(lang, "Spray in early morning or late afternoon on calm days.")
+
+        chem_line = f"• {tmpl['chemical']}: {chemical_text}"
+        app_line = f"• Application Window: {spray_window}" if lang == "en" else f"• छिड़काव का समय: {spray_window}"
+        org_line = f"• Organic Alternative: {organic_text}" if lang == "en" else f"• जैविक विकल्प: {organic_text}"
+        return f"{title}\n\n{chem_line}\n\n{app_line}\n\n{org_line}"
+
+    # 3. ASPECT: Targeted Organic Control
+    if is_organic_query:
+        titles = {
+            "en": f"🌿 Organic & Biological Measures for {crop_val} — {disease_val}:",
+            "hi": f"🌿 {crop_val} — {disease_val} के लिए जैविक व प्राकृतिक उपाय:",
+            "gu": f"🌿 {crop_val} — {disease_val} માટે જૈવિક અને કુદરતી ઉપાયો:",
+            "mr": f"🌿 {crop_val} — {disease_val} साठी सेंद्रिय व जैविक उपाय:",
+            "ta": f"🌿 {crop_val} — {disease_val} க்கான இயற்கை மற்றும் உயிரியல் முறைகள்:",
+            "te": f"🌿 {crop_val} — {disease_val} కోసం సేంద్రీయ నివారణ పద్ధతులు:",
+            "pa": f"🌿 {crop_val} — {disease_val} ਲਈ ਜੈਵਿਕ ਅਤੇ ਕੁਦਰਤੀ ਉਪਾਅ:",
+        }
+        title = titles.get(lang, titles["en"])
+        lines = [
+            title,
+            f"• {tmpl['organic']}: {organic_text}",
+            f"• {tmpl['prevention']}:\n{prevention_text}",
+        ]
+        return "\n\n".join(lines)
+
+    # 4. ASPECT: Targeted Symptoms & Field Signs
+    if is_symptom_query:
+        titles = {
+            "en": f"🔍 Field Signs & Symptom Identification for {crop_val} — {disease_val}:",
+            "hi": f"🔍 {crop_val} — {disease_val} के लक्षण व खेत में पहचान:",
+            "gu": f"🔍 {crop_val} — {disease_val} ના લક્ષણો અને ખેતરમાં ઓળખ:",
+            "mr": f"🔍 {crop_val} — {disease_val} ची लक्षणे व शेतातील ओळख:",
+            "ta": f"🔍 {crop_val} — {disease_val} அறிகுறிகள் மற்றும் கள அடையாளம்:",
+            "te": f"🔍 {crop_val} — {disease_val} లక్షణాలు మరియు గుర్తింపు:",
+            "pa": f"🔍 {crop_val} — {disease_val} ਦੇ ਲੱਛਣ ਅਤੇ ਖੇਤ ਵਿੱਚ ਪਛਾਣ:",
+        }
+        title = titles.get(lang, titles["en"])
+        lines = [
+            title,
+            f"• {tmpl['signs']}: {symptoms_text}",
+            f"• Scouting Tip: Inspect leaf undersides and stems weekly. Take a photo in the 'Scan' tab for instant AI confirmation." if lang == "en" else f"• सलाह: पत्तियों के नीचे और तनों की जांच करें। रोग पुष्टि के लिए 'स्कैन' टैब में फोटो लें।",
+        ]
+        return "\n\n".join(lines)
+
+    # 5. ASPECT: Targeted Prevention & Field Hygiene
+    if is_prevention_query:
+        titles = {
+            "en": f"🛡️ Prevention & Field Sanitation for {crop_val} — {disease_val}:",
+            "hi": f"🛡️ {crop_val} — {disease_val} से बचाव व खेत की स्वच्छता:",
+            "gu": f"🛡️ {crop_val} — {disease_val} થી બચાવ અને ખેતરની સ્વચ્છતા:",
+            "mr": f"🛡️ {crop_val} — {disease_val} पासून बचाव व शेताची स्वच्छता:",
+            "ta": f"🛡️ {crop_val} — {disease_val} தடுப்பு முறைகள் மற்றும் பண்ணை தூய்மை:",
+            "te": f"🛡️ {crop_val} — {disease_val} నివారణ చర్యలు మరియు పరిశుభ్రత:",
+            "pa": f"🛡️ {crop_val} — {disease_val} ਤੋਂ ਬਚਾਅ ਅਤੇ ਖੇਤ ਦੀ ਸਫ਼ਾਈ:",
+        }
+        title = titles.get(lang, titles["en"])
+        lines = [
+            title,
+            f"• {tmpl['prevention']}:\n{prevention_text}",
+            f"• Cultural Hygiene: Avoid overhead watering; space plants to ensure good airflow; remove and safely destroy diseased leaves." if lang == "en" else f"• मुख्य नियम: पौधों में हवा के लिए उचित दूरी रखें, ऊपर से पानी न दें, और संक्रमित पत्तियों को नष्ट करें।",
+        ]
+        return "\n\n".join(lines)
+
+    # 6. DEFAULT: Comprehensive Disease Card Overview (for general queries like 'Tell me about...')
+    lines = [f"{crop_val} — {disease_val}".strip(" —")]
+    if symptoms_text:
+        lines.append(f"{tmpl['signs']}: {symptoms_text}")
+    if organic_text:
+        lines.append(f"{tmpl['organic']}: {organic_text}")
+    if chemical_text and chemical_text.lower() not in ("none needed.", "none needed"):
+        lines.append(f"{tmpl['chemical']}: {chemical_text}")
+    if prevention_text:
+        lines.append(f"{tmpl['prevention']}:\n{prevention_text}" if isinstance(precautions_list, list) else f"{tmpl['prevention']}: {prevention_text}")
+    if plot_ctx:
+        lines.append(tmpl["plot_advice"].format(ctx=plot_ctx))
+    return "\n\n".join(lines)
+
+
 async def _fallback_answer(
     question: str, picked: list[tuple[str, dict]], plot: dict | None, plot_ctx: str,
     last_class: str | None, lang: str = "en",
@@ -521,18 +961,20 @@ async def _fallback_answer(
     if not picked:
         intent = _detect_intent(question)
 
-        # Weather / irrigation-timing — grounded in a live forecast + the
-        # same rule engine Module C uses, when a plot location is known.
-        if intent == "weather":
-            weather_answer = await _weather_intent_answer(plot, last_class, lang)
+        # Heatwave & crop thermal stress protection
+        if intent == "heat_stress":
+            faq = _LOCAL_FAQ.get("heat_stress")
+            if faq:
+                return faq.get(lang, faq["en"])
+
+        # Weather / irrigation-timing, spray weather & Autonomous Agent directives — grounded
+        # in Module G ReAct loop + live forecast when a plot location is known.
+        if intent in ("weather", "spray_weather", "agent"):
+            weather_answer = await _weather_or_agent_intent_answer(plot, last_class, lang, question)
             if weather_answer:
                 return weather_answer
-            # No plot location to fetch a forecast for — the irrigation FAQ
-            # entry already covers this exact case (general watering
-            # principles + a nudge to add a plot for live advice), and most
-            # non-plot weather questions from a farmer are practically
-            # "should I water" questions anyway.
-            faq = _LOCAL_FAQ["irrigation"]
+            faq_key = "spray_weather" if intent == "spray_weather" else ("irrigation" if intent == "weather" else "agent")
+            faq = _LOCAL_FAQ.get(faq_key, _LOCAL_FAQ["irrigation"])
             return faq.get(lang, faq["en"])
 
         # Soil & fertilizer — grounded in the plot's own fetched soil
@@ -587,7 +1029,7 @@ async def _fallback_answer(
                 "gu": f"તમારા આ પ્લોટના {crop_name} પાક માટે: જમીનમાં યોગ્ય ભેજ રાખો, પાંદડા નીચે નિયમિતપણે જીવાત કે ડાઘ તપાસો, અને સંતુલિત ખાતર આપો. સચોટ રોગ તપાસ માટે 'સ્કેન' ટેબમાં પાનનો ફોટો લો.",
                 "mr": f"तुमच्या या शेतातील {crop_name} पिकासाठी: पाण्याचा योग्य निचरा ठेवा, पानांखाली कीड किंवा डाग नियमित तपासा, आणि संतुलित खते द्या. अचूक रोग निदानासाठी 'स्कॅन' टॅबमध्ये पानाचा फोटो घ्या.",
                 "ta": f"இந்த நிலத்தின் {crop_name} பயிருக்கு: நல்ல வடிகால் வசதி செய்யுங்கள், இலைகளின் அடியில் பூச்சிகள் உள்ளதா என வாரந்தோறும் பாருங்கள், காலையில் நீர் பாய்ச்சுங்கள். நோய் பரிசோதனைக்கு 'ஸ்கேன்' பக்கத்தில் புகைப்படம் எடுக்கவும்.",
-                "te": f"ఈ పొలంలోని మీ {crop_name} పంట కోసం: నీరు నిలవకుండా చూడండి, ఆకుల కింద పురుగులు లేదా మచ్చల కోసం వారానికోసారి తనిਖీ చేయండి. 'స్కాన్' ట్యాబ్‌లో ఆకు ఫోటో తీసి పరీక్షించండి.",
+                "te": f"ఈ పొలంలోని మీ {crop_name} పంట కోసం: నీరు నిలవకుండా చూడండి, ఆకుల కింద పురుగులు లేదా మచ్చల కోసం వారానికోసారి తనిఖీ చేయండి. 'స్కాన్' ట్యాబ్‌లో ఆకు ఫోటో తీసి పరీక్షించండి.",
                 "pa": f"ਤੁਹਾਡੇ ਇਸ ਖੇਤ ਦੀ {crop_name} ਫ਼ਸਲ ਲਈ: ਪਾਣੀ ਦੀ ਨਿਕਾਸੀ ਚੰਗੀ ਰੱਖੋ, ਪੱਤਿਆਂ ਹੇਠਾਂ ਕੀੜੇ ਜਾਂ ਧੱਬੇ ਨਿਯਮਿਤ ਦੇਖੋ, ਅਤੇ ਸਵੇਰੇ ਪਾਣੀ ਦਿਓ। ਰੋਗ ਜਾਂਚ ਲਈ 'ਸਕੈਨ' ਟੈਬ ਵਿੱਚ ਪੱਤੇ ਦੀ ਫੋਟੋ ਲਓ.",
             }
             base = crop_guidance.get(lang, crop_guidance["en"])
@@ -606,35 +1048,8 @@ async def _fallback_answer(
             return base
 
         return tmpl["no_card"]
-    key, c = picked[0]
-    if lang != "en":
-        crop_val = c.get(f"crop_{lang}") or c.get("crop", "")
-        disease_val = c.get(f"disease_{lang}") or c.get("disease") or f"healthy {crop_val}"
-        lines = [f"{crop_val} — {disease_val}".strip(" —")]
-        precautions = c.get(f"precautions_{lang}")
-        if precautions and isinstance(precautions, list):
-            p_text = "\n".join(f"• {p}" for p in precautions)
-            lines.append(f"{tmpl['prevention']}:\n{p_text}")
-        elif c.get("prevention"):
-            lines.append(f"{tmpl['prevention']}: {c['prevention']}")
-        if c.get("organic"):
-            lines.append(f"{tmpl['organic']}: {c['organic']}")
-        if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
-            lines.append(f"{tmpl['chemical']}: {c['chemical']}")
-    else:
-        name = c.get("disease") or f"healthy {c.get('crop', 'crop')}"
-        lines = [f"{c.get('crop', '')} — {name}".strip(" —")]
-        if c.get("symptoms"):
-            lines.append(f"{tmpl['signs']}: {c['symptoms']}")
-        if c.get("organic"):
-            lines.append(f"{tmpl['organic']}: {c['organic']}")
-        if c.get("chemical") and c["chemical"].lower() not in ("none needed.", "none needed"):
-            lines.append(f"{tmpl['chemical']}: {c['chemical']}")
-        if c.get("prevention"):
-            lines.append(f"{tmpl['prevention']}: {c['prevention']}")
-    if plot_ctx:
-        lines.append(tmpl["plot_advice"].format(ctx=plot_ctx))
-    return "\n\n".join(lines)
+
+    return _format_disease_card_aspect(question, picked, plot_ctx, lang)
 
 
 async def _gemini_answer(question: str, context: str, lang: str) -> str | None:
@@ -772,11 +1187,19 @@ def _resolve_context_query(question: str, history: list | None = None) -> str:
     if (has_own_crop or has_own_disease) and not has_pronoun:
         return question
 
+    intent = _detect_intent(question)
+    is_operational = intent in (
+        "weather", "irrigation", "soil", "sowing", "weeding", "schemes",
+        "greeting", "spray_weather", "heat_stress", "agent",
+    )
+    if is_operational and not has_pronoun and not any(w in q_low for w in ["disease", "cure", "treat", "symptom"]):
+        return question
+
     needs_context = (
         len(question.split()) <= 6
         or has_pronoun
         or any(w in q_low for w in [
-            "the disease", "cure", "spray", "treat", "dose", "chemical", "waiting period",
+            "the disease", "cure", "spray", "treat", "dose", "chemical", "waiting period", "pesticide", "pesticides",
             "दवा", "इलाज", "छिड़काव", "દવા", "સારવાર", "ઔષધ", "औषध", "फवारणी", "மருந்து", "மందు", "ਦਵਾਈ"
         ])
     )
@@ -874,7 +1297,7 @@ def _generate_shortcuts(
     if picked or intent in ("pest", "yellow_leaves") or any(w in q_low for w in ["leaf", "spot", "disease", "rot", "blight", "rust", "scan", "photo", "रोग", "बीमारी", "રોગ", "कीड", "நோய்", "వ్యాధి", "ਬਿਮਾਰੀ"]):
         shortcuts.append(ActionShortcut(label=scan_lbl, icon="camera", route="/scan"))
 
-    if intent in ("weather", "irrigation") or any(w in q_low for w in ["weather", "rain", "temperature", "wind", "spray", "water", "मौसम", "हवाમાન", "हवामान", "வானிலை", "వాతావరణం", "ਮੌਸਮ", "सिंचाई", "પાણી", "पाणी"]):
+    if intent in ("weather", "irrigation", "agent") or any(w in q_low for w in ["weather", "rain", "temperature", "wind", "spray", "water", "मौसम", "हवाમાન", "हवामान", "வானிலை", "వాతావరణం", "ਮੌਸਮ", "सिंचाई", "પાણી", "पाणी", "agent", "advisory"]):
         shortcuts.append(ActionShortcut(label=weather_lbl, icon="sun", route="/weather"))
 
     if intent in ("soil", "organic") or any(w in q_low for w in ["soil", "fertiliz", "npk", "ph", "compost", "manure", "मिट्टी", "माती", "જમીન", "மண்", "నేల", "ਮਿੱਟੀ", "खाद", "खत", "જીવામૃત", "జీవామృతం"]):
@@ -1077,12 +1500,14 @@ async def answer_question(
     # Tier 3: Zero-Latency Circuit Breaker Fallback
     answer = await _fallback_answer(question, picked, plot, plot_ctx, last_class, lang)
     if not picked:
-        if intent == "weather" and plot and plot.get("lat") is not None:
+        if intent in ("weather", "spray_weather", "agent") and plot and plot.get("lat") is not None:
             grounded_on.append("weather")
+            grounded_on.append("agent")
         elif intent == "soil" and plot and (plot.get("soil_snapshot") or {}).get("texture_class"):
             grounded_on.append("soil")
-        elif intent in _LOCAL_FAQ or intent == "weather":
-            grounded_on.append(f"faq:{intent if intent != 'weather' else 'irrigation'}")
+        elif intent in _LOCAL_FAQ or intent in ("weather", "spray_weather", "agent"):
+            faq_key = "irrigation" if intent == "weather" else intent
+            grounded_on.append(f"faq:{faq_key}")
         elif intent == "soil":
             grounded_on.append("faq:organic")
         elif plot and plot.get("main_crop"):

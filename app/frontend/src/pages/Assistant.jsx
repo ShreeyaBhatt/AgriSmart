@@ -178,7 +178,15 @@ export default function Assistant() {
   const utteranceRef = useRef(null);
 
   useEffect(() => {
-    api.listPlots().then(setPlots).catch(() => {});
+    api
+      .listPlots()
+      .then((data) => {
+        setPlots(data || []);
+        if (data && data.length > 0) {
+          setPlotId((prev) => prev || data[0].id);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

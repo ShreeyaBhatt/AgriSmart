@@ -276,3 +276,212 @@ async def test_assistant_multilingual_context_resolution():
     res_gu = _resolve_context_query("આની દવા જણાવો", gu_history)
     assert "ટામેટા" in res_gu or "tomato" in res_gu or "સૂકારો" in res_gu
 
+
+@pytest.mark.asyncio
+async def test_assistant_operational_query_with_prior_diagnosis_runs_agent(monkeypatch):
+    """When a plot has an active fungal scan (e.g. Grape Black rot), asking an operational
+    question like 'Should I irrigate today?' must trigger the Autonomous Agent (Module G)
+    rather than vomiting the static leaf disease diagnosis card."""
+    from app.backend.services import weather as weather_service
+
+    async def fake_forecast(lat, lon):
+        return {
+            "hourly": {
+                "relative_humidity_2m": [85] * 24,
+                "precipitation": [0.5] * 24,
+            },
+            "daily": {
+                "precipitation_probability_max": [80, 70, 60],
+                "precipitation_sum": [12.0, 5.0, 0.0],
+                "temperature_2m_max": [29, 28, 27],
+                "temperature_2m_min": [19, 18, 18],
+                "wind_speed_10m_max": [15, 12, 10],
+            },
+        }
+
+    monkeypatch.setattr(weather_service, "fetch_forecast", fake_forecast)
+
+    plot = {
+        "id": "plot-vineyard",
+        "name": "North Vineyard",
+        "lat": 20.0,
+        "lon": 74.0,
+        "main_crop": "Grape",
+        "planting": {"crop": "Grape", "stage": "Fruiting"},
+        "soil_snapshot": {"ph": 6.5, "texture_class": "Loam"},
+        "latest_diagnosis": {"predicted_class": "Grape___Black_rot", "abstained": False},
+    }
+
+    ans = await answer_question(
+        "Should I irrigate today?",
+        lang="en",
+        plot=plot,
+        last_class="Grape___Black_rot",
+    )
+
+    # Must NOT be the raw disease signs card
+    assert "tan leaf spots with dark pycnidia dots" not in ans.answer.lower()
+
+    # Must be the Autonomous Agent directive
+    assert "autonomous farm agent directive" in ans.answer.lower()
+    assert "halt irrigation" in ans.answer.lower() or "delay irrigation" in ans.answer.lower()
+    assert "agent decision trace" in ans.answer.lower()
+    assert "tier1-rule-401" in ans.answer.lower()
+    assert "weather" in ans.grounded_on
+    assert "agent" in ans.grounded_on
+
+
+@pytest.mark.asyncio
+async def test_assistant_disease_treatment_query_returns_treatment_card():
+    """Asking specifically about disease treatment or cure should retrieve the treatment card."""
+    ans = await answer_question(
+        "How do I treat black rot on grape?",
+        lang="en",
+        last_class="Grape___Black_rot",
+    )
+    assert "grape" in ans.answer.lower()
+    assert "black rot" in ans.answer.lower()
+    assert "organic" in ans.answer.lower()
+    assert "chemical" in ans.answer.lower()
+
+
+@pytest.mark.asyncio
+async def test_assistant_agent_intent_query_triggers_react_loop(monkeypatch):
+    """Asking 'What should I do on my farm today?' triggers Autonomous Agent advisory."""
+    from app.backend.services import weather as weather_service
+
+    async def fake_forecast(lat, lon):
+        return {
+            "hourly": {"relative_humidity_2m": [50] * 24, "precipitation": [0.0] * 24},
+            "daily": {
+                "precipitation_probability_max": [10],
+                "precipitation_sum": [0.0],
+                "temperature_2m_max": [28],
+                "temperature_2m_min": [18],
+                "wind_speed_10m_max": [8],
+            },
+        }
+
+    monkeypatch.setattr(weather_service, "fetch_forecast", fake_forecast)
+
+    plot = {
+        "id": "p-1",
+        "name": "East Block",
+        "lat": 23.0,
+        "lon": 72.5,
+        "main_crop": "Wheat",
+        "planting": {"crop": "Wheat", "stage": "Tillering"},
+        "soil_snapshot": None,
+    }
+
+    ans = await answer_question("What should I do on my farm today?", lang="en", plot=plot)
+    assert "autonomous farm agent" in ans.answer.lower()
+    assert "agent decision trace" in ans.answer.lower()
+    assert "weather" in ans.grounded_on
+    assert "agent" in ans.grounded_on
+
+
+@pytest.mark.asyncio
+async def test_assistant_spray_timing_query_runs_agent_and_not_disease_card(monkeypatch):
+    """Asking 'So what about pesticides should i spray today or tomorrow?' with a plot having
+    Tomato Bacterial spot must NOT return the static Tomato - Bacterial spot card, but rather
+    the Autonomous Agent / Spray Weather directive."""
+    from app.backend.services import weather as weather_service
+
+    async def fake_forecast(lat, lon):
+        return {
+            "daily": {
+                "precipitation_probability_max": [86, 70, 40],
+                "precipitation_sum": [6.3, 2.0, 0.0],
+                "temperature_2m_max": [30.4, 29.0, 28.0],
+                "temperature_2m_min": [20.0, 19.0, 19.0],
+                "wind_speed_10m_max": [13.5, 12.0, 10.0],
+            },
+            "hourly": {
+                "precipitation": [0.3] * 24,
+                "relative_humidity_2m": [78] * 24,
+            },
+        }
+
+    monkeypatch.setattr(weather_service, "fetch_forecast", fake_forecast)
+
+    plot = {
+        "id": "plot-odhav",
+        "name": "Odhav",
+        "lat": 23.04573,
+        "lon": 72.56474,
+        "main_crop": "Tomato",
+        "planting": {"crop": "Tomato", "stage": "Vegetative"},
+        "soil_snapshot": None,
+        "latest_diagnosis": {"predicted_class": "Tomato___Bacterial_spot", "abstained": False},
+    }
+
+    ans = await answer_question(
+        "So what about pesticides should i spray today or tomorrow?",
+        lang="en",
+        plot=plot,
+        last_class="Tomato___Bacterial_spot",
+    )
+
+    # Must NOT output the raw symptoms card
+    assert "numerous small dark greasy spots on leaves" not in ans.answer.lower()
+
+    # Must output the Autonomous Agent directive
+    assert "autonomous farm agent directive" in ans.answer.lower()
+    assert "agent decision trace" in ans.answer.lower()
+    assert "weather" in ans.grounded_on
+    assert "agent" in ans.grounded_on
+
+
+@pytest.mark.asyncio
+async def test_assistant_distinct_aspects_pesticides_and_waiting_period():
+    """Verify that 'What pesticides should i use?' and 'What is the safety waiting period before harvest?'
+    produce completely distinct, aspect-specific responses instead of repeating the identical disease card.
+    """
+    plot = {
+        "id": "plot-odhav",
+        "name": "Odhav",
+        "lat": 23.04573,
+        "lon": 72.56474,
+        "main_crop": "Tomato",
+        "planting": {"crop": "Tomato", "stage": "Fruiting"},
+        "latest_diagnosis": {"predicted_class": "Tomato___Bacterial_spot", "abstained": False},
+    }
+
+    # Tile 1: "What pesticides should i use?"
+    ans1 = await answer_question(
+        "What pesticides should i use?",
+        lang="en",
+        plot=plot,
+        last_class="Tomato___Bacterial_spot",
+    )
+
+    # Tile 2: "What is the safety waiting period before harvest?"
+    history = [
+        ChatMessage(role="user", content="What pesticides should i use?"),
+        ChatMessage(role="assistant", content=ans1.answer),
+    ]
+    ans2 = await answer_question(
+        "What is the safety waiting period before harvest?",
+        lang="en",
+        plot=plot,
+        last_class="Tomato___Bacterial_spot",
+        history=history,
+    )
+
+    # 1. Responses must NOT be identical
+    assert ans1.answer != ans2.answer, "Responses for pesticides and waiting period must not be identical!"
+
+    # 2. Tile 1 must focus on pesticides and application window, not symptoms or waiting period
+    assert "Recommended Chemical & Pesticide Control" in ans1.answer
+    assert "Application Window" in ans1.answer
+    assert "Signs:" not in ans1.answer
+    assert "Pre-Harvest Interval" not in ans1.answer
+
+    # 3. Tile 2 must focus on safety waiting period and PHI, not symptoms or generic card
+    assert "Safety Waiting Period (Pre-Harvest Interval)" in ans2.answer
+    assert "7–10 days" in ans2.answer
+    assert "3–5 days" in ans2.answer
+    assert "Signs:" not in ans2.answer
+
+

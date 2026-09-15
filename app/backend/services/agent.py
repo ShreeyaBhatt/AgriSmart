@@ -157,7 +157,7 @@ def evaluate_advisory(
             time_window = "Before Downpour (Next 3-6 Hours)"
 
             action_items.append(ActionItem(
-                directive="HALT all irrigation immediately to prevent waterlogging and disease spread.",
+                directive="HALT all irrigation immediately to prevent waterlogging and disease spread (delay irrigation until foliage dries and disease is arrested).",
                 time_window="Immediate",
                 priority=1,
             ))
@@ -226,16 +226,21 @@ def evaluate_advisory(
             priority=3,
         ))
 
-    # CONFLICT 4: Rain Coming -> Delay Irrigation (General)
+    # CONFLICT 4: Rain Coming -> Delay Irrigation & Postpone Spraying (General)
     if not action_items and (rain_prob >= 60 or rain_24h >= 5.0):
         urgency = "warning"
-        headline = "Rain Approaching: Skip Scheduled Watering"
+        headline = "Rain Approaching: Skip Watering & Postpone Spraying"
         time_window = "Next 24 Hours"
         rules_applied.append("TIER1-RULE-101: Rain Forecast Irrigation Suppression")
         action_items.append(ActionItem(
             directive=f"Rain expected ({rain_prob:.0f}% chance, ~{rain_24h:.0f}mm). Delay irrigation to conserve water and avoid waterlogging.",
             time_window="Next 24h",
             priority=1,
+        ))
+        action_items.append(ActionItem(
+            directive="POSTPONE spraying: Imminent rainfall will wash off pesticides and foliar sprays. Delay chemical applications until foliage dries post-rain.",
+            time_window="Hold until post-rain",
+            priority=2,
         ))
 
     # If no risk fired, produce a proactive positive agronomic plan
