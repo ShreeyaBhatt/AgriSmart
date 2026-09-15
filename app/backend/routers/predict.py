@@ -23,7 +23,7 @@ _ALLOWED = {"image/jpeg", "image/png", "image/webp", "image/bmp"}
 _MAX_IMAGE_BYTES = 15 * 1024 * 1024  # a phone photo is a few MB; 15MB is generous — matches /assistant/transcribe's cap
 
 
-def _diag_out(d: Diagnosis, predicted_label: str | None = None) -> DiagnosisOut:
+def _diag_out(d: Diagnosis, predicted_label: str | None = None, rejection_reason: str | None = None) -> DiagnosisOut:
     return DiagnosisOut(
         id=d.id, plot_id=d.plot_id, planting_id=d.planting_id,
         image_url=f"/uploads/{Path(d.image_path).relative_to(get_settings().uploads_dir).as_posix()}",
@@ -35,6 +35,7 @@ def _diag_out(d: Diagnosis, predicted_label: str | None = None) -> DiagnosisOut:
         confidence=d.confidence, abstained=d.abstained,
         precautions=d.precautions, model_version=d.model_version,
         crop_warning=d.crop_warning, created_at=d.created_at,
+        rejection_reason=rejection_reason or getattr(d, "rejection_reason", None),
     )
 
 
@@ -104,8 +105,10 @@ async def predict(
         precautions=result["precautions"],
         model_version=result["model_version"],
         crop_warning=result.get("crop_warning"),
+        rejection_reason=result.get("rejection_reason"),
     )
     session.add(diagnosis)
     await session.commit()
     await session.refresh(diagnosis)
-    return _diag_out(diagnosis, predicted_label=result.get("predicted_label"))
+    return _diag_out(diagnosis, predicted_label=result.get("predicted_label"), rejection_reason=result.get("rejection_reason"))
+

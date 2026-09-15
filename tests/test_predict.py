@@ -130,3 +130,63 @@ async def test_predict_falls_back_to_profile_crop_when_no_plot(auth_client):
     )
     assert r.status_code == 200, r.text
     assert r.json()["crop_warning"] is not None
+
+
+@pytest.mark.skipif(not _HAS_MODEL, reason="requires a trained model (run model/train.py)")
+@pytest.mark.asyncio
+async def test_predict_rejects_non_leaf_image_and_suppresses_false_treatments(auth_client):
+    """When a non-leaf image (e.g. solid color, room, desk, object) is uploaded,
+    the model must identify it as not_a_leaf, abstain, suppress Grad-CAM, and
+    never return false fungicide or pesticide treatments."""
+    import numpy as np
+    from PIL import Image
+
+    client, headers, _ = auth_client
+    # Synthetic non-leaf: solid blue swatch
+    blue_img = Image.fromarray(np.full((150, 150, 3), [20, 50, 220], dtype=np.uint8))
+    buf = io.BytesIO()
+    blue_img.save(buf, format="JPEG")
+    buf.seek(0)
+
+    r = await client.post(
+        "/api/predict", headers=headers,
+        files={"file": ("blue_swatch.jpg", buf, "image/jpeg")},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+
+    # 1. Must abstain and flag not_a_leaf
+    assert body["abstained"] is True
+    assert body["rejection_reason"] == "not_a_leaf"
+    assert body["gradcam_url"] is None
+    assert body["crop_warning"] is None
+
+    # 2. Must not output false chemical or organic treatment dosing
+    precautions_text = " ".join(body["precautions"]).lower()
+    assert "fungicide" not in precautions_text
+    assert "pesticide" not in precautions_text
+    assert "spray" not in precautions_text
+    assert "does not appear to be a plant leaf" in precautions_text
+
+
+@pytest.mark.skipif(not _HAS_MODEL, reason="requires a trained model (run model/train.py)")
+def test_predict_cli_rejects_non_leaf(tmp_path):
+    """Verifies that the CLI predict interface also abstains gracefully on non-leaf images."""
+    import numpy as np
+    from PIL import Image
+    from model.predict import predict, predict_detailed
+    from model.labels import ABSTAIN_LABEL
+
+    non_leaf_path = tmp_path / "gray_desk.jpg"
+    Image.fromarray(np.full((120, 120, 3), [180, 180, 180], dtype=np.uint8)).save(non_leaf_path)
+
+    # Detailed inference returns not_a_leaf
+    detailed = predict_detailed(str(non_leaf_path))
+    assert detailed["abstained"] is True
+    assert detailed["rejection_reason"] == "not_a_leaf"
+    assert detailed["is_leaf"] is False
+
+    # CLI function returns ABSTAIN_LABEL
+    cli_label = predict(str(non_leaf_path))
+    assert cli_label == ABSTAIN_LABEL
+

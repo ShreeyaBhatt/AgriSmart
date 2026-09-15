@@ -25,10 +25,12 @@ try:  # imported as a package (from the FastAPI backend)
     from .net import load_trained
     from .labels import ABSTAIN_LABEL
     from .dataset import eval_transform
+    from .foliage import verify_plant_foliage, evaluate_crop_support
 except ImportError:  # run as a script
     from net import load_trained
     from labels import ABSTAIN_LABEL
     from dataset import eval_transform
+    from foliage import verify_plant_foliage, evaluate_crop_support
 
 ARTIFACTS_DIR = Path(os.getenv("AGRISMART_MODEL_ARTIFACTS_DIR",
                                str(Path(__file__).resolve().parent / "artifacts")))
@@ -62,7 +64,23 @@ def _tta_views(img: Image.Image, img_size: int) -> list[torch.Tensor]:
 
 
 def predict_detailed(image_path: str) -> dict:
-    """Full result: label, confidence, abstained flag, top-3."""
+    """Full result: label, confidence, abstained flag, top-3, and rejection reason."""
+    img = Image.open(image_path).convert("RGB")
+
+    # 1. Botanical Foliage / Leaf Integrity Verification
+    is_leaf, leaf_reason, foliage_metrics = verify_plant_foliage(img)
+    if not is_leaf:
+        return {
+            "predicted_class": ABSTAIN_LABEL,
+            "raw_class": ABSTAIN_LABEL,
+            "confidence": 0.0,
+            "abstained": True,
+            "is_leaf": False,
+            "rejection_reason": "not_a_leaf",
+            "foliage_metrics": foliage_metrics,
+            "top3": [],
+        }
+
     tm = _model()
     img_size = 192
     try:
@@ -71,7 +89,6 @@ def predict_detailed(image_path: str) -> dict:
     except Exception:
         pass
 
-    img = Image.open(image_path).convert("RGB")
     batch = torch.stack(_tta_views(img, img_size))
     probs = tm.probabilities(batch).mean(0)
     conf, idx = torch.max(probs, dim=0)
@@ -79,12 +96,19 @@ def predict_detailed(image_path: str) -> dict:
     top = torch.topk(probs, k=min(3, len(tm.classes)))
     top3 = [(tm.classes[i], float(p)) for p, i in zip(top.values, top.indices)]
 
-    abstained = conf < TAU
+    # 2. Supported Crop & Out-of-Distribution (OOD) Verification
+    is_supported, crop_reason = evaluate_crop_support(conf, top3, min_confidence=max(TAU, 0.60))
+    abstained = (not is_supported) or (conf < TAU)
+    rejection_reason = "unsupported_crop" if (not is_supported) else None
+
     return {
         "predicted_class": ABSTAIN_LABEL if abstained else tm.classes[int(idx)],
         "raw_class": tm.classes[int(idx)],
         "confidence": round(conf, 4),
         "abstained": abstained,
+        "is_leaf": True,
+        "rejection_reason": rejection_reason,
+        "foliage_metrics": foliage_metrics,
         "top3": top3,
     }
 

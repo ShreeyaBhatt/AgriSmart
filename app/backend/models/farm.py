@@ -82,6 +82,7 @@ class DiagnosisOut(BaseModel):
     precautions: list[str] | None
     model_version: str | None
     crop_warning: str | None = None  # set when the prediction's crop doesn't match the farmer's declared crop
+    rejection_reason: str | None = None  # None | "not_a_leaf" | "unsupported_crop" | "low_confidence"
     created_at: datetime
 
 

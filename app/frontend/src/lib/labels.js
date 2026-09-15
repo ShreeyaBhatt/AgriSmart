@@ -7,4 +7,10 @@ export function prettyLabel(label) {
 }
 
 export const isHealthy = (label) => !!label && label.toLowerCase().endsWith("healthy");
-export const isAbstain = (label) => !!label && label.toLowerCase().startsWith("unclear");
+export const isAbstain = (label) =>
+  !label ||
+  label.toLowerCase().startsWith("unclear") ||
+  label.toLowerCase().startsWith("not a") ||
+  label.toLowerCase().includes("abstain") ||
+  label.toLowerCase().includes("unsupported");
+

@@ -44,24 +44,50 @@ const TIER = {
     badge: "bg-amber-500 text-white",
     icon: "refresh",
   },
+  not_a_leaf: {
+    labelKey: "scan.tag.notALeaf",
+    banner: "border-amber-300 bg-amber-50 text-amber-900",
+    badge: "bg-amber-600 text-white",
+    icon: "alert",
+  },
+  unsupported_crop: {
+    labelKey: "scan.tag.unsupportedCrop",
+    banner: "border-amber-300 bg-amber-50 text-amber-900",
+    badge: "bg-amber-600 text-white",
+    icon: "alert",
+  },
 };
 
 export default function DiagnosisCard({ diagnosis, originalUrl }) {
   const t = useT();
-  const abstain = diagnosis.abstained || isAbstain(diagnosis.predicted_class);
+  const isNotLeaf = diagnosis.rejection_reason === "not_a_leaf";
+  const isUnsupportedCrop = diagnosis.rejection_reason === "unsupported_crop";
+  const abstain = isNotLeaf || isUnsupportedCrop || diagnosis.abstained || isAbstain(diagnosis.predicted_class);
   const healthy = !abstain && isHealthy(diagnosis.predicted_class);
 
-  const label = abstain
-    ? t("scan.unclear")
-    : healthy
-      ? t("scan.healthy")
-      : diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class);
+  const label = isNotLeaf
+    ? t("scan.notALeaf")
+    : isUnsupportedCrop
+      ? t("scan.unsupportedCrop")
+      : abstain
+        ? t("scan.unclear")
+        : healthy
+          ? t("scan.healthy")
+          : diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class);
 
-  const tierKey = abstain ? "abstained" : healthy ? "healthy" : "warning";
+  const tierKey = isNotLeaf
+    ? "not_a_leaf"
+    : isUnsupportedCrop
+      ? "unsupported_crop"
+      : abstain
+        ? "abstained"
+        : healthy
+          ? "healthy"
+          : "warning";
   const tier = TIER[tierKey];
 
   const img = originalUrl || mediaUrl(diagnosis.image_url);
-  const cam = mediaUrl(diagnosis.gradcam_url);
+  const cam = (abstain || isNotLeaf || isUnsupportedCrop) ? null : mediaUrl(diagnosis.gradcam_url);
 
   return (
     <Card className="animate-fade-up overflow-hidden border-2">
@@ -103,7 +129,7 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
               </figure>
             )}
             {img && (
-              <figure>
+              <figure className={cam ? "" : "col-span-2"}>
                 <img src={img} alt={t("scan.yourPhoto")} className="aspect-square w-full rounded-lg object-cover ring-2 ring-line" />
                 <figcaption className="mt-1 text-center text-[10px] text-faint">{t("scan.yourPhoto")}</figcaption>
               </figure>
@@ -118,13 +144,20 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
         )}
 
         <div className="rounded-2xl border-2 border-line bg-canvas/40 p-3.5">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-brand-700">
-            <Icon name="flask" className="h-4 w-4" /> {t("scan.precautions")}
+          <div className={clsx(
+            "flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide",
+            (isNotLeaf || isUnsupportedCrop) ? "text-amber-800" : "text-brand-700"
+          )}>
+            <Icon name={(isNotLeaf || isUnsupportedCrop) ? "alert" : "flask"} className="h-4 w-4" />
+            {(isNotLeaf || isUnsupportedCrop) ? t("scan.safetyNotice") : t("scan.precautions")}
           </div>
           <ol className="mt-2.5 space-y-2.5">
             {(diagnosis.precautions || []).map((p, i) => (
               <li key={i} className="flex items-start gap-2.5">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
+                <span className={clsx(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white",
+                  (isNotLeaf || isUnsupportedCrop) ? "bg-amber-600" : "bg-brand-600"
+                )}>
                   {i + 1}
                 </span>
                 <span className="pt-0.5 text-sm font-medium leading-snug text-ink">{p}</span>
@@ -138,6 +171,18 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
                 prefill: `${t("scan.assistantPrefillPrefix")} ${diagnosis.predicted_label || prettyLabel(diagnosis.predicted_class)} ${t("scan.assistantPrefillSuffix")}`,
               }}
               className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-line bg-surface px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-400 hover:bg-brand-50"
+            >
+              <Icon name="chat" className="h-3.5 w-3.5" />
+              {t("scan.askAssistant")}
+            </Link>
+          )}
+          {(isNotLeaf || isUnsupportedCrop) && (
+            <Link
+              to="/assistant"
+              state={{
+                prefill: "Which crops and diseases does AgriSmart support?",
+              }}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-line bg-surface px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:border-amber-400 hover:bg-amber-50"
             >
               <Icon name="chat" className="h-3.5 w-3.5" />
               {t("scan.askAssistant")}

@@ -73,6 +73,7 @@ class Diagnosis(Base):
     # (Plot.main_crop / User.primary_crop) — see model/infer.py's crop-aware
     # guard rail. None means no mismatch was detected (not "not checked").
     crop_warning: Mapped[str | None] = mapped_column(Text, default=None)
+    rejection_reason: Mapped[str | None] = mapped_column(String(60), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

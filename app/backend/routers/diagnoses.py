@@ -33,7 +33,9 @@ def _out(d: Diagnosis, lang: str = "en") -> DiagnosisOut:
         predicted_class=d.predicted_class, predicted_label=label,
         confidence=d.confidence, abstained=d.abstained,
         precautions=precautions_for(d.predicted_class, lang, d.precautions),
-        model_version=d.model_version, crop_warning=d.crop_warning, created_at=d.created_at,
+        model_version=d.model_version, crop_warning=d.crop_warning,
+        rejection_reason=getattr(d, "rejection_reason", None),
+        created_at=d.created_at,
     )
 
 

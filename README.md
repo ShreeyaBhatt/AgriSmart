@@ -28,7 +28,7 @@ AgriSmart AI is a full-stack smart-agriculture application built for **SIH 2026*
 - 🎥 **Demo Video (3–5 min)**: `[Link to 3–5 min Demo Video]` *(Mandatory Demonstration)*
 - 📋 **One-Page Model Report**: [`report/model_report.md`](report/model_report.md)
 - ⚡ **Fast Evaluator Check**: `python model/predict.py --image data/samples/leaves/Tomato___Early_blight.jpg`
-- 🧪 **Test Suite**: `pytest -q` (121 / 121 tests passing)
+- 🧪 **Test Suite**: `pytest -q` (123 / 123 tests passing)
 
 ---
 
@@ -36,7 +36,7 @@ AgriSmart AI is a full-stack smart-agriculture application built for **SIH 2026*
 
 | Module | PS-1 Category | Status | Implementation Highlights |
 |---|---|---|---|
-| **Crop Disease Detection** | **Mandatory Core Task** | ✅ **Built** | EfficientNet-B0 (transfer learning), 18 crop disease classes, 4-view Test-Time Augmentation (TTA), temperature scaling, confidence abstention ($\tau=0.40$), Grad-CAM visual explanation heatmaps, organic & chemical precautionary guidance. Verified via CLI `predict.py` and Web UI. |
+| **Crop Disease Detection** | **Mandatory Core Task** | ✅ **Built** | EfficientNet-B0 (transfer learning), 18 crop disease classes, 4-view Test-Time Augmentation (TTA), temperature scaling, confidence abstention ($\tau=0.40$), botanical foliage verification + OOD crop guard (rejects non-leaves/unsupported plants without false treatments), Grad-CAM visual explanation heatmaps, organic & chemical precautionary guidance. Verified via CLI `predict.py` and Web UI. |
 | **Crop Recommendation** | Bonus Module A | ✅ **Built** | Multi-variable agronomic fit engine utilizing SoilGrids 2.0 (texture, pH, SOC) + Soil Health Card (district NPK) + seasonal crop requirements. |
 | **Smart Irrigation** | Bonus Module B | ✅ **Built** | Weather-forecast-driven irrigation timing rules, evapotranspiration reduction (dawn/dusk watering), and soil moisture deficit prevention. |
 | **Weather-Based Intelligence** | Bonus Module C | ✅ **Built** | Open-Meteo 3-day forecast integration with deterministic rule engine; triggers actionable fungal risk alerts, spray delay on high winds, and frost/heat stress warnings. |
@@ -56,9 +56,9 @@ Per **Section 4.1 & 7.2 of the Hackathon Submission Contract**, the trained weig
 python model/predict.py --image data/samples/leaves/Tomato___Early_blight.jpg
 # Output: Tomato___Early_blight
 
-# 2. Run the complete automated test suite (121 tests):
+# 2. Run the complete automated test suite (123 tests):
 pytest -q
-# Output: 121 passed in ~24s
+# Output: 123 passed in ~19s
 ```
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:4C7A3D,100:E3A857&height=3&width=100%25" alt="divider"/>
@@ -91,7 +91,7 @@ AgriSmart-AI/
 ├── data/            disease_cards.json · crop_suitability.json · soil_amendments.json · samples/
 ├── docs/            soil_sources · weather_rules · sustainability
 ├── report/          model_report.md (generated)
-└── tests/           121 tests (pytest)
+└── tests/           123 tests (pytest)
 ```
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:4C7A3D,100:E3A857&height=3&width=100%25" alt="divider"/>
@@ -196,7 +196,7 @@ There are no admin or multi-user family roles in this build; each farmer's data 
 
 ## Core Features & Bonus Modules
 
-- **Crop-Disease Detection (Mandatory Core Task)** — a photo of a leaf returns a disease label across 18 classes, a Grad-CAM overlay showing where the model focused, and an explicit "not confident" result when the prediction falls below threshold ($\tau=0.40$), rather than a forced guess.
+- **Crop-Disease Detection (Mandatory Core Task)** — a photo of a leaf returns a disease label across 18 classes, a Grad-CAM overlay showing where the model focused. Features a two-stage **Botanical Foliage & OOD Guard**: automatically identifies non-leaf objects (faces, rooms, objects, solid colors) and unsupported crop leaves, safely abstaining and suppressing false chemical/organic treatments instead of misleading the farmer.
 - **Soil-Aware Crop Recommendation (Bonus Module A)** — a plot's GPS coordinates are resolved against SoilGrids 2.0 and the Soil Health Card to get real texture, pH, and N-P-K values, which then drive crop-fit and amendment suggestions.
 - **Smart Irrigation Timing (Bonus Module B)** — weather-forecast-driven irrigation timing rules, evapotranspiration reduction (dawn/dusk watering), and soil moisture deficit prevention.
 - **Weather Advisory (Bonus Module C)** — a 3-day Open-Meteo forecast is passed through a rule engine that turns raw weather data into a specific action for the farmer, from irrigation timing to wind/rain warnings to proactive "good weather window" tips.
@@ -217,7 +217,7 @@ For evaluation, results are reported at two levels: **per-class** precision/reca
 | **Macro-F1 (Held-out validation)** | **0.992** | 0.840 | **+15.2% above baseline** |
 | **Accuracy (Held-out validation)** | **0.992** | 0.850 | **+14.2% above baseline** |
 | **Abstention Rate (In-distribution)** | **0.000** (0/630) | N/A | High confidence on clear leaves |
-| **Automated Tests Passing** | **121 / 121** | — | `pytest -q` (100% pass) |
+| **Automated Tests Passing** | **123 / 123** | — | `pytest -q` (100% pass) |
 
 These are lab-image numbers; the real benchmark is lab-to-field generalisation, which is what the training augmentation and abstention logic are built for. A complete confusion matrix and per-class metrics are published in [`report/model_report.md`](report/model_report.md).
 

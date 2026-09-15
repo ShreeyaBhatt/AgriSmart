@@ -64,6 +64,80 @@ _ABSTAIN_PRECAUTIONS = {
         "ਫੋਨ ਨੂੰ ਸਥਿਰ ਰੱਖੋ ਅਤੇ ਫੋਕਸ ਲਈ ਟੈਪ ਕਰੋ",
     ],
 }
+_NOT_A_LEAF_PRECAUTIONS = {
+    "en": [
+        "The uploaded photo does not appear to be a plant leaf — no disease detected",
+        "No chemical or organic treatments should be applied to non-leaf objects",
+        "To scan a crop, take a clear photo of an affected leaf on a plain background",
+    ],
+    "hi": [
+        "अपलोड की गई फोटो किसी पौधे की पत्ती नहीं लग रही है — कोई बीमारी नहीं पाई गई",
+        "गैर-पत्ती वस्तुओं पर कोई रासायनिक या जैविक उपचार लागू न करें",
+        "फसल स्कैन करने के लिए, सादे background पर एक प्रभावित पत्ती की साफ़ फोटो लें",
+    ],
+    "gu": [
+        "અપલોડ કરેલો ફોટો છોડના પાન જેવો લાગતો નથી — કોઈ રોગ જણાયો નથી",
+        "બિન-પાન વસ્તુઓ પર કોઈ રાસાયણિક કે જૈવિક સારવાર લાગુ કરશો નહીં",
+        "પાક સ્કેન કરવા માટે, સાદા બેકગ્રાઉન્ડ પર અસરગ્રસ્ત પાંદડાનો સ્પષ્ટ ફોટો લો",
+    ],
+    "mr": [
+        "अपलोड केलेला फोटो वनस्पतीचे पान दिसत नाही — कोणताही रोग आढळला नाही",
+        "गैर-पानांच्या वस्तूंवर कोणतेही रासायनिक किंवा सेंद्रिय उपचार करू नका",
+        "पीक स्कॅन करण्यासाठी, साध्या पार्श्वभूमीवर एका प्रभावित पानाचा स्पष्ट फोटो घ्या",
+    ],
+    "ta": [
+        "பதிவேற்றப்பட்ட புகைப்படம் தாவர இலையாகத் தெரியவில்லை — நோய் எதுவும் கண்டறியப்படவில்லை",
+        "இலை அல்லாத பொருட்களுக்கு எந்த இரசாயன அல்லது கரிம சிகிச்சைகளையும் பயன்படுத்த வேண்டாம்",
+        "பயிரை ஸ்கேன் செய்ய, எளிய பின்னணியில் பாதிக்கப்பட்ட இலையின் தெளிவான புகைப்படத்தை எடுக்கவும்",
+    ],
+    "te": [
+        "అప్‌లోడ్ చేసిన ఫోటో మొక్క ఆకులా కనిపించడం లేదు — ఎటువంటి వ్యాధి కనుగొనబడలేదు",
+        "ఆకులు కాని వస్తువులకు ఎటువంటి రసాయన లేదా సేంద్రీయ చికిత్సలను వర్తించవద్దు",
+        "పంటను స్కాన్ చేయడానికి, సాదా నేపథ్యంలో ఒక ప్రభావిత ఆకు స్పష్టమైన ఫోటో తీయండి",
+    ],
+    "pa": [
+        "ਅੱਪਲੋਡ ਕੀਤੀ ਫੋਟੋ ਕਿਸੇ ਪੌਦੇ ਦੇ ਪੱਤੇ ਵਰਗੀ ਨਹੀਂ ਲੱਗਦੀ — ਕੋਈ ਬਿਮਾਰੀ ਨਹੀਂ ਲੱਭੀ",
+        "ਗੈਰ-ਪੱਤੇ ਵਾਲੀਆਂ ਵਸਤੂਆਂ 'ਤੇ ਕੋਈ ਰਸਾਇਣਕ ਜਾਂ ਜੈਵਿਕ ਇਲਾਜ ਲਾਗੂ ਨਾ ਕਰੋ",
+        "ਫ਼ਸਲ ਸਕੈਨ ਕਰਨ ਲਈ, ਸਾਦੇ ਬੈਕਗ੍ਰਾਊਂਡ 'ਤੇ ਪ੍ਰਭਾਵਿਤ ਪੱਤੇ ਦੀ ਸਾਫ਼ ਫੋਟੋ ਲਓ",
+    ],
+}
+_UNSUPPORTED_CROP_PRECAUTIONS = {
+    "en": [
+        "This leaf is not recognized as one of the 6 supported crops (Apple, Bell Pepper, Corn, Grape, Potato, Tomato)",
+        "No treatments shown: Treatments are only displayed for verified diseases of supported crops to prevent harmful chemical misapplication",
+        "Please scan a leaf from a supported crop, or consult your local agricultural extension service (KVK)",
+    ],
+    "hi": [
+        "यह पत्ती 6 समर्थित फसलों (टमाटर, आलू, मक्का, सेब, अंगूर, शिमला मिर्च) में से किसी की नहीं पहचानी गई",
+        "कोई उपचार नहीं दिखाया गया: रासायनिक गलत उपयोग रोकने के लिए केवल समर्थित फसलों के सत्यापित रोगों का उपचार दिया जाता है",
+        "कृपया किसी समर्थित फसल की पत्ती स्कैन करें, या स्थानीय कृषि विज्ञान केंद्र (KVK) से परामर्श लें",
+    ],
+    "gu": [
+        "આ પાંદડું 6 સમર્થિત પાકો (ટામેટાં, બટાકા, મકાઈ, સફરજન, દ્રાક્ષ, કેપ્સિકમ) માંથી ઓળખાતું નથી",
+        "કોઈ સારવાર બતાવાઈ નથી: હાનિકારક રસાયણોના ખોટા ઉપયોગથી બચવા માટે માત્ર સમર્થિત પાકો માટે જ સારવાર આપવામાં આવે છે",
+        "કૃપા કરીને સમર્થિત પાકનું પાંદડું સ્કેન કરો, અથવા સ્થાનિક કૃષિ વિજ્ઞાન કેન્દ્ર (KVK) નો સંપર્ક કરો",
+    ],
+    "mr": [
+        "हे पान 6 समर्थित पिकांपैकी (टोमॅटो, बटाटा, मका, सफरचंद, द्राक्ष, शिमला मिरची) ओळखले गेले नाही",
+        "उपचार दाखवले नाहीत: रासायनिक फवारणीचा गैरवापर टाळण्यासाठी केवळ समर्थित पिकांसाठीच उपचार दिले जातात",
+        "कृपया समर्थित पिकाचे पान स्कॅन करा किंवा स्थानिक कृषी विज्ञान केंद्राचा (KVK) सल्ला घ्या",
+    ],
+    "ta": [
+        "இந்த இலை 6 ஆதரிக்கப்படும் பயிர்களில் (தக்காளி, உருளைக்கிழங்கு, சோளம், ஆப்பிள், திராட்சை, குடைமிளகாய்) ஒன்றாக அடையாளம் காணப்படவில்லை",
+        "சிகிச்சைகள் காட்டப்படவில்லை: தவறான இரசாயனப் பயன்பாட்டைத் தடுக்க, ஆதரிக்கப்படும் பயிர்களுக்கு மட்டுமே சிகிச்சைகள் வழங்கப்படுகின்றன",
+        "தயவுசெய்து ஆதரிக்கப்படும் பயிரின் இலையை ஸ்கேன் செய்யவும் அல்லது உள்ளூர் வேளாண்மை அறிவியல் மையத்தை (KVK) அணுகவும்",
+    ],
+    "te": [
+        "ఈ ఆకు 6 మద్దతు ఉన్న పంటలలో (టమోటా, బంగాళాదుంప, మొక్కజొన్న, యాపిల్, ద్రాక్ష, బెల్ పెప్పర్) ఒకటిగా గుర్తించబడలేదు",
+        "చికిత్సలు చూపబడలేదు: రసాయన దుర్వినియోగాన్ని నివారించడానికి, కేవలం మద్దతు ఉన్న పంటలకు మాత్రమే చికిత్సలు అందించబడతాయి",
+        "దయచేసి మద్దతు ఉన్న పంట ఆకును స్కాన్ చేయండి లేదా స్థానిక కృషి విజ్ఞాన కేంద్రాన్ని (KVK) సంప్రదించండి",
+    ],
+    "pa": [
+        "ਇਹ ਪੱਤਾ 6 ਸਮਰਥਿਤ ਫ਼ਸਲਾਂ (ਟਮਾਟਰ, ਆਲੂ, ਮੱਕੀ, ਸੇਬ, ਅੰਗੂਰ, ਸ਼ਿਮਲਾ ਮਿਰਚ) ਵਿੱਚੋਂ ਨਹੀਂ ਪਛਾਣਿਆ ਗਿਆ",
+        "ਕੋਈ ਇਲਾਜ ਨਹੀਂ ਦਿਖਾਇਆ ਗਿਆ: ਨੁਕਸਾਨਦੇਹ ਰਸਾਇਣਕ ਵਰਤੋਂ ਤੋਂ ਬਚਣ ਲਈ ਸਿਰਫ਼ ਸਮਰਥਿਤ ਫ਼ਸਲਾਂ ਲਈ ਹੀ ਇਲਾਜ ਦਿੱਤੇ ਜਾਂਦੇ ਹਨ",
+        "ਕਿਰਪਾ ਕਰਕੇ ਸਮਰਥਿਤ ਫ਼ਸਲ ਦੇ ਪੱਤੇ ਨੂੰ ਸਕੈਨ ਕਰੋ, ਜਾਂ ਸਥਾਨਕ ਕ੍ਰਿਸ਼ੀ ਵਿਗਿਆਨ ਕੇਂਦਰ (KVK) ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+    ],
+}
 _GENERIC_PRECAUTIONS = {
     "en": [
         "Scout the crop again in 2-3 days",
@@ -194,7 +268,13 @@ def crop_warning_for(predicted_label: str, expected_crop: str | None, lang: str 
     return tmpl.format(supported=supported, expected=expected_crop)
 
 
-def precautions_for(label: str, abstained: bool, lang: str = "en") -> list[str]:
+def precautions_for(
+    label: str, abstained: bool, lang: str = "en", rejection_reason: str | None = None
+) -> list[str]:
+    if rejection_reason == "not_a_leaf":
+        return _NOT_A_LEAF_PRECAUTIONS.get(lang, _NOT_A_LEAF_PRECAUTIONS["en"])
+    if rejection_reason == "unsupported_crop":
+        return _UNSUPPORTED_CROP_PRECAUTIONS.get(lang, _UNSUPPORTED_CROP_PRECAUTIONS["en"])
     if abstained:
         return _ABSTAIN_PRECAUTIONS.get(lang, _ABSTAIN_PRECAUTIONS["en"])
     card = _cards().get(label) or {}
@@ -218,9 +298,12 @@ def run_inference(
     image_path: str, gradcam_out: Path | None = None, lang: str = "en",
     expected_crop: str | None = None,
 ) -> dict:
-    result = predict_detailed(image_path)  # {predicted_class, raw_class, confidence, abstained, top3}
+    result = predict_detailed(image_path)  # {predicted_class, raw_class, confidence, abstained, top3, rejection_reason, is_leaf}
     result["model_version"] = model_version()
-    result["precautions"] = precautions_for(result["raw_class"], result["abstained"], lang)
+    rejection = result.get("rejection_reason")
+    result["precautions"] = precautions_for(
+        result["raw_class"], result["abstained"], lang, rejection_reason=rejection
+    )
     result["predicted_label"] = (
         None if result["abstained"] else localized_label_for(result["raw_class"], lang)
     )
@@ -229,10 +312,6 @@ def run_inference(
         warning = crop_warning_for(result["raw_class"], expected_crop, lang)
         if warning:
             result["crop_warning"] = warning
-            # Crop-specific dosing may not even apply to the actual plant in
-            # the photo — fall back to the same generic precautions used
-            # when we have no card match at all, rather than risk steering
-            # a farmer toward a wrong-crop treatment.
             result["precautions"] = _GENERIC_PRECAUTIONS.get(lang, _GENERIC_PRECAUTIONS["en"])
     result["gradcam_path"] = None
     result["pretty_top3"] = result["top3"]
