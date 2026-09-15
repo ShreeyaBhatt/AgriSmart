@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import clsx from "clsx";
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import SoilProfileCard from "../components/SoilProfileCard.jsx";
@@ -28,6 +29,9 @@ export default function PlotDetail() {
   const [crops, setCrops] = useState(null);
   const [timeline, setTimeline] = useState(null);
   const [error, setError] = useState("");
+  const [refreshingSoil, setRefreshingSoil] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
+  const [refreshError, setRefreshError] = useState("");
 
   const loadTimeline = useCallback(() => {
     api.timeline(id, lang).then(setTimeline).catch(() => {});
@@ -67,7 +71,24 @@ export default function PlotDetail() {
   };
 
   const refreshSoil = async () => {
-    setPlot(await api.refreshSoil(id));
+    setRefreshingSoil(true);
+    setRefreshError("");
+    setRefreshSuccess(false);
+    try {
+      const updatedPlot = await api.refreshSoil(id);
+      setPlot(updatedPlot);
+      setRefreshSuccess(true);
+      setTimeout(() => setRefreshSuccess(false), 3000);
+      if (updatedPlot) {
+        api.amendments(updatedPlot.lat, updatedPlot.lon, undefined, lang).then(setAmendments).catch(() => {});
+        api.crops(updatedPlot.lat, updatedPlot.lon, undefined, undefined, lang).then(setCrops).catch(() => {});
+      }
+      loadTimeline();
+    } catch (err) {
+      setRefreshError(err.detail || err.message || t("plot.refreshError"));
+    } finally {
+      setRefreshingSoil(false);
+    }
   };
 
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
@@ -88,17 +109,48 @@ export default function PlotDetail() {
             {area != null && ` · ${area} ${unitLabel}`}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={refreshSoil}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-canvas">
-            <Icon name="refresh" className="h-3.5 w-3.5" /> {t("plot.refreshSoil")}
+        <div className="flex flex-wrap items-center gap-2">
+          {refreshSuccess && (
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 animate-fade-up">
+              <Icon name="check" className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+              {t("plot.soilRefreshed")}
+            </span>
+          )}
+          <button
+            onClick={refreshSoil}
+            disabled={refreshingSoil}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-canvas transition disabled:cursor-not-allowed disabled:opacity-60"
+            title={t("plot.refreshSoil")}
+          >
+            <Icon
+              name="refresh"
+              className={clsx("h-3.5 w-3.5", refreshingSoil && "animate-spin text-brand-600")}
+            />
+            {refreshingSoil ? t("plot.refreshingSoil") : t("plot.refreshSoil")}
           </button>
-          <button onClick={remove}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50">
-            {t("action.delete")}
+          <button
+            onClick={remove}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50"
+          >
+            <Icon name="trash" className="h-3.5 w-3.5" /> {t("action.delete")}
           </button>
         </div>
       </div>
+
+      {refreshError && (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-700 animate-fade-up">
+          <div className="flex items-center gap-2">
+            <Icon name="alert" className="h-4 w-4 shrink-0" />
+            <span>{refreshError}</span>
+          </div>
+          <button
+            onClick={() => setRefreshError("")}
+            className="text-rose-500 hover:text-rose-700"
+          >
+            <Icon name="close" className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Soil loading banner — shown while background fetch is running for this plot */}
       {pendingPlot?.id === id && soilStatus === "pending" && (
