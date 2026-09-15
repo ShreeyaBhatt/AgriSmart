@@ -202,12 +202,12 @@ _cache = _TTLCache(get_settings().soil_cache_ttl_s)
 _offline_cache = _TTLCache(get_settings().soil_offline_cache_ttl_s)
 
 
+_in_flight: dict[str, asyncio.Task[SoilProfile]] = {}
+
+
 def _cache_key(lat: float, lon: float) -> str:
     p = get_settings().soil_cache_precision
     return f"{round(lat, p)},{round(lon, p)}"
-
-
-
 
 
 async def build_soil_profile(
@@ -215,25 +215,6 @@ async def build_soil_profile(
 ) -> SoilProfile:
     """Full pipeline: SoilGrids ``properties`` + ``classification`` -> 0-30 cm
     normalisation -> USDA texture -> Soil Health Card nutrient enrichment -> cache.
-
-    Resilient to SoilGrids' intermittent all-null responses: if the properties
-    call yields no usable data, the bundled sample fixture stands in for the
-    physical/chemical values (``source = "sample (offline)"``) while any
-    classification and SHC data that *did* resolve are still used.
-
-    All external calls (properties, classification, reverse geocode) run
-    concurrently to minimise wall time, capped by ``soilgrids_deadline_s`` —
-    profiling during an ISRIC slowdown measured single requests taking
-    20-30s each, sometimes timing out, compounding through retries into
-    50-60s+ for one lookup. Past the deadline this gives up and falls back
-    rather than let a farmer's plot-creation flow hang on it indefinitely.
-
-    Args:
-        skip_offline_cache: When True the short-TTL offline-fallback cache is
-            ignored even if ``use_cache=True``. Background plot-soil tasks set
-            this so that a previous transient failure for the same coordinates
-            (e.g. from an interactive /soil/lookup) does not prevent the task
-            from making a fresh attempt once SoilGrids has recovered.
     """
     key = _cache_key(lat, lon)
     if use_cache and (cached := _cache.get(key)) is not None:
@@ -241,64 +222,74 @@ async def build_soil_profile(
     if use_cache and not skip_offline_cache and (cached := _offline_cache.get(key)) is not None:
         return cached if not texture_override else cached.model_copy(update={"texture_class": texture_override})
 
-    # --- Run all external calls concurrently ---
-    async def _safe_properties():
-        try:
-            return await fetch_properties(lat, lon)
-        except SoilGridsError as exc:
-            log.warning("SoilGrids properties unavailable for (%s, %s): %s", lat, lon, exc)
-            return None
+    # Coalesce duplicate in-flight requests (e.g. soil/lookup + recommend/amendments + recommend/crops)
+    if use_cache and key in _in_flight:
+        base = await _in_flight[key]
+        return base if not texture_override else base.model_copy(update={"texture_class": texture_override})
 
-    async def _safe_classification():
-        try:
-            return await fetch_classification(lat, lon)
-        except SoilGridsError as exc:
-            log.warning("SoilGrids classification unavailable for (%s, %s): %s", lat, lon, exc)
-            return {}
+    async def _execute_build() -> SoilProfile:
+        # --- Run all external calls concurrently ---
+        async def _safe_properties():
+            try:
+                return await fetch_properties(lat, lon)
+            except SoilGridsError as exc:
+                log.warning("SoilGrids properties unavailable for (%s, %s): %s", lat, lon, exc)
+                return None
 
-    try:
-        properties_payload, classification_payload, admin = await asyncio.wait_for(
-            asyncio.gather(_safe_properties(), _safe_classification(), reverse_admin(lat, lon)),
-            timeout=get_settings().soilgrids_deadline_s,
+        async def _safe_classification():
+            try:
+                return await fetch_classification(lat, lon)
+            except SoilGridsError as exc:
+                log.warning("SoilGrids classification unavailable for (%s, %s): %s", lat, lon, exc)
+                return {}
+
+        try:
+            properties_payload, classification_payload, admin = await asyncio.wait_for(
+                asyncio.gather(_safe_properties(), _safe_classification(), reverse_admin(lat, lon)),
+                timeout=get_settings().soilgrids_deadline_s,
+            )
+        except asyncio.TimeoutError:
+            log.warning("SoilGrids phase exceeded the %ss deadline for (%s, %s); using offline sample",
+                        get_settings().soilgrids_deadline_s, lat, lon)
+            properties_payload, classification_payload, admin = None, {}, Admin(None, None, None)
+
+        shc = shc_lookup(admin.district)
+
+        if properties_payload is None:
+            from .soil_fallback import get_regional_fallback
+            source_prefix = "regional estimate (offline)"
+            fallback_props, fallback_class = get_regional_fallback(admin.state)
+            properties_payload = fallback_props
+            classification_payload = classification_payload or fallback_class
+        else:
+            source_prefix = "SoilGrids v2.0"
+
+        profile = assemble_profile(
+            lat=lat,
+            lon=lon,
+            properties_payload=properties_payload,
+            classification_payload=classification_payload,
+            admin=admin,
+            shc=shc,
+            source_prefix=source_prefix,
         )
-    except asyncio.TimeoutError:  # asyncio.TimeoutError, not the builtin — README targets Python 3.10+,
-        # where they're still distinct classes (aliased together only from 3.11)
-        log.warning("SoilGrids phase exceeded the %ss deadline for (%s, %s); using offline sample",
-                    get_settings().soilgrids_deadline_s, lat, lon)
-        properties_payload, classification_payload, admin = None, {}, Admin(None, None, None)
+        if source_prefix == "SoilGrids v2.0":
+            _cache.set(key, profile)
+        else:
+            _offline_cache.set(key, profile)
+        return profile
 
-    shc = shc_lookup(admin.district)
+    task = asyncio.create_task(_execute_build())
+    _in_flight[key] = task
+    try:
+        base_profile = await task
+    finally:
+        _in_flight.pop(key, None)
 
-    if properties_payload is None:
-        from .soil_fallback import get_regional_fallback
-        source_prefix = "regional estimate (offline)"
-        fallback_props, fallback_class = get_regional_fallback(admin.state)
-        properties_payload = fallback_props
-        classification_payload = classification_payload or fallback_class
-    else:
-        source_prefix = "SoilGrids v2.0"
-
-    profile = assemble_profile(
-        lat=lat,
-        lon=lon,
-        properties_payload=properties_payload,
-        classification_payload=classification_payload,
-        admin=admin,
-        shc=shc,
-        source_prefix=source_prefix,
-    )
-    if source_prefix == "SoilGrids v2.0":
-        _cache.set(key, profile)
-    else:
-        # Short TTL: without this, every request for a location SoilGrids is
-        # currently failing on pays the full retry-and-possibly-timeout cost
-        # again, even the same coordinates queried twice in a row — this is
-        # what actually made repeated lookups slow during an outage, not
-        # just the one-off cold cost.
-        _offline_cache.set(key, profile)
-    return profile if not texture_override else profile.model_copy(update={"texture_class": texture_override})
+    return base_profile if not texture_override else base_profile.model_copy(update={"texture_class": texture_override})
 
 
 def clear_cache() -> None:
     _cache.clear()
     _offline_cache.clear()
+    _in_flight.clear()

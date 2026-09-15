@@ -12,12 +12,15 @@ export function SoilCheckProvider({ children }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
-  const analyse = useCallback(async (la, lo, s, tex = null, lang) => {
+  const analyse = useCallback(async (la, lo, s, tex = undefined, lang) => {
     if (la == null || lo == null) return;
     setLoading(true);
     setError("");
     setResult(null);
-    const override = tex ?? textureOverride;
+    // Explicit null clears override (fresh GPS analysis).
+    // A string sets a new manual override.
+    // undefined preserves existing override (for language toggle re-runs).
+    const override = tex === null ? null : (tex !== undefined ? tex : textureOverride);
     setTextureOverride(override);
     try {
       const [profile, amendments, crops] = await Promise.all([

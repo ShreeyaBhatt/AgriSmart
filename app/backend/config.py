@@ -15,21 +15,16 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AGRISMART_", env_file=str(REPO_ROOT / ".env"), extra="ignore")
 
     # --- SoilGrids ---
+    # Legacy REST endpoint (paused by ISRIC / returns 503):
     soilgrids_base_url: str = "https://rest.isric.org/soilgrids/v2.0"
-    soilgrids_timeout_s: float = 30.0
-    # Courtesy gap between outbound SoilGrids requests. Kept small so an
-    # interactive lookup stays snappy; raise it (env: AGRISMART_SOILGRIDS_MIN_INTERVAL_S)
-    # for batch jobs to respect ISRIC fair-use.
+    # Official, active ISRIC Web Coverage Service (WCS) endpoint:
+    soilgrids_wcs_url: str = "https://maps.isric.org/mapserv"
+    soilgrids_timeout_s: float = 15.0
+    # Courtesy gap between outbound SoilGrids requests.
     soilgrids_min_interval_s: float = 0.5
-    # ISRIC's REST service is often slow / returns transient all-null payloads;
-    # a couple of retries usually lands real data before the offline fallback.
-    soilgrids_max_retries: int = 3
-    # Hard ceiling on the whole SoilGrids phase of a lookup (properties +
-    # classification, retries included). ISRIC's API can be slow — observed
-    # ~27s on a normal day from South Asia; set comfortably above that.
-    # Past this, give up and use the offline sample rather than let one
-    # request's retries run unbounded; see soil_offline_cache_ttl_s below.
-    soilgrids_deadline_s: float = 45.0
+    soilgrids_max_retries: int = 2
+    # Hard ceiling on the whole SoilGrids phase of a lookup.
+    soilgrids_deadline_s: float = 25.0
 
     # --- Nominatim (reverse geocode -> district for SHC enrichment) ---
     nominatim_base_url: str = "https://nominatim.openstreetmap.org"
