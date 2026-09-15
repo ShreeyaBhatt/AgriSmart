@@ -106,11 +106,12 @@ def _moisture_stress_risk(deviation_pct: float) -> str:
 
 def _formula_tips(
     water_over: float, water_deficit: float, chem_over: float, crop_health: float,
+    water_deviation: float,
 ) -> list[str]:
     """Deterministic, hard-coded tips (used as fallback when Gemini is off)."""
     tips: list[str] = []
-    if water_over > 10:
-        tips.append(f"Irrigation is {water_over:.0f}% above the crop's need — "
+    if water_deviation > 10:
+        tips.append(f"Irrigation is {water_deviation:.0f}% above the crop's need — "
                     "switch to soil‑moisture‑based scheduling or drip to cut waste.")
     if water_deficit > 10:
         tips.append(f"Irrigation is {water_deficit:.0f}% below the crop's need — "
@@ -208,7 +209,7 @@ async def compute_score(req: SustainabilityRequest) -> SustainabilityScore:
         tips = ai_tips
         ai_validated = True
     else:
-        tips = _formula_tips(water_over, water_deficit, chem_over, float(crop_health))
+        tips = _formula_tips(water_over, water_deficit, chem_over, float(crop_health), water_deviation)
         ai_validated = False
 
     return SustainabilityScore(
