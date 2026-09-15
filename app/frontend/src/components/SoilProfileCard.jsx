@@ -62,6 +62,7 @@ function TextureDropdown({ currentTexture, onChange }) {
     setOpen(false);
   };
 
+  const isOverridden = Boolean(currentTexture && TEXTURES.some(t => t.value === currentTexture));
   const currentLabel = TEXTURES.find(t => t.value === currentTexture)?.label || "Override...";
 
   return (
@@ -83,8 +84,16 @@ function TextureDropdown({ currentTexture, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 w-48 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
+        <div className="absolute left-0 top-full mt-1.5 w-52 rounded-xl border border-line bg-surface p-1.5 shadow-lg ring-1 ring-black/5 animate-fade-up max-h-64 overflow-y-auto custom-scrollbar">
           <div className="flex flex-col gap-0.5">
+            <button
+              type="button"
+              onClick={() => choose(null)}
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/30 border-b border-line mb-1 transition"
+            >
+              <span>Auto (GPS Detected)</span>
+              <Icon name="refresh" className="h-3 w-3 text-brand-500" />
+            </button>
             {TEXTURES.map((t) => {
               const active = t.value === currentTexture;
               return (

@@ -248,3 +248,61 @@ async def test_build_soil_profile_respects_deadline(monkeypatch, sample_doc):
 
     profile = await sp.build_soil_profile(21.0, 74.0, use_cache=False)
     assert profile.source == "regional estimate (offline)"
+
+
+async def test_wcs_fetch_properties_structure(monkeypatch):
+    """Test that fetch_properties returns the standard GeoJSON Feature schema expected downstream."""
+    from app.backend.services import soilgrids_client as sgc
+
+    async def fake_pixel(client, map_name, coverage_id, lat, lon, delta=0.03):
+        # Return realistic raw sensor values
+        mock_values = {
+            "clay": 440, "sand": 290, "silt": 270, "phh2o": 77,
+            "soc": 78, "nitrogen": 90, "cec": 310, "bdod": 138, "cfvo": 18,
+        }
+        return mock_values.get(map_name, 100)
+
+    monkeypatch.setattr(sgc, "_fetch_wcs_pixel", fake_pixel)
+    payload = await sgc.fetch_properties(22.31, 73.18)
+
+    assert payload["type"] == "Feature"
+    assert payload["geometry"]["coordinates"] == [73.18, 22.31]
+    layers = payload["properties"]["layers"]
+    assert len(layers) == len(sgc.PROPERTIES)
+    clay_layer = next(l for l in layers if l["name"] == "clay")
+    assert clay_layer["unit_measure"]["d_factor"] == 10
+    assert len(clay_layer["depths"]) == 3
+    assert clay_layer["depths"][0]["values"]["mean"] == 440
+
+
+async def test_wcs_fetch_classification_mock(monkeypatch):
+    """Test WRB integer raster decoding and class mapping."""
+    import io
+    from PIL import Image
+    import numpy as np
+    from app.backend.services import soilgrids_client as sgc
+
+    # Create an in-memory TIFF image with pixel values = 29 (Vertisols)
+    img = Image.fromarray(np.full((10, 10), 29, dtype=np.int16))
+    buf = io.BytesIO()
+    img.save(buf, format="TIFF")
+    tiff_bytes = buf.getvalue()
+
+    class FakeResponse:
+        status_code = 200
+        headers = {"content-type": "image/tiff"}
+        content = tiff_bytes
+
+    class FakeClient:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            pass
+        async def get(self, url, params=None):
+            return FakeResponse()
+
+    monkeypatch.setattr("httpx.AsyncClient", lambda **kw: FakeClient())
+    result = await sgc.fetch_classification(22.31, 73.18)
+    assert result["wrb_class_name"] == "Vertisols"
+    assert result["wrb_class_probability"][0][0] == "Vertisols"
+    assert result["wrb_class_probability"][0][1] == 100
