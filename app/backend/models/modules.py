@@ -48,13 +48,26 @@ class SustainabilityRequest(BaseModel):
 class SustainabilityScore(BaseModel):
     score: float
     band: Literal["poor", "fair", "good", "excellent"]
-    water_deviation_pct: float
+    water_overuse_pct: float
+    water_deficit_pct: float
     chemical_overuse_pct: float
     crop_health_pct: float
     formula: str
     tips: list[str]
     ai_validated: bool = False
     ai_notes: str | None = None
+
+    # A DELIBERATELY separate indicator from `score`/`band` (see
+    # services/sustainability.py's module docstring for why): the headline
+    # score blends water/chemical efficiency with crop health into one
+    # number, so a severe-but-not-extreme water deviation can still land in
+    # the "excellent" band. water_deviation_pct / moisture_stress_risk let
+    # the UI surface that risk on its own, without waiting for it to drag
+    # the blended score down first (issue: "Excellent" shown next to a
+    # severe moisture-stress risk with no indication the two aren't the
+    # same thing).
+    water_deviation_pct: float  # signed: negative = under-watering, positive = overuse
+    moisture_stress_risk: Literal["none", "moderate", "severe"]
 
 
 # --------------------------------------------------------------------------- #

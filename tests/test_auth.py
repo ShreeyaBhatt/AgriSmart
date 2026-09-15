@@ -144,3 +144,38 @@ async def test_protected_route_requires_auth(client):
     assert (await client.get("/api/auth/me")).status_code == 401
     assert (await client.get("/api/plots")).status_code == 401
     assert (await client.get("/api/auth/me", headers={"Authorization": "Bearer garbage"})).status_code == 401
+
+
+# --- Mobile number validation --------------------------------------------
+# Backend is the source of truth (app/backend/models/auth.py _normalize_phone);
+# the frontend's isValidPhone in Login.jsx mirrors the same rules for instant
+# feedback, but must never be the only guard — every case here is exercised
+# straight against the API, exactly as a bypassed/hostile client would hit it.
+@pytest.mark.parametrize("bad_phone", [
+    "98765432109",          # 11 digits — more than 10
+    "987654321098765",      # 15 digits — well over 10
+    "1111111111",           # repetitive / obviously fake
+    "0000000000",           # repetitive / obviously fake
+    "-111111111",           # negative number
+    "-9876543210",          # negative, would be 10 digits if the sign were stripped
+    "98765abcde",           # non-digit characters
+    "9876$54#3210",         # non-digit characters
+    "987654321",            # 9 digits — fewer than 10
+    "",                     # blank
+])
+async def test_otp_request_rejects_invalid_mobile_numbers(client, bad_phone):
+    r = await client.post("/api/auth/otp/request", json={"phone": bad_phone})
+    assert r.status_code == 422, f"{bad_phone!r} should have been rejected, got {r.status_code}: {r.text}"
+
+
+async def test_otp_verify_also_rejects_invalid_mobile_numbers(client):
+    # /otp/verify shares the same OtpVerifyRequest.phone validator as
+    # /otp/request — this proves both endpoints (i.e. both the login and the
+    # sign-up flow, which are the same two calls) enforce it identically.
+    r = await client.post("/api/auth/otp/verify", json={"phone": "1111111111", "otp": "123456"})
+    assert r.status_code == 422
+
+
+async def test_otp_request_accepts_a_valid_ten_digit_number(client):
+    r = await client.post("/api/auth/otp/request", json={"phone": _rand_phone()})
+    assert r.status_code == 200

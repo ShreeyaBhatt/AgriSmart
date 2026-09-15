@@ -153,7 +153,10 @@ export default function Assistant() {
   const toggleMic = () => (recording ? stopRecording() : startRecording());
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col" style={{ minHeight: "70vh" }}>
+    /* Chat stays centered/single-column on purpose (long lines of chat text
+       get harder to read, not more useful, on a wide screen) — just a bit
+       wider than before so it's not as cramped as the other pages were. */
+    <div className="mx-auto flex max-w-3xl flex-col" style={{ minHeight: "70vh" }}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-lg font-bold tracking-tight text-ink">{t("assistant.title")}</h1>
         <div className="flex items-center gap-2">
