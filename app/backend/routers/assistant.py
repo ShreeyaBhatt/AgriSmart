@@ -6,17 +6,26 @@ import asyncio
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth import get_current_user_optional
 from ..db import get_session
 from ..models.modules import AssistantAnswer, AssistantRequest, TranscribeOut
-from ..models.orm import Diagnosis, Plot
+from ..models.orm import Diagnosis, Planting, Plot
 from ..models.user import User
-from ..services.assistant import answer_question
+from ..services.assistant import (
+    _TTS_CACHE,
+    _clean_text_for_speech,
+    answer_question,
+    generate_tts_audio,
+    prewarm_tts,
+    stream_tts_audio,
+)
 from ..services.transcribe import transcribe
+from ..services import weather as weather_service
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/assistant", tags=["assistant"])
@@ -36,9 +45,30 @@ async def ask(
         plot = await session.get(Plot, req.plot_id)
         if plot and plot.owner_id == user.id:
             plot_ctx = {
-                "name": plot.name, "lat": plot.lat, "lon": plot.lon,
-                "area_ha": plot.area_ha, "soil_snapshot": plot.soil_snapshot,
+                "id": plot.id,
+                "name": plot.name,
+                "lat": plot.lat,
+                "lon": plot.lon,
+                "area_ha": plot.area_ha,
+                "main_crop": plot.main_crop,
+                "soil_snapshot": plot.soil_snapshot,
             }
+            # Active planting telemetry
+            planting = await session.scalar(
+                select(Planting)
+                .where(Planting.plot_id == plot.id, Planting.status == "active")
+                .order_by(Planting.created_at.desc())
+            )
+            if planting:
+                plot_ctx["planting"] = {
+                    "crop": planting.crop,
+                    "stage": planting.stage,
+                    "sown_date": str(planting.sown_date) if planting.sown_date else None,
+                }
+                if not plot_ctx.get("main_crop"):
+                    plot_ctx["main_crop"] = planting.crop
+
+            # Latest leaf scan diagnosis
             last = await session.scalar(
                 select(Diagnosis)
                 .where(Diagnosis.plot_id == plot.id, Diagnosis.abstained == False)  # noqa: E712
@@ -46,11 +76,43 @@ async def ask(
             )
             if last:
                 last_class = last.predicted_class
+                plot_ctx["latest_diagnosis"] = {
+                    "disease": last.predicted_class,
+                    "confidence": last.confidence,
+                }
 
-    return await answer_question(
-        req.question, lang=req.lang, plot=plot_ctx, last_class=last_class,
-        land_unit=req.land_unit, bigha_region=req.bigha_region,
+            # Live weather telemetry
+            try:
+                raw_fc = await weather_service.fetch_forecast(plot.lat, plot.lon)
+                daily = raw_fc.get("daily", {})
+                plot_ctx["weather_summary"] = {
+                    "rain_prob": daily.get("precipitation_probability_max", [0])[0],
+                    "rain_mm": daily.get("precipitation_sum", [0.0])[0],
+                    "tmax": daily.get("temperature_2m_max", [None])[0],
+                    "wind": daily.get("wind_speed_10m_max", [0])[0],
+                }
+            except Exception:
+                pass
+
+    history_list = [m.model_dump() for m in req.history] if req.history else None
+
+    ans = await answer_question(
+        req.question,
+        lang=req.lang,
+        plot=plot_ctx,
+        last_class=last_class,
+        land_unit=req.land_unit,
+        bigha_region=req.bigha_region,
+        history=history_list,
     )
+    # Proactively warm TTS in background so audio is ready when frontend plays it!
+    try:
+        text_to_speak = ans.speech_text or ans.answer
+        asyncio.create_task(prewarm_tts(text_to_speak, ans.lang or req.lang))
+    except Exception as exc:
+        log.debug("TTS prewarm scheduling error: %s", exc)
+
+    return ans
 
 
 @router.post("/transcribe", response_model=TranscribeOut)
@@ -74,3 +136,47 @@ async def transcribe_audio(
         log.exception("transcription failed")
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Transcription failed: {exc}")
     return TranscribeOut(text=text)
+
+
+@router.get("/tts")
+async def text_to_speech(
+    text: str,
+    lang: str = "en",
+) -> Response:
+    if not text.strip():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No text provided")
+
+    clean = _clean_text_for_speech(text)
+    tts_lang = (lang or "en").lower().split("-")[0].split("_")[0].strip()
+    cache_key = (clean, tts_lang)
+
+    # 1. Instant cache hit (<0.05ms)
+    if cache_key in _TTS_CACHE:
+        return Response(
+            content=_TTS_CACHE[cache_key],
+            media_type="audio/mpeg",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+
+    # 2. In-flight prewarm hit (awaits task kicked off during /ask)
+    try:
+        audio_bytes = await prewarm_tts(clean, tts_lang)
+        if audio_bytes:
+            return Response(
+                content=audio_bytes,
+                media_type="audio/mpeg",
+                headers={"Cache-Control": "public, max-age=86400"},
+            )
+    except Exception:
+        pass
+
+    # 3. Streaming response for low first-chunk latency (~400ms)
+    try:
+        return StreamingResponse(
+            stream_tts_audio(clean, tts_lang),
+            media_type="audio/mpeg",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    except Exception as exc:
+        log.exception("TTS streaming generation failed")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"TTS generation failed: {exc}")

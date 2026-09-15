@@ -1,0 +1,51 @@
+{
+  "_about": "Localized names for the 12 USDA texture classes used throughout Module A (crop reasons/caveats, amendment findings). Built compositionally from each language's sandy/loam/silt/clay/soil root words rather than rigid soil-taxonomy jargon, since the audience is farmers, not soil scientists — matches this app's plain-language approach elsewhere. Flag for a native-speaker review pass if one becomes available; these were hand-written, not native-checked.",
+  "sand": {
+    "en": "sand", "hi": "बलुई मिट्टी", "gu": "રેતાળ માટી", "mr": "वालुकामय माती",
+    "ta": "மணல் மண்", "te": "ఇసుక మట్టి", "pa": "ਰੇਤਲੀ ਮਿੱਟੀ"
+  },
+  "loamy sand": {
+    "en": "loamy sand", "hi": "दोमट बलुई मिट्टी", "gu": "ગોરાડુ રેતાળ માટી", "mr": "पोयटायुक्त वालुकामय माती",
+    "ta": "களிமண் கலந்த மணல் மண்", "te": "మెత్తటి ఇసుక మట్టి", "pa": "ਮੈਰੀ ਰੇਤਲੀ ਮਿੱਟੀ"
+  },
+  "sandy loam": {
+    "en": "sandy loam", "hi": "बलुई दोमट मिट्टी", "gu": "રેતાળ ગોરાડુ માટી", "mr": "वालुकामय पोयटा माती",
+    "ta": "மணல் கலந்த களிமண்", "te": "ఇసుక లోమ్ మట్టి", "pa": "ਰੇਤਲੀ ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "loam": {
+    "en": "loam", "hi": "दोमट मिट्टी", "gu": "ગોરાડુ માટી", "mr": "पोयटा माती",
+    "ta": "களிமண்", "te": "లోమ్ మట్టి", "pa": "ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "silt loam": {
+    "en": "silt loam", "hi": "गादयुक्त दोमट मिट्टी", "gu": "કાંપવાળી ગોરાડુ માટી", "mr": "गाळयुक्त पोयटा माती",
+    "ta": "வண்டல் கலந்த களிமண்", "te": "పూడిమట్టి లోమ్", "pa": "ਗਾਰ ਵਾਲੀ ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "silt": {
+    "en": "silt", "hi": "गाद मिट्टी", "gu": "કાંપની માટી", "mr": "गाळाची माती",
+    "ta": "வண்டல் மண்", "te": "పూడిమట్టి", "pa": "ਗਾਰ ਮਿੱਟੀ"
+  },
+  "sandy clay loam": {
+    "en": "sandy clay loam", "hi": "बलुई चिकनी दोमट मिट्टी", "gu": "રેતાળ ચીકણી ગોરાડુ માટી", "mr": "वालुकामय चिकणमाती-पोयटा",
+    "ta": "மணல் கலந்த களிமண்-பிசுக்கு", "te": "ఇసుక బంకమట్టి లోమ్", "pa": "ਰੇਤਲੀ ਚੀਕਣੀ ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "clay loam": {
+    "en": "clay loam", "hi": "चिकनी दोमट मिट्टी", "gu": "ચીકણી ગોરાડુ માટી", "mr": "चिकणमाती-पोयटा",
+    "ta": "களிமண்-பிசுக்கு மண்", "te": "బంకమట్టి లోమ్", "pa": "ਚੀਕਣੀ ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "silty clay loam": {
+    "en": "silty clay loam", "hi": "गादयुक्त चिकनी दोमट मिट्टी", "gu": "કાંપવાળી ચીકણી ગોરાડુ માટી", "mr": "गाळयुक्त चिकणमाती-पोयटा",
+    "ta": "வண்டல் கலந்த களிமண்-பிசுக்கு", "te": "పూడిమట్టి బంకమట్టి లోమ్", "pa": "ਗਾਰ ਵਾਲੀ ਚੀਕਣੀ ਮੈਰਾ ਮਿੱਟੀ"
+  },
+  "sandy clay": {
+    "en": "sandy clay", "hi": "बलुई चिकनी मिट्टी", "gu": "રેતાળ ચીકણી માટી", "mr": "वालुकामय चिकणमाती",
+    "ta": "மணல் கலந்த களிமண்", "te": "ఇసుక బంకమట్టి", "pa": "ਰੇਤਲੀ ਚੀਕਣੀ ਮਿੱਟੀ"
+  },
+  "silty clay": {
+    "en": "silty clay", "hi": "गादयुक्त चिकनी मिट्टी", "gu": "કાંપવાળી ચીકણી માટી", "mr": "गाळयुक्त चिकणमाती",
+    "ta": "வண்டல் கலந்த களிமண்", "te": "పూడిమట్టి బంకమట్టి", "pa": "ਗਾਰ ਵਾਲੀ ਚੀਕਣੀ ਮਿੱਟੀ"
+  },
+  "clay": {
+    "en": "clay", "hi": "चिकनी मिट्टी", "gu": "ચીકણી માટી", "mr": "चिकणमाती",
+    "ta": "களிமண்", "te": "బంకమట్టి", "pa": "ਚੀਕਣੀ ਮਿੱਟੀ"
+  }
+}

@@ -16,6 +16,7 @@ os.environ["AGRISMART_DATABASE_URL"] = f"sqlite+aiosqlite:///{_DB.as_posix()}"
 os.environ["AGRISMART_UPLOADS_DIR"] = str(_TMP / "uploads")
 os.environ["AGRISMART_JWT_SECRET"] = "test-secret-at-least-32-chars-long-for-hmac-sha256"
 os.environ["AGRISMART_GEMINI_API_KEY"] = ""  # force the offline assistant path
+os.environ["AGRISMART_LLM_PROVIDER"] = "cards"  # zero-download circuit breaker for fast tests
 os.environ["AGRISMART_MONGO_URL"] = "mongomock://localhost"  # in-memory fake, no real server
 # otp_show_code defaults to true anyway (see config.py) but pin it
 # explicitly so tests don't depend on that default. The resend cooldown is

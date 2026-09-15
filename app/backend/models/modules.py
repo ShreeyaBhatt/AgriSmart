@@ -49,6 +49,7 @@ class SustainabilityScore(BaseModel):
     score: float
     band: Literal["poor", "fair", "good", "excellent"]
     water_overuse_pct: float
+    water_deficit_pct: float
     chemical_overuse_pct: float
     crop_health_pct: float
     formula: str
@@ -56,16 +57,40 @@ class SustainabilityScore(BaseModel):
     ai_validated: bool = False
     ai_notes: str | None = None
 
+    # A DELIBERATELY separate indicator from `score`/`band` (see
+    # services/sustainability.py's module docstring for why): the headline
+    # score blends water/chemical efficiency with crop health into one
+    # number, so a severe-but-not-extreme water deviation can still land in
+    # the "excellent" band. water_deviation_pct / moisture_stress_risk let
+    # the UI surface that risk on its own, without waiting for it to drag
+    # the blended score down first (issue: "Excellent" shown next to a
+    # severe moisture-stress risk with no indication the two aren't the
+    # same thing).
+    water_deviation_pct: float  # signed: negative = under-watering, positive = overuse
+    moisture_stress_risk: Literal["none", "moderate", "severe"]
+
 
 # --------------------------------------------------------------------------- #
 # Module E — GenAI Farmer Assistant
 # --------------------------------------------------------------------------- #
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ActionShortcut(BaseModel):
+    label: str
+    icon: str
+    route: str
+
+
 class AssistantRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     plot_id: str | None = None
     lang: Literal["en", "hi", "gu", "mr", "ta", "te", "pa"] = "en"
     land_unit: Literal["ha", "acre", "bigha", "guntha"] = "ha"
     bigha_region: str | None = None  # only meaningful when land_unit == "bigha"
+    history: list[ChatMessage] | None = None
 
 
 class AssistantAnswer(BaseModel):
@@ -73,6 +98,10 @@ class AssistantAnswer(BaseModel):
     grounded_on: list[str]  # disease-card ids / context keys used
     used_llm: bool
     lang: str
+    engine: str = "Tier 1 Deterministic Core"
+    suggested_followups: list[str] = Field(default_factory=list)
+    action_shortcuts: list[ActionShortcut] = Field(default_factory=list)
+    speech_text: str | None = None
 
 
 class TranscribeOut(BaseModel):

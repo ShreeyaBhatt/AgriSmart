@@ -5,15 +5,26 @@ import CropsPanel from "../components/CropsPanel.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import Icon from "../components/Icon.jsx";
 import SoilLoadingExperience from "../components/SoilLoadingExperience.jsx";
+import { useEffect } from "react";
 import { useSoilCheck } from "../lib/SoilCheckContext.jsx";
-import { useT } from "../i18n/useT.js";
+import { useLang, useT } from "../i18n/useT.js";
 
 export default function SoilCheck() {
   const t = useT();
-  const { lat, setLat, lon, setLon, season, setSeason, loading, error, result, analyse } =
+  const { lang } = useLang();
+  const { lat, setLat, lon, setLon, season, setSeason, textureOverride, loading, error, result, analyse } =
     useSoilCheck();
 
-  const handleAnalyze = () => analyse(lat, lon, season);
+  const handleAnalyze = () => analyse(lat, lon, season, undefined, lang);
+
+  // The amendments/crops text returned by /recommend/* is localized
+  // server-side at request time (like /predict), so it doesn't move with the
+  // UI when the farmer switches language afterwards — re-run the same lookup.
+  useEffect(() => {
+    if (!result) return;
+    analyse(lat, lon, season, textureOverride, lang);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   return (
     <div>
@@ -49,7 +60,10 @@ export default function SoilCheck() {
           )}
           {!loading && result && (
             <>
-              <SoilProfileCard profile={result.profile} />
+              <SoilProfileCard 
+                profile={result.profile} 
+                onTextureOverride={(tex) => analyse(lat, lon, season, tex, lang)}
+              />
               <div className="grid gap-4 lg:grid-cols-2">
                 <AmendmentsPanel report={result.amendments} />
                 <CropsPanel rec={result.crops} />
