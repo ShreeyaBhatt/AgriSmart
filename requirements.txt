@@ -1,4 +1,4 @@
-pip requirements
+
 # ── App backend ────────────────────────────────────────────────
 fastapi>=0.115
 uvicorn[standard]>=0.34
