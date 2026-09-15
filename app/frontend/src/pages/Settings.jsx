@@ -235,7 +235,9 @@ export default function Settings() {
   const [linkedPhone, setLinkedPhone] = useState(null);
 
   return (
-    <div className="mx-auto max-w-lg space-y-4">
+    /* A settings/profile form is conventionally narrow (GitHub, Slack, etc.
+       all do this) — left as-is on purpose, just slightly wider than before. */
+    <div className="mx-auto max-w-xl space-y-4">
       <h1 className="text-lg font-bold tracking-tight text-ink">{t("nav.settings")}</h1>
 
       <Card className="p-4">

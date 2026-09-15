@@ -110,9 +110,10 @@ export const api = {
 
   // module A (works without auth too)
   soilLookup: (lat, lon, textureOverride) => request("/soil/lookup", { method: "POST", body: { lat, lon, texture_override: textureOverride }, auth: false }),
-  amendments: (lat, lon, textureOverride) => request("/recommend/amendments", { method: "POST", body: { lat, lon, texture_override: textureOverride }, auth: false }),
-  crops: (lat, lon, season, textureOverride) =>
-    request("/recommend/crops", { method: "POST", body: { lat, lon, season: season || null, texture_override: textureOverride }, auth: false }),
+  amendments: (lat, lon, textureOverride, lang) =>
+    request("/recommend/amendments", { method: "POST", body: { lat, lon, texture_override: textureOverride, lang }, auth: false }),
+  crops: (lat, lon, season, textureOverride, lang) =>
+    request("/recommend/crops", { method: "POST", body: { lat, lon, season: season || null, texture_override: textureOverride, lang }, auth: false }),
 
   // module C / D / E
   weatherAdvice: (b) => request("/weather/advice", { method: "POST", body: b, auth: false }),

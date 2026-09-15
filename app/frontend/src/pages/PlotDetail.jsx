@@ -38,11 +38,14 @@ export default function PlotDetail() {
     api.getPlot(id).then((p) => {
       if (!alive) return;
       setPlot(p);
-      api.amendments(p.lat, p.lon).then(setAmendments).catch(() => {});
-      api.crops(p.lat, p.lon).then(setCrops).catch(() => {});
+      // The amendments/crops text is localized server-side at request time
+      // (like /predict), so it doesn't move with the UI when the farmer
+      // switches language afterwards — this effect re-runs on `lang` too.
+      api.amendments(p.lat, p.lon, undefined, lang).then(setAmendments).catch(() => {});
+      api.crops(p.lat, p.lon, undefined, undefined, lang).then(setCrops).catch(() => {});
     }).catch((e) => setError(e.detail || e.message));
     return () => { alive = false; };
-  }, [id]);
+  }, [id, lang]);
 
   // Timeline titles are localized server-side, so re-fetch it whenever the
   // farmer switches language (loadTimeline already changes identity with lang).

@@ -139,6 +139,14 @@ class Settings(BaseSettings):
         return self.data_dir / "crop_suitability.json"
 
     @property
+    def texture_labels_path(self) -> Path:
+        return self.data_dir / "texture_labels.json"
+
+    @property
+    def phrase_templates_path(self) -> Path:
+        return self.data_dir / "phrase_templates.json"
+
+    @property
     def frontend_dist_dir(self) -> Path:
         return REPO_ROOT / "app" / "frontend" / "dist"
 

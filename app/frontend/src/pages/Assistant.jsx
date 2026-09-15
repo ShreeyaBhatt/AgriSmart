@@ -492,32 +492,12 @@ export default function Assistant() {
   };
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col" style={{ minHeight: "75vh" }}>
-      {/* Top Header */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-700 text-white shadow-xs">
-            <Icon name="spark" className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-surface bg-brand-500" />
-            </span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight text-ink">{t("assistant.title")}</h1>
-              <span className="hidden items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-700 sm:inline-flex dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-300">
-                <Icon name="shield" className="h-3 w-3" />
-                {t("assistant.offlineSafetyBadge")}
-              </span>
-            </div>
-            <p className="flex items-center gap-1.5 text-xs text-muted">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              {t("assistant.onlineStatus")}
-            </p>
-          </div>
-        </div>
-
+    /* Chat stays centered/single-column on purpose (long lines of chat text
+       get harder to read, not more useful, on a wide screen) — just a bit
+       wider than before so it's not as cramped as the other pages were. */
+    <div className="mx-auto flex max-w-3xl flex-col" style={{ minHeight: "70vh" }}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-lg font-bold tracking-tight text-ink">{t("assistant.title")}</h1>
         <div className="flex items-center gap-2">
           {plots.length > 0 && (
             <select

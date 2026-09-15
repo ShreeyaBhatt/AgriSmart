@@ -59,8 +59,9 @@ async def test_sustainability_perfect_practice_scores_high():
     s = await compute_score(SustainabilityRequest(
         water_used_mm=300, water_recommended_mm=300,
         chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
-    assert s.score == 100.0 and s.band == "excellent"
-    assert s.water_overuse_pct == 0 and s.crop_health_pct == 100
+    assert s.score == 100.0
+    assert s.band == "excellent"
+    assert s.water_deviation_pct == 0 and s.crop_health_pct == 100
 
 
 @pytest.mark.asyncio
@@ -101,6 +102,50 @@ async def test_sustainability_within_optimal_irrigation_band_scores_well():
         chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
     assert s.water_overuse_pct == 0
     assert 0 < s.water_deficit_pct <= 10
+
+
+# --- moisture_stress_risk: a separate indicator from score/band (PR #37
+# fixed under-watering being invisible to the *score*; this covers the
+# follow-up bug where a real, moderate-to-severe deviation still shows an
+# "Excellent" band right next to it with nothing flagging the contradiction) ---
+@pytest.mark.asyncio
+async def test_moisture_stress_risk_is_severe_while_score_still_reads_excellent():
+    """The reported case: -30% water deviation only costs 0.4*30=12 score
+    points, nowhere near enough to drop out of 'excellent' (>=80) on its
+    own — score/band and moisture_stress_risk are expected to disagree."""
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=210, water_recommended_mm=300,  # -30% deviation
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_deviation_pct == -30.0
+    assert s.moisture_stress_risk == "severe"
+    assert s.band == "excellent"  # confirms the two really are independent
+    assert s.score >= 80
+
+
+@pytest.mark.asyncio
+async def test_moisture_stress_risk_is_severe_for_overuse_too_and_signed_positive():
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=400, water_recommended_mm=300,  # +33% deviation
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_deviation_pct > 0  # positive = overuse, not deficit
+    assert s.moisture_stress_risk == "severe"
+
+
+@pytest.mark.asyncio
+async def test_moisture_stress_risk_is_moderate_between_10_and_25_percent():
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=250, water_recommended_mm=300,  # -16.7% deviation
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.moisture_stress_risk == "moderate"
+
+
+@pytest.mark.asyncio
+async def test_moisture_stress_risk_is_none_within_the_optimal_band():
+    s = await compute_score(SustainabilityRequest(
+        water_used_mm=300, water_recommended_mm=300,  # on target
+        chemical_used_kg_ha=50, chemical_recommended_kg_ha=50, disease_class=None))
+    assert s.water_deviation_pct == 0.0
+    assert s.moisture_stress_risk == "none"
     assert s.band == "excellent"
 
 

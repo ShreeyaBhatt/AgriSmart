@@ -16,7 +16,7 @@ async def amendments(req: RecommendRequest) -> AmendmentReport:
     """Soil correction plan for a GPS point: lime / organic matter / CEC from
     SoilGrids, N-P-K dosing from the Soil Health Card enrichment when available."""
     profile = await build_soil_profile(req.lat, req.lon, texture_override=req.texture_override)
-    return recommend_amendments(profile)
+    return recommend_amendments(profile, lang=req.lang)
 
 
 @router.post("/crops", response_model=CropRecommendation)
@@ -24,4 +24,4 @@ async def crops(req: RecommendRequest) -> CropRecommendation:
     """Rank candidate crops for a GPS point on soil texture + pH (+ season).
     Climate scoring is handled by Module C."""
     profile = await build_soil_profile(req.lat, req.lon, texture_override=req.texture_override)
-    return recommend_crops(profile, req.season)
+    return recommend_crops(profile, req.season, lang=req.lang)

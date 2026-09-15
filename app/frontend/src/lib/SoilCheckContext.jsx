@@ -12,7 +12,7 @@ export function SoilCheckProvider({ children }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
-  const analyse = useCallback(async (la, lo, s, tex = null) => {
+  const analyse = useCallback(async (la, lo, s, tex = null, lang) => {
     if (la == null || lo == null) return;
     setLoading(true);
     setError("");
@@ -22,8 +22,8 @@ export function SoilCheckProvider({ children }) {
     try {
       const [profile, amendments, crops] = await Promise.all([
         api.soilLookup(la, lo, override),
-        api.amendments(la, lo, override),
-        api.crops(la, lo, s || null, override),
+        api.amendments(la, lo, override, lang),
+        api.crops(la, lo, s || null, override, lang),
       ]);
       setResult({ profile, amendments, crops });
     } catch (e) {
