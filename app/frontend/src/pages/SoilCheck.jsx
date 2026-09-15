@@ -15,6 +15,7 @@ export default function SoilCheck() {
   const { lat, setLat, lon, setLon, season, setSeason, textureOverride, loading, error, result, analyse } =
     useSoilCheck();
 
+  const prevLangRef = useRef(lang);
   const handleAnalyze = () => analyse(lat, lon, season, null, lang);
 
   // The amendments/crops text returned by /recommend/* is localized
