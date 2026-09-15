@@ -1,3 +1,4 @@
+pip requirements
 # ── App backend ────────────────────────────────────────────────
 fastapi>=0.115
 uvicorn[standard]>=0.34
@@ -24,6 +25,7 @@ numpy>=1.26
 
 # ── Module E (GenAI assistant) — optional, offline fallback if unset ──
 google-generativeai>=0.8
+gtts>=2.3.0             # Text-to-speech for assistant audio responses
 # Local speech-to-text for the assistant's mic button — runs on this server,
 # not a cloud service, so voice input works with no internet at all (only
 # the browser <-> this backend round-trip is needed). ~150MB model download
