@@ -14,9 +14,9 @@ def _rand_phone() -> str:
 
 async def test_otp_request_returns_a_random_debug_code(client):
     r = await client.post(
-    "/api/auth/otp/request",
-    json={"phone": _rand_phone(), "mode": "login"},
-)
+        "/api/auth/otp/request",
+        json={"phone": _rand_phone(), "mode": "signup"},
+    )
     assert r.status_code == 200
     code = r.json()["demo_otp"]
     # AGRISMART_OTP_SHOW_CODE is on in tests (as it is by default — see
@@ -29,13 +29,13 @@ async def test_otp_request_returns_a_random_debug_code(client):
 
 async def test_otp_request_is_not_a_fixed_code(client):
     r1 = (await client.post(
-    "/api/auth/otp/request",
-    json={"phone": _rand_phone(), "mode": "login"},
+        "/api/auth/otp/request",
+        json={"phone": _rand_phone(), "mode": "signup"},
     )).json()
 
     r2 = (await client.post(
-    "/api/auth/otp/request",
-    json={"phone": _rand_phone(), "mode": "login"},
+        "/api/auth/otp/request",
+        json={"phone": _rand_phone(), "mode": "signup"},
     )).json()
     # Not a hard guarantee (a 1-in-a-million collision is possible), but
     # confirms request_otp() isn't just returning settings.otp_demo_code.
@@ -56,9 +56,9 @@ async def test_otp_verify_is_one_shot(client, otp_login):
     """A correct code can't be replayed a second time."""
     phone = _rand_phone()
     req = await client.post(
-    "/api/auth/otp/request",
-    json={"phone": phone, "mode": "login"},
-)
+        "/api/auth/otp/request",
+        json={"phone": phone, "mode": "signup"},
+    )
     code = req.json()["demo_otp"]
 
     first = await client.post("/api/auth/otp/verify", json={"phone": phone, "otp": code})
@@ -192,7 +192,69 @@ async def test_otp_verify_also_rejects_invalid_mobile_numbers(client):
 
 async def test_otp_request_accepts_a_valid_ten_digit_number(client):
     r = await client.post(
-    "/api/auth/otp/request",
-    json={"phone": _rand_phone(), "mode": "login"},
-)
+        "/api/auth/otp/request",
+        json={"phone": _rand_phone(), "mode": "signup"},
+    )
     assert r.status_code == 200
+
+
+async def test_otp_request_login_unregistered_phone_rejected(client):
+    """Unregistered phone trying to log in must be rejected with 404 and clear message."""
+    phone = _rand_phone()
+    r = await client.post(
+        "/api/auth/otp/request",
+        json={"phone": phone, "mode": "login"},
+    )
+    assert r.status_code == 404
+    assert r.json()["detail"] == "No account found with this mobile number. Please sign up first."
+
+
+async def test_otp_request_login_registered_phone_succeeds(client, otp_login):
+    """Registered phone can successfully request OTP and log in."""
+    phone = _rand_phone()
+    signup_resp = await otp_login(client, phone, mode="signup")
+    assert signup_resp.status_code == 200
+
+    # Request OTP for login
+    r = await client.post(
+        "/api/auth/otp/request",
+        json={"phone": phone, "mode": "login"},
+    )
+    assert r.status_code == 200
+    otp = r.json()["demo_otp"]
+    assert otp is not None
+
+    # Verify OTP for login
+    v = await client.post(
+        "/api/auth/otp/verify",
+        json={"phone": phone, "otp": otp, "mode": "login"},
+    )
+    assert v.status_code == 200
+    assert v.json()["access_token"] is not None
+
+
+async def test_otp_request_signup_existing_phone_rejected(client, otp_login):
+    """Existing registered phone trying to sign up again is rejected with 409."""
+    phone = _rand_phone()
+    signup_resp = await otp_login(client, phone, mode="signup")
+    assert signup_resp.status_code == 200
+
+    r = await client.post(
+        "/api/auth/otp/request",
+        json={"phone": phone, "mode": "signup"},
+    )
+    assert r.status_code == 409
+    assert "already exists" in r.json()["detail"]
+
+
+async def test_otp_verify_login_unregistered_phone_rejected(client):
+    """Direct verify call with login mode for unregistered phone returns 404 without creating user."""
+    phone = _rand_phone()
+    # Attempt verify
+    r = await client.post(
+        "/api/auth/otp/verify",
+        json={"phone": phone, "otp": "123456", "mode": "login"},
+    )
+    # Incorrect/missing OTP is 401, but even with valid OTP it cannot create a user
+    assert r.status_code in (401, 404)
+

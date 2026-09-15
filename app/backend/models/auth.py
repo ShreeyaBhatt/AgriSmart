@@ -83,6 +83,7 @@ class OtpRequestOut(BaseModel):
 class OtpVerifyRequest(BaseModel):
     phone: str
     otp: str = Field(min_length=4, max_length=8)
+    mode: Literal["login", "signup"] | None = None
 
     @field_validator("phone")
     @classmethod
