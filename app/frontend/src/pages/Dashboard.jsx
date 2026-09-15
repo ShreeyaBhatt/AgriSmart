@@ -10,6 +10,7 @@ import { api, mediaUrl } from "../api.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { prettyLabel, isAbstain } from "../lib/labels.js";
 import { useLang, useT } from "../i18n/useT.js";
+import AgentAdvisorCard from "../components/AgentAdvisorCard.jsx";
 
 function greetingKey() {
   const h = new Date().getHours();
@@ -75,11 +76,14 @@ export default function Dashboard() {
       )}
 
       {plots !== null && plots.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          <Stat label={t("nav.plots")} value={plots.length} />
-          <Stat label={t("dashboard.recentScans")} value={scans.length} />
-          <Stat label={t("login.cropLabel")} value={user?.primary_crop || "—"} />
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            <Stat label={t("nav.plots")} value={plots.length} />
+            <Stat label={t("dashboard.recentScans")} value={scans.length} />
+            <Stat label={t("login.cropLabel")} value={user?.primary_crop || "—"} />
+          </div>
+          <AgentAdvisorCard plotId={plots[0].id} lang={lang} />
+        </>
       )}
 
       {plots === null ? (

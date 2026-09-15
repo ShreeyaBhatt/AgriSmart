@@ -11,7 +11,11 @@ from datetime import datetime, timezone
 from pymongo.errors import DuplicateKeyError
 
 from ..models.user import User
-from ..mongo import users_collection
+from .. import mongo
+
+
+def _col():
+    return mongo.users_collection
 
 
 class DuplicatePhoneError(Exception):
@@ -45,12 +49,12 @@ def _omit_none(doc: dict) -> dict:
 
 
 async def get_by_id(user_id: str) -> User | None:
-    doc = await users_collection.find_one({"_id": user_id})
+    doc = await _col().find_one({"_id": user_id})
     return _to_user(doc) if doc else None
 
 
 async def get_by_phone(phone: str) -> User | None:
-    doc = await users_collection.find_one({"phone": phone})
+    doc = await _col().find_one({"phone": phone})
     return _to_user(doc) if doc else None
 
 
@@ -68,7 +72,7 @@ async def create_from_phone(phone: str) -> User:
         "created_at": datetime.now(timezone.utc),
     }
     try:
-        await users_collection.insert_one(_omit_none(doc))
+        await _col().insert_one(_omit_none(doc))
     except DuplicateKeyError as exc:
         raise DuplicatePhoneError(phone) from exc
     return _to_user(doc)
@@ -87,7 +91,7 @@ async def create_guest() -> User:
         "onboarding_complete": True,
         "created_at": datetime.now(timezone.utc),
     }
-    await users_collection.insert_one(_omit_none(doc))
+    await _col().insert_one(_omit_none(doc))
     return _to_user(doc)
 
 
@@ -96,7 +100,7 @@ async def link_phone(user_id: str, phone: str) -> User:
     same id, so every plot/diagnosis/log already keyed to this user stays
     attached — no data migration needed."""
     try:
-        await users_collection.update_one(
+        await _col().update_one(
             {"_id": user_id},
             {"$set": {"phone": phone, "is_guest": False}},
         )
@@ -108,7 +112,7 @@ async def link_phone(user_id: str, phone: str) -> User:
 
 
 async def complete_profile(user_id: str, *, name: str, location_label: str, primary_crop: str) -> User:
-    await users_collection.update_one(
+    await _col().update_one(
         {"_id": user_id},
         {"$set": {
             "name": name,
@@ -129,7 +133,7 @@ async def update_profile(user_id: str, **fields: str) -> User:
     can pass a fully-optional request body straight through."""
     changes = {k: v for k, v in fields.items() if v is not None}
     if changes:
-        await users_collection.update_one({"_id": user_id}, {"$set": changes})
+        await _col().update_one({"_id": user_id}, {"$set": changes})
     user = await get_by_id(user_id)
     assert user is not None
     return user

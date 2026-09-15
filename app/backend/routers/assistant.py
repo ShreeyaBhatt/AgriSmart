@@ -41,8 +41,16 @@ async def ask(
     plot_ctx: dict | None = None
     last_class: str | None = None
 
-    if user and req.plot_id:
-        plot = await session.get(Plot, req.plot_id)
+    target_plot_id = req.plot_id
+    if user and not target_plot_id:
+        latest_plot = await session.scalar(
+            select(Plot).where(Plot.owner_id == user.id).order_by(Plot.created_at.desc()).limit(1)
+        )
+        if latest_plot:
+            target_plot_id = latest_plot.id
+
+    if user and target_plot_id:
+        plot = await session.get(Plot, target_plot_id)
         if plot and plot.owner_id == user.id:
             plot_ctx = {
                 "id": plot.id,
@@ -77,8 +85,10 @@ async def ask(
             if last:
                 last_class = last.predicted_class
                 plot_ctx["latest_diagnosis"] = {
+                    "predicted_class": last.predicted_class,
                     "disease": last.predicted_class,
                     "confidence": last.confidence,
+                    "abstained": last.abstained,
                 }
 
             # Live weather telemetry
