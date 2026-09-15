@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-_PHONE_RE = re.compile(r"^\d{10}$")  # exactly 10 digits once formatting/country-code is stripped
+_PHONE_RE = re.compile(r"^[6-9]\d{9}$") # exactly 10 digits once formatting/country-code is stripped
 # Allowed *before* stripping: digits, whitespace, hyphens/parens as group
 # separators, and a single leading '+'. Anything else (letters, symbols) is
 # rejected outright rather than silently discarded by the digit-only strip
