@@ -7,6 +7,7 @@ import AmendmentsPanel from "../components/AmendmentsPanel.jsx";
 import CropsPanel from "../components/CropsPanel.jsx";
 import Timeline from "../components/Timeline.jsx";
 import LogForms from "../components/LogForms.jsx";
+import AgentAdvisorCard from "../components/AgentAdvisorCard.jsx";
 import { ProfileSkeleton } from "../components/Skeleton.jsx";
 import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
@@ -113,6 +114,9 @@ export default function PlotDetail() {
           </div>
         </div>
       )}
+
+      {/* Module G: Autonomous Agentic Advisor */}
+      <AgentAdvisorCard plotId={id} lang={lang} />
 
       {plot.soil_snapshot && <SoilProfileCard profile={plot.soil_snapshot} />}
 

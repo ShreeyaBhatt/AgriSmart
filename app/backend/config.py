@@ -78,10 +78,20 @@ class Settings(BaseSettings):
     # --- GenAI assistant (Module E) / sustainability sanity-check (Module D) ---
     gemini_api_key: str = ""  # AGRISMART_GEMINI_API_KEY; empty -> offline/deterministic fallback
     gemini_model: str = "gemini-flash-latest"
-    # Generation is normally ~4-6s (see services/gemini.py); this bounds the
-    # worst case so a slow/hung Gemini call always falls back to the
-    # deterministic path instead of stalling a farmer's request indefinitely.
     gemini_timeout_s: float = 20.0
+
+    # --- Three-Tier Hybrid Model & Local SLM (Module E & Presentation Layer) ---
+    # "cards" = instant Tier 3 fallback (<2ms), zero model downloads (default for tests/offline)
+    # "local" = Tier 2 in-process HuggingFace SLM on CPU
+    # "gemini" = Google Gemini API
+    # "auto" = uses local SLM if loaded/available, otherwise Tier 3 handbook cards
+    llm_provider: str = "cards"
+    local_model_id: str = "Qwen/Qwen2.5-0.5B-Instruct"
+    local_model_device: str = "cpu"
+    llm_timeout_s: float = 3.5  # strict SLA circuit-breaker ceiling
+    llm_max_new_tokens: int = 160
+    llm_circuit_breaker_max_fails: int = 3
+    llm_circuit_breaker_reset_s: float = 60.0
 
     # --- Local speech-to-text for the mic button (Module E) ---
     # "tiny"/"base"/"small" — bigger = better multilingual accuracy, slower,

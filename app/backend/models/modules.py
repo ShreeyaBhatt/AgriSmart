@@ -73,12 +73,24 @@ class SustainabilityScore(BaseModel):
 # --------------------------------------------------------------------------- #
 # Module E — GenAI Farmer Assistant
 # --------------------------------------------------------------------------- #
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ActionShortcut(BaseModel):
+    label: str
+    icon: str
+    route: str
+
+
 class AssistantRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     plot_id: str | None = None
     lang: Literal["en", "hi", "gu", "mr", "ta", "te", "pa"] = "en"
     land_unit: Literal["ha", "acre", "bigha", "guntha"] = "ha"
     bigha_region: str | None = None  # only meaningful when land_unit == "bigha"
+    history: list[ChatMessage] | None = None
 
 
 class AssistantAnswer(BaseModel):
@@ -86,6 +98,10 @@ class AssistantAnswer(BaseModel):
     grounded_on: list[str]  # disease-card ids / context keys used
     used_llm: bool
     lang: str
+    engine: str = "Tier 1 Deterministic Core"
+    suggested_followups: list[str] = Field(default_factory=list)
+    action_shortcuts: list[ActionShortcut] = Field(default_factory=list)
+    speech_text: str | None = None
 
 
 class TranscribeOut(BaseModel):

@@ -26,6 +26,9 @@ export default function LanguageSwitcher() {
   }, [open]);
 
   const choose = (code) => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setLang(code);
     setOpen(false);
   };

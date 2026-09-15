@@ -125,6 +125,10 @@ export const api = {
     if (lang) fd.append("lang", lang);
     return request("/assistant/transcribe", { method: "POST", form: fd });
   },
+
+  // module G (autonomous agentic advisor)
+  agentAdvisory: (plotId, lang) =>
+    request(`/agent/plots/${plotId}/advisory${lang ? `?lang=${lang}` : ""}`),
 };
 
 // Upload paths from the API are like "/uploads/...": served at the origin, not under /api.
