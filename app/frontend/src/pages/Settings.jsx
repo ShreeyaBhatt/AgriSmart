@@ -1,12 +1,16 @@
 import { useState } from "react";
+
 import clsx from "clsx";
+
 import Card from "../components/Card.jsx";
 import Icon from "../components/Icon.jsx";
 import OtpInput from "../components/OtpInput.jsx";
+
 import { LANGUAGES } from "../i18n/strings.js";
 import { useLang, useT } from "../i18n/useT.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useTheme } from "../theme/useTheme.js";
+
 import { KNOWN_CROPS } from "../lib/crops.js";
 import { useLandUnit } from "../units/useLandUnit.js";
 import { LAND_UNITS, BIGHA_REGIONS } from "../units/convert.js";
@@ -22,24 +26,42 @@ const FIELD =
 const BUTTON =
   "rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-800 disabled:bg-line disabled:text-faint";
 
-/** Sets/edits the primary crop shown on the dashboard. Signup only ever
- * offered one shot at this for phone users, and a guest never saw the
- * picker at all — this is the only place either can set or change it now. */
+/**
+ * Sets/edits the primary crop shown on the dashboard.
+ * Signup only ever offered one shot at this for phone users, and a guest
+ * never saw the picker at all — this is the only place either can set or change it now.
+ */
 function CropCard({ t, user }) {
   const { updateProfile } = useAuth();
-  const known = user?.primary_crop && KNOWN_CROPS.includes(user.primary_crop);
-  const [crop, setCrop] = useState(user?.primary_crop ? (known ? user.primary_crop : t("login.cropOther")) : "");
-  const [cropOther, setCropOther] = useState(known ? "" : user?.primary_crop || "");
+
+  const known =
+    user?.primary_crop && KNOWN_CROPS.includes(user.primary_crop);
+
+  const [crop, setCrop] = useState(
+    user?.primary_crop
+      ? known
+        ? user.primary_crop
+        : t("login.cropOther")
+      : "",
+  );
+
+  const [cropOther, setCropOther] = useState(
+    known ? "" : user?.primary_crop || "",
+  );
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
   const value = crop === t("login.cropOther") ? cropOther : crop;
-  const dirty = Boolean(value) && value !== (user?.primary_crop || "");
+
+  const dirty =
+    Boolean(value) && value !== (user?.primary_crop || "");
 
   const save = async () => {
     setBusy(true);
     setError("");
+
     try {
       await updateProfile({ primary_crop: value });
       setSaved(true);
@@ -53,10 +75,14 @@ function CropCard({ t, user }) {
 
   return (
     <Card className="p-4">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("login.cropLabel")}</div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+        {t("login.cropLabel")}
+      </div>
+
       <div className="mt-2 flex flex-wrap gap-1.5">
         {[...KNOWN_CROPS, t("login.cropOther")].map((c) => {
           const active = crop === c;
+
           return (
             <button
               key={c}
@@ -66,7 +92,7 @@ function CropCard({ t, user }) {
                 "rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition",
                 active
                   ? "bg-brand-600 text-white ring-brand-600"
-                  : "bg-surface text-muted ring-line hover:bg-brand-50 hover:text-brand-700"
+                  : "bg-surface text-muted ring-line hover:bg-brand-50 hover:text-brand-700",
               )}
             >
               {c}
@@ -74,6 +100,7 @@ function CropCard({ t, user }) {
           );
         })}
       </div>
+
       {crop === t("login.cropOther") && (
         <input
           className={FIELD + " mt-2"}
@@ -82,51 +109,93 @@ function CropCard({ t, user }) {
           onChange={(e) => setCropOther(e.target.value)}
         />
       )}
-      {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
+
+      {error && (
+        <p className="mt-2 text-xs text-rose-600">
+          {error}
+        </p>
+      )}
+
       <div className="mt-3 flex items-center gap-2">
-        <button onClick={save} disabled={busy || !dirty} className={BUTTON}>
+        <button
+          onClick={save}
+          disabled={busy || !dirty}
+          className={BUTTON}
+        >
           {busy ? "…" : t("action.save")}
         </button>
-        {saved && <Icon name="check" className="h-4 w-4 text-brand-600" />}
+
+        {saved && (
+          <Icon
+            name="check"
+            className="h-4 w-4 text-brand-600"
+          />
+        )}
       </div>
     </Card>
   );
 }
 
 const isValidPhone = (phone) => {
-  const digits = (phone || "").replace(/[\s\-()]/g, "").replace(/^\+/, "");
-  return /^\d{10,15}$/.test(digits);
+  const digits = (phone || "")
+    .replace(/[\s\-()]/g, "")
+    .replace(/^\+/, "");
+
+  return /^[6-9]\d{9}$/.test(digits);
 };
 
 const formatAuthError = (err) => {
   const msg = err?.detail || err?.message || "";
-  if (msg.includes("Value error") || msg.toLowerCase().includes("valid mobile number")) {
+
+  if (
+    msg.includes("Value error") ||
+    msg.toLowerCase().includes("valid mobile number")
+  ) {
     return "Please enter a valid 10-digit mobile number.";
   }
+
   return msg;
 };
 
-/** Guest-only card for attaching a phone number to the current account, so
- * plots/scans survive a logout or a new device. */
+/**
+ * Guest-only card for attaching a phone number to the current account,
+ * so plots/scans survive a logout or a new device.
+ */
 function GuestUpgradeCard({ t, onLinked }) {
-  const { requestOtp, linkPhone } = useAuth();
+  const { requestOtp, linkPhone, updateProfile } = useAuth();
+
   const [step, setStep] = useState("idle"); // idle | phone | otp
+
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [demoOtp, setDemoOtp] = useState("");
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const sendOtp = async (e) => {
     e.preventDefault();
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setError("Please enter your name.");
+      return;
+    }
+
     if (!isValidPhone(phone)) {
       setError("Please enter a valid 10-digit mobile number.");
       return;
     }
+
     setBusy(true);
     setError("");
+
     try {
-      const resp = await requestOtp(phone);
+      // Signup mode makes an already-used number fail immediately.
+      const resp = await requestOtp(phone, "signup");
+
       setDemoOtp(resp.demo_otp || "");
       setOtp("");
       setStep("otp");
@@ -139,15 +208,31 @@ function GuestUpgradeCard({ t, onLinked }) {
 
   const verify = async (e) => {
     e.preventDefault();
+
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      setStep("phone");
+      return;
+    }
+
     setBusy(true);
     setError("");
+
     try {
       await linkPhone(phone, otp);
+
+      // The guest account has now been upgraded, so save the supplied name.
+      await updateProfile({
+        name: name.trim(),
+      });
+
       onLinked(phone);
     } catch (err) {
-      // 409 = phone already belongs to a different account — worth a plain-
-      // language message instead of the raw backend string.
-      setError(err.status === 409 ? t("settings.guestUpgradePhoneTaken") : formatAuthError(err));
+      setError(
+        err.status === 409
+          ? t("settings.guestUpgradePhoneTaken")
+          : formatAuthError(err),
+      );
     } finally {
       setBusy(false);
     }
@@ -159,31 +244,61 @@ function GuestUpgradeCard({ t, onLinked }) {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
           <Icon name="user" className="h-4.5 w-4.5" />
         </span>
+
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-ink">{t("settings.guestUpgradeTitle")}</div>
-          <p className="mt-0.5 text-xs text-muted">{t("settings.guestUpgradeDesc")}</p>
+          <div className="text-sm font-semibold text-ink">
+            {t("settings.guestUpgradeTitle")}
+          </div>
+
+          <p className="mt-0.5 text-xs text-muted">
+            {t("settings.guestUpgradeDesc")}
+          </p>
 
           {step === "idle" && (
-            <button onClick={() => setStep("phone")} className={`${BUTTON} mt-3`}>
+            <button
+              onClick={() => setStep("phone")}
+              className={`${BUTTON} mt-3`}
+            >
               {t("settings.guestUpgradeCta")}
             </button>
           )}
 
           {step === "phone" && (
-            <form onSubmit={sendOtp} className="mt-3 space-y-2">
+            <form
+              onSubmit={sendOtp}
+              className="mt-3 space-y-2"
+            >
               <input
                 className={FIELD}
-                type="tel"
-                inputMode="tel"
-                maxLength={15}
-                placeholder={t("login.phonePlaceholder")}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 autoFocus
                 required
               />
-              {error && <p className="text-xs text-rose-600">{error}</p>}
-              <button disabled={busy} className={BUTTON}>
+
+              <input
+                className={FIELD}
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder={t("login.phonePlaceholder")}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+
+              {error && (
+                <p className="text-xs text-rose-600">
+                  {error}
+                </p>
+              )}
+
+              <button
+                disabled={busy}
+                className={BUTTON}
+              >
                 {busy ? "…" : t("login.sendOtp")}
               </button>
             </form>
@@ -194,12 +309,27 @@ function GuestUpgradeCard({ t, onLinked }) {
               {demoOtp && (
                 <div className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-700 ring-1 ring-brand-200">
                   {t("login.otpDemoHint")}{" "}
-                  <span className="font-mono text-sm font-bold tracking-widest">{demoOtp}</span>
+                  <span className="font-mono text-sm font-bold tracking-widest">
+                    {demoOtp}
+                  </span>
                 </div>
               )}
-              <form onSubmit={verify} className="space-y-2">
-                <OtpInput value={otp} onChange={setOtp} />
-                {error && <p className="text-center text-xs text-rose-600">{error}</p>}
+
+              <form
+                onSubmit={verify}
+                className="space-y-2"
+              >
+                <OtpInput
+                  value={otp}
+                  onChange={setOtp}
+                />
+
+                {error && (
+                  <p className="text-center text-xs text-rose-600">
+                    {error}
+                  </p>
+                )}
+
                 <div className="flex items-center justify-between gap-2">
                   <button
                     type="button"
@@ -211,7 +341,11 @@ function GuestUpgradeCard({ t, onLinked }) {
                   >
                     {t("login.changeNumber")}
                   </button>
-                  <button disabled={busy || otp.length !== 6} className={BUTTON}>
+
+                  <button
+                    disabled={busy || otp.length !== 6}
+                    className={BUTTON}
+                  >
                     {busy ? "…" : t("login.verify")}
                   </button>
                 </div>
@@ -228,48 +362,82 @@ export default function Settings() {
   const t = useT();
   const { lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
-  const { unit, setUnit, bighaRegion, setBighaRegion } = useLandUnit();
+  const {
+    unit,
+    setUnit,
+    bighaRegion,
+    setBighaRegion,
+  } = useLandUnit();
+
   const { user, logout } = useAuth();
-  // Kept separate from user.is_guest — linking flips that to false right
-  // away, which would hide this card before its own success message showed.
+
   const [linkedPhone, setLinkedPhone] = useState(null);
 
   return (
-    /* A settings/profile form is conventionally narrow (GitHub, Slack, etc.
-       all do this) — left as-is on purpose, just slightly wider than before. */
     <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-lg font-bold tracking-tight text-ink">{t("nav.settings")}</h1>
+      <h1 className="text-lg font-bold tracking-tight text-ink">
+        {t("nav.settings")}
+      </h1>
 
       <Card className="p-4">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-600">
             <Icon name="user" className="h-5 w-5" />
           </span>
+
           <div>
-            <div className="text-sm font-semibold text-ink">{user?.name}</div>
+            <div className="text-sm font-semibold text-ink">
+              {user?.name}
+            </div>
+
             {user?.is_guest ? (
-              <div className="text-xs text-muted">{t("settings.guestBadge")}</div>
+              <div className="text-xs text-muted">
+                {t("settings.guestBadge")}
+              </div>
             ) : (
-              user?.phone && <div className="text-xs text-muted">{user.phone}</div>
+              user?.phone && (
+                <div className="text-xs text-muted">
+                  {user.phone}
+                </div>
+              )
             )}
-            {user?.location_label && <div className="text-xs text-faint">{user.location_label}</div>}
+
+            {user?.location_label && (
+              <div className="text-xs text-faint">
+                {user.location_label}
+              </div>
+            )}
           </div>
         </div>
       </Card>
 
       <CropCard t={t} user={user} />
 
-      {user?.is_guest && <GuestUpgradeCard t={t} onLinked={setLinkedPhone} />}
+      {user?.is_guest && (
+        <GuestUpgradeCard
+          t={t}
+          onLinked={setLinkedPhone}
+        />
+      )}
 
       {!user?.is_guest && linkedPhone && (
         <div className="flex items-center gap-2.5 rounded-xl bg-brand-50 px-4 py-2.5 text-sm text-brand-700 ring-1 ring-brand-200">
-          <Icon name="check" className="h-4 w-4 shrink-0" />
-          {t("settings.guestUpgradeSuccess")} <span className="font-medium">{linkedPhone}</span>
+          <Icon
+            name="check"
+            className="h-4 w-4 shrink-0"
+          />
+          {t("settings.guestUpgradeSuccess")}{" "}
+          <span className="font-medium">
+            {linkedPhone}
+          </span>
         </div>
       )}
 
       <Card className="p-4">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.language")}</div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+          {t("settings.language")}
+        </div>
+
         <div className="mt-2 flex flex-wrap gap-2">
           {LANGUAGES.map((l) => (
             <button
@@ -288,7 +456,10 @@ export default function Settings() {
       </Card>
 
       <Card className="p-4">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.landUnit")}</div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+          {t("settings.landUnit")}
+        </div>
+
         <div className="mt-2 flex flex-wrap gap-2">
           {LAND_UNITS.map((u) => (
             <button
@@ -304,10 +475,17 @@ export default function Settings() {
             </button>
           ))}
         </div>
+
         {unit === "bigha" && (
           <div className="mt-3 border-t border-line pt-3">
-            <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.bighaRegion")}</div>
-            <p className="mt-1 text-xs text-muted">{t("settings.bighaRegionHint")}</p>
+            <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+              {t("settings.bighaRegion")}
+            </div>
+
+            <p className="mt-1 text-xs text-muted">
+              {t("settings.bighaRegionHint")}
+            </p>
+
             <div className="mt-2 flex flex-wrap gap-2">
               {BIGHA_REGIONS.map((r) => (
                 <button
@@ -328,7 +506,10 @@ export default function Settings() {
       </Card>
 
       <Card className="p-4">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{t("settings.appearance")}</div>
+        <div className="text-[11px] font-medium uppercase tracking-wide text-faint">
+          {t("settings.appearance")}
+        </div>
+
         <div className="mt-2 flex flex-wrap gap-2">
           {THEMES.map((opt) => (
             <button
@@ -340,7 +521,10 @@ export default function Settings() {
                   : "bg-surface text-muted ring-line hover:bg-canvas"
               }`}
             >
-              <Icon name={opt.icon} className="h-3.5 w-3.5" />
+              <Icon
+                name={opt.icon}
+                className="h-3.5 w-3.5"
+              />
               {t(opt.key)}
             </button>
           ))}
@@ -351,7 +535,11 @@ export default function Settings() {
         onClick={logout}
         className="inline-flex items-center gap-1.5 rounded-xl border border-line px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50"
       >
-        <Icon name="logout" className="h-4 w-4" /> {t("action.logout")}
+        <Icon
+          name="logout"
+          className="h-4 w-4"
+        />{" "}
+        {t("action.logout")}
       </button>
     </div>
   );

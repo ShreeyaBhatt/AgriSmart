@@ -215,6 +215,8 @@ function PhoneStep({
   setPhone,
   busy,
   error,
+  accountNotFound,
+  onGoToSignup,
   onSend,
   onBack,
 }) {
@@ -236,13 +238,36 @@ function PhoneStep({
           maxLength={15}
           placeholder={t("login.phonePlaceholder")}
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={setPhone}
           autoFocus
           required
         />
 
-        {error && (
-          <p className="text-xs text-rose-600">{error}</p>
+        {accountNotFound ? (
+          <div className="animate-fade-up rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-800">
+            <div className="flex items-start gap-2.5">
+              <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+              <div className="flex-1 space-y-2">
+                <p className="font-medium leading-relaxed">
+                  {error || t("login.noAccountFound")}
+                </p>
+                <div>
+                  <button
+                    type="button"
+                    onClick={onGoToSignup}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-800 active:scale-[0.98]"
+                  >
+                    <Icon name="sprout" className="h-3.5 w-3.5" />
+                    {t("login.signUpCta")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          error && (
+            <p className="text-xs text-rose-600">{error}</p>
+          )
         )}
 
         <button
@@ -475,11 +500,22 @@ const isValidPhone = (phone) => {
 };
 
 const formatAuthError = (err) => {
-  const msg = err?.detail || err?.message || "";
+  let msg = err?.detail || err?.message || "";
+
+  if (typeof msg !== "string") {
+    msg = JSON.stringify(msg);
+  }
+
+  if (msg.startsWith("Value error, ")) {
+    msg = msg.slice("Value error, ".length);
+  } else if (msg.startsWith("Value error: ")) {
+    msg = msg.slice("Value error: ".length);
+  }
 
   if (
     msg.includes("Value error") ||
-    msg.toLowerCase().includes("valid mobile number")
+    msg.toLowerCase().includes("valid mobile number") ||
+    msg.toLowerCase().includes("10-digit")
   ) {
     return "Please enter a valid 10-digit mobile number.";
   }
@@ -517,17 +553,35 @@ export default function Login() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [accountNotFound, setAccountNotFound] = useState(false);
 
   const chooseLogin = () => {
     setAuthMode("login");
     setError("");
+    setAccountNotFound(false);
     setStep("phone");
   };
 
   const chooseSignup = () => {
     setAuthMode("signup");
     setError("");
+    setAccountNotFound(false);
     setStep("signupName");
+  };
+
+  const goToSignup = () => {
+    setAuthMode("signup");
+    setError("");
+    setAccountNotFound(false);
+    setStep("signupName");
+  };
+
+  const handlePhoneChange = (e) => {
+    setPhone(e.target.value);
+    if (error || accountNotFound) {
+      setError("");
+      setAccountNotFound(false);
+    }
   };
 
   const submitSignupName = (e) => {
@@ -539,21 +593,29 @@ export default function Login() {
     e.preventDefault();
 
     if (!isValidPhone(phone)) {
+      setAccountNotFound(false);
       setError("Please enter a valid 10-digit mobile number.");
       return;
     }
 
     setBusy(true);
     setError("");
+    setAccountNotFound(false);
 
     try {
-      const resp = await requestOtp(phone);
+      const resp = await requestOtp(phone, authMode);
 
       setDemoOtp(resp.demo_otp || "");
       setOtp("");
       setStep("otp");
     } catch (err) {
-      setError(formatAuthError(err));
+      if (err?.status === 404 || err?.detail?.includes("No account found")) {
+        setAccountNotFound(true);
+        setError("No account found with this mobile number. Please sign up first.");
+      } else {
+        setAccountNotFound(false);
+        setError(formatAuthError(err));
+      }
     } finally {
       setBusy(false);
     }
@@ -566,7 +628,7 @@ export default function Login() {
     setError("");
 
     try {
-      const resp = await verifyOtp(phone, otp);
+      const resp = await verifyOtp(phone, otp, authMode);
 
       console.log("🔥 OTP VERIFY RESPONSE:", resp);
 
@@ -641,7 +703,6 @@ export default function Login() {
 
         <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10">
           <div className="mx-auto w-full max-w-sm">
-
             <div className="mb-6 flex items-center gap-2.5 md:hidden">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white">
                 <Icon name="sprout" className="h-4.5 w-4.5" />
@@ -682,9 +743,11 @@ export default function Login() {
               <PhoneStep
                 t={t}
                 phone={phone}
-                setPhone={setPhone}
+                setPhone={handlePhoneChange}
                 busy={busy}
                 error={error}
+                accountNotFound={accountNotFound}
+                onGoToSignup={goToSignup}
                 onSend={sendOtp}
                 onBack={() => {
                   setStep(
@@ -693,6 +756,7 @@ export default function Login() {
                       : "mode"
                   );
                   setError("");
+                  setAccountNotFound(false);
                 }}
               />
             )}
@@ -729,7 +793,6 @@ export default function Login() {
                 }
               />
             )}
-
           </div>
         </div>
       </div>

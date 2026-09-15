@@ -10,19 +10,16 @@ from datetime import datetime, timezone
 
 from pymongo.errors import DuplicateKeyError
 
-from ..models.user import User
 from .. import mongo
-
-
-def _col():
-    return mongo.users_collection
+from ..models.user import User
 
 
 class DuplicatePhoneError(Exception):
     """Raised when a write would attach a phone number that's already on
     another account — surfaces a race the caller's own pre-check can't fully
     close (check-then-write is never atomic), so the unique index catches it
-    instead of an unhandled 500 reaching the farmer."""
+    instead of an unhandled 500 reaching the farmer.
+    """
 
     def __init__(self, phone: str) -> None:
         self.phone = phone
@@ -49,12 +46,12 @@ def _omit_none(doc: dict) -> dict:
 
 
 async def get_by_id(user_id: str) -> User | None:
-    doc = await _col().find_one({"_id": user_id})
+    doc = await mongo.users_collection.find_one({"_id": user_id})
     return _to_user(doc) if doc else None
 
 
 async def get_by_phone(phone: str) -> User | None:
-    doc = await _col().find_one({"phone": phone})
+    doc = await mongo.users_collection.find_one({"phone": phone})
     return _to_user(doc) if doc else None
 
 
@@ -71,10 +68,12 @@ async def create_from_phone(phone: str) -> User:
         "onboarding_complete": False,
         "created_at": datetime.now(timezone.utc),
     }
+
     try:
-        await _col().insert_one(_omit_none(doc))
+        await mongo.users_collection.insert_one(_omit_none(doc))
     except DuplicateKeyError as exc:
         raise DuplicatePhoneError(phone) from exc
+
     return _to_user(doc)
 
 
@@ -91,49 +90,73 @@ async def create_guest() -> User:
         "onboarding_complete": True,
         "created_at": datetime.now(timezone.utc),
     }
-    await _col().insert_one(_omit_none(doc))
+
+    await mongo.users_collection.insert_one(_omit_none(doc))
+
     return _to_user(doc)
 
 
 async def link_phone(user_id: str, phone: str) -> User:
-    """Attach a phone number to an existing guest user in place. Keeps the
-    same id, so every plot/diagnosis/log already keyed to this user stays
-    attached — no data migration needed."""
+    """Attach a phone number to an existing guest user in place.
+
+    Keeps the same id, so every plot/diagnosis/log already keyed to this user
+    stays attached — no data migration needed.
+    """
     try:
-        await _col().update_one(
+        await mongo.users_collection.update_one(
             {"_id": user_id},
             {"$set": {"phone": phone, "is_guest": False}},
         )
     except DuplicateKeyError as exc:
         raise DuplicatePhoneError(phone) from exc
+
     user = await get_by_id(user_id)
     assert user is not None  # just written above
+
     return user
 
 
-async def complete_profile(user_id: str, *, name: str, location_label: str, primary_crop: str) -> User:
-    await _col().update_one(
+async def complete_profile(
+    user_id: str,
+    *,
+    name: str,
+    location_label: str,
+    primary_crop: str,
+) -> User:
+    await mongo.users_collection.update_one(
         {"_id": user_id},
-        {"$set": {
-            "name": name,
-            "location_label": location_label,
-            "primary_crop": primary_crop,
-            "onboarding_complete": True,
-        }},
+        {
+            "$set": {
+                "name": name,
+                "location_label": location_label,
+                "primary_crop": primary_crop,
+                "onboarding_complete": True,
+            }
+        },
     )
+
     user = await get_by_id(user_id)
     assert user is not None  # just written above
+
     return user
 
 
 async def update_profile(user_id: str, **fields: str) -> User:
-    """Partial update for editing profile fields after signup — unlike
-    complete_profile, only sets what's actually passed and never touches
-    onboarding_complete. Fields with a None value are dropped, so callers
-    can pass a fully-optional request body straight through."""
+    """Partial update for editing profile fields after signup.
+
+    Unlike complete_profile, only sets what's actually passed and never
+    touches onboarding_complete. Fields with a None value are dropped, so
+    callers can pass a fully-optional request body straight through.
+    """
     changes = {k: v for k, v in fields.items() if v is not None}
+
     if changes:
-        await _col().update_one({"_id": user_id}, {"$set": changes})
+        await mongo.users_collection.update_one(
+            {"_id": user_id},
+            {"$set": changes},
+        )
+
     user = await get_by_id(user_id)
     assert user is not None
+
     return user

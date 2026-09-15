@@ -44,8 +44,8 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
-    requestOtp: (phone) => api.requestOtp(phone),
-    verifyOtp: async (phone, otp) => finish(await api.verifyOtp(phone, otp)),
+    requestOtp: (phone, mode) => api.requestOtp(phone, mode),
+    verifyOtp: async (phone, otp, mode) => finish(await api.verifyOtp(phone, otp, mode)),
     continueAsGuest: async () => finish(await api.continueAsGuest()),
     completeProfile: async (payload) => {
       const updated = await api.completeProfile(payload);
