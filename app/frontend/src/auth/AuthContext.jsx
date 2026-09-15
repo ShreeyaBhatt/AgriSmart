@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
-    requestOtp: (phone) => api.requestOtp(phone),
+    requestOtp: (phone, mode) => api.requestOtp(phone, mode),
     verifyOtp: async (phone, otp) => finish(await api.verifyOtp(phone, otp)),
     continueAsGuest: async () => finish(await api.continueAsGuest()),
     completeProfile: async (payload) => {

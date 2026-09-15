@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-_PHONE_RE = re.compile(r"^\d{10}$")  # exactly 10 digits once formatting/country-code is stripped
+_PHONE_RE = re.compile(r"^[6-9]\d{9}$") # exactly 10 digits once formatting/country-code is stripped
 # Allowed *before* stripping: digits, whitespace, hyphens/parens as group
 # separators, and a single leading '+'. Anything else (letters, symbols) is
 # rejected outright rather than silently discarded by the digit-only strip
@@ -18,10 +18,7 @@ Language = Literal["en", "hi", "gu", "mr", "ta", "te", "pa"]
 
 # AgriSmart's target market (SIH India hackathon) — used only to collapse a
 # country-code-prefixed number down to the same bare digits as one entered
-# without it, so "+91 98765 43210", "091-9876543210" and "9876543210" all
-# resolve to one account instead of three. Without this, get_by_phone()
-# never matches two differently-formatted entries of the same real number,
-# and /otp/verify creates a fresh duplicate account every time.
+# without it.
 _INDIA_CC = "91"
 
 
@@ -66,6 +63,7 @@ def _strip_optional(v: str | None) -> str | None:
 
 class OtpRequest(BaseModel):
     phone: str
+    mode: Literal["login", "signup"]
 
     @field_validator("phone")
     @classmethod
@@ -78,7 +76,7 @@ class OtpRequestOut(BaseModel):
     # Set when AGRISMART_OTP_SHOW_CODE=true (the default here, since no free
     # SMS provider was viable for this deployment — see config.py). Set the
     # env var to false once a real SMS provider is wired up in
-    # services/otp.py so codes stop being shown on-screen. See services/otp.py.
+    # services/otp.py so codes stop being shown on-screen.
     demo_otp: str | None = None
 
 
@@ -97,10 +95,6 @@ class CompleteProfileRequest(BaseModel):
     location_label: str = Field(min_length=1, max_length=200)
     primary_crop: str = Field(min_length=1, max_length=80)
 
-    # Untrimmed whitespace (e.g. a name entered as " Ramesh") passed
-    # min_length=1 but made the UI's name.split(" ")[0] display empty —
-    # the name looked like it had "disappeared" after onboarding even
-    # though it was stored. Trim here so it's never stored that way.
     @field_validator("name", "location_label", "primary_crop")
     @classmethod
     def _trim(cls, v: str) -> str:
@@ -109,9 +103,9 @@ class CompleteProfileRequest(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     """Same fields as CompleteProfileRequest, all optional — for editing
-    after signup rather than the one-shot initial fill-in. A guest never
-    goes through complete-profile at all, so this is also the only way a
-    guest ever gets a primary_crop set."""
+    after signup rather than the one-shot initial fill-in.
+    """
+
     name: str | None = Field(default=None, min_length=1, max_length=120)
     location_label: str | None = Field(default=None, min_length=1, max_length=200)
     primary_crop: str | None = Field(default=None, min_length=1, max_length=80)
@@ -138,5 +132,5 @@ class UserOut(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    is_new: bool  # true when the frontend should route to profile completion
+    is_new: bool
     user: UserOut

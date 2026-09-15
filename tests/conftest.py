@@ -51,7 +51,10 @@ async def _request_and_verify(client, phone: str, otp: str | None = None):
     """Runs the real /otp/request + /otp/verify flow. Since AGRISMART_OTP_
     SHOW_CODE is on in tests, /otp/request's response carries the actual
     generated code — pass a wrong `otp` explicitly to test rejection."""
-    req = await client.post("/api/auth/otp/request", json={"phone": phone})
+    req = await client.post(
+    "/api/auth/otp/request",
+    json={"phone": phone, "mode": "login"},
+)
     assert req.status_code == 200, req.text
     code = otp if otp is not None else req.json()["demo_otp"]
     assert code, "AGRISMART_OTP_SHOW_CODE should be on in tests"
@@ -67,7 +70,8 @@ def otp_login():
 @pytest_asyncio.fixture
 async def auth_client(client):
     """(client, headers, user) for an authenticated, onboarded farmer."""
-    phone = str(1000000000 + int(uuid.uuid4().int % 900000000))
+    n = uuid.uuid4().int
+    phone = str(6 + n % 4) + str(n % 1_000_000_000).zfill(9)  
     resp = await _request_and_verify(client, phone)
     assert resp.status_code == 200, resp.text
     headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
