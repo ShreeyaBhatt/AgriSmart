@@ -47,18 +47,28 @@ async def client():
         yield c
 
 
-async def _request_and_verify(client, phone: str, otp: str | None = None):
+async def _request_and_verify(client, phone: str, otp: str | None = None, mode: str | None = None):
     """Runs the real /otp/request + /otp/verify flow. Since AGRISMART_OTP_
     SHOW_CODE is on in tests, /otp/request's response carries the actual
     generated code — pass a wrong `otp` explicitly to test rejection."""
+    from app.backend.models.auth import _normalize_phone
+    from app.backend.services import users as users_repo
+    if mode is None:
+        try:
+            norm_phone = _normalize_phone(phone)
+        except Exception:
+            norm_phone = phone
+        existing = await users_repo.get_by_phone(norm_phone)
+        mode = "login" if existing is not None else "signup"
+
     req = await client.post(
-    "/api/auth/otp/request",
-    json={"phone": phone, "mode": "login"},
-)
+        "/api/auth/otp/request",
+        json={"phone": phone, "mode": mode},
+    )
     assert req.status_code == 200, req.text
     code = otp if otp is not None else req.json()["demo_otp"]
     assert code, "AGRISMART_OTP_SHOW_CODE should be on in tests"
-    return await client.post("/api/auth/otp/verify", json={"phone": phone, "otp": code})
+    return await client.post("/api/auth/otp/verify", json={"phone": phone, "otp": code, "mode": mode})
 
 
 @pytest_asyncio.fixture

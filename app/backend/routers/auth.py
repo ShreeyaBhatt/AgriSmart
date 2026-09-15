@@ -38,6 +38,13 @@ async def request_otp(body: OtpRequest) -> OtpRequestOut:
                 status.HTTP_409_CONFLICT,
                 "User already exists",
             )
+    elif body.mode == "login":
+        existing_user = await users_repo.get_by_phone(body.phone)
+        if existing_user is None:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND,
+                "No account found with this mobile number. Please sign up first.",
+            )
 
     try:
         code = otp_service.request_otp(body.phone)
@@ -55,6 +62,11 @@ async def verify_otp(body: OtpVerifyRequest) -> TokenResponse:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect or expired OTP")
     user = await users_repo.get_by_phone(body.phone)
     if user is None:
+        if body.mode == "login":
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND,
+                "No account found with this mobile number. Please sign up first.",
+            )
         try:
             user = await users_repo.create_from_phone(body.phone)
         except users_repo.DuplicatePhoneError:

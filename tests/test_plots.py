@@ -122,7 +122,7 @@ async def test_farmers_cannot_see_each_others_plots(client):
         req = (
             await client.post(
                 "/api/auth/otp/request",
-                json={"phone": phone, "mode": "login"},
+                json={"phone": phone, "mode": "signup"},
             )
         ).json()
 
