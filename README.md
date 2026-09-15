@@ -25,7 +25,7 @@ AgriSmart AI is a full-stack smart-agriculture application built for **SIH 2026*
 ---
 
 ### Quick Links (Submission Contract — Section 7)
-- 🎥 **Demo Video (3–5 min)**: `[Link to 3–5 min Demo Video]` *(Mandatory Demonstration)*
+- 🎥 **Demo Video (3–5 min)**: https://drive.google.com/drive/folders/1vK7i15-6G1r529hgeQ6ysduutTO0hW6h?usp=drive_link
 - 📋 **One-Page Model Report**: [`report/model_report.md`](report/model_report.md)
 - ⚡ **Fast Evaluator Check**: `python model/predict.py --image data/samples/leaves/Tomato___Early_blight.jpg`
 - 🧪 **Test Suite**: `pytest -q` (121 / 121 tests passing)
