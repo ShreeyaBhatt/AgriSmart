@@ -64,7 +64,7 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
   const cam = mediaUrl(diagnosis.gradcam_url);
 
   return (
-    <Card className="animate-fade-up overflow-hidden border-2">
+    <Card className="animate-fade-up overflow-hidden border-2 h-full flex flex-col justify-between">
       <div className="px-5 pt-4 pb-4">
         <div className={clsx("flex items-center gap-3 rounded-2xl border-2 px-4 py-3", tier.banner)}>
           <span className={clsx("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", tier.badge)}>

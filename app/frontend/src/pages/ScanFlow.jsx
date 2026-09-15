@@ -191,11 +191,11 @@ export default function ScanFlow() {
         <p className="text-sm text-muted">{t("scan.help")}</p>
       </div>
 
-      <div className="grid items-start gap-5 md:grid-cols-[minmax(0,420px)_1fr]">
-        <Card className="border-2 p-4 md:sticky md:top-20">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,420px)_1fr]">
+        <Card className="border-2 p-4 flex flex-col h-full">
           {/* Live Camera Viewfinder */}
           {cameraActive ? (
-            <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black p-2">
+            <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden rounded-xl bg-black p-2">
               <div className="relative w-full overflow-hidden rounded-lg bg-black">
                 <video
                   ref={videoRef}
@@ -265,7 +265,7 @@ export default function ScanFlow() {
                 pick(e.dataTransfer.files?.[0]);
               }}
               className={clsx(
-                "relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed px-4 py-10 sm:py-16 text-center transition-colors",
+                "relative flex-1 flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed px-4 py-10 sm:py-16 text-center transition-colors",
                 dragOver ? "border-brand-400 bg-brand-500/5" : "border-line bg-canvas/40"
               )}
             >
@@ -408,7 +408,7 @@ export default function ScanFlow() {
               <select
                 value={plotId}
                 onChange={(e) => setPlotId(e.target.value)}
-                className="mt-1 w-full rounded-lg border-2 border-line bg-canvas/60 px-2.5 py-2 text-sm text-ink outline-none focus:border-brand-400"
+                className="mt-1 w-full min-h-[52px] rounded-xl border-2 border-line bg-canvas/60 px-3 py-2 text-base font-medium text-ink outline-none focus:border-brand-400"
               >
                 <option value="">{t("common.none")}</option>
                 {plots.map((p) => (
@@ -444,7 +444,7 @@ export default function ScanFlow() {
           </button>
         </Card>
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex flex-col h-full">
           {result && <DiagnosisCard diagnosis={result} originalUrl={preview} />}
         </div>
       </div>
