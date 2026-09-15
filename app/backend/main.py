@@ -22,6 +22,7 @@ from .mongo import init_mongo_indexes
 from .services import assistant as assistant_service
 from .services import transcribe as transcribe_service
 from .routers import (
+    agent,
     assistant,
     auth,
     diagnoses,
@@ -67,7 +68,7 @@ app.add_middleware(
 )
 
 # All API routes live under /api so the SPA can own bare paths like /weather, /soil.
-for r in (auth, plots, plantings, predict, diagnoses, logs, soil, recommend, weather, sustainability, assistant):
+for r in (auth, plots, plantings, predict, diagnoses, logs, soil, recommend, weather, sustainability, assistant, agent):
     app.include_router(r.router, prefix="/api")
 
 settings.uploads_dir.mkdir(parents=True, exist_ok=True)

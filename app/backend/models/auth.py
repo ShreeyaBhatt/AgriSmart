@@ -8,7 +8,12 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-_PHONE_RE = re.compile(r"^\d{10,15}$")
+_PHONE_RE = re.compile(r"^\d{10}$")  # exactly 10 digits once formatting/country-code is stripped
+# Allowed *before* stripping: digits, whitespace, hyphens/parens as group
+# separators, and a single leading '+'. Anything else (letters, symbols) is
+# rejected outright rather than silently discarded by the digit-only strip
+# below — otherwise "98765@#$%3210" would quietly become a "valid" number.
+_PHONE_CHARS_RE = re.compile(r"^\+?[\d\s\-()]+$")
 Language = Literal["en", "hi", "gu", "mr", "ta", "te", "pa"]
 
 # AgriSmart's target market (SIH India hackathon) — used only to collapse a
@@ -21,12 +26,30 @@ _INDIA_CC = "91"
 
 
 def _normalize_phone(v: str) -> str:
-    digits = re.sub(r"\D", "", v)  # strip spaces, dashes, parens, '+', anything non-digit
+    raw = v.strip()
+    if not raw:
+        raise ValueError("Enter your mobile number")
+    # A leading '-' reads as a negative number, not a formatting hyphen (those
+    # only ever appear *between* digit groups, e.g. "091-9876543210") — catch
+    # it explicitly rather than relying on the digit-count math below, since
+    # e.g. "-111111111" has only 9 digits after the sign is stripped and would
+    # otherwise fail (or pass) for the wrong reason.
+    if raw.startswith("-"):
+        raise ValueError("Enter a valid mobile number — negative numbers aren't allowed")
+    if not _PHONE_CHARS_RE.match(raw):
+        raise ValueError("A mobile number can only contain digits (with optional spaces, "
+                         "hyphens, parentheses, or a leading +)")
+
+    digits = re.sub(r"\D", "", raw)  # strip spaces, dashes, parens, '+' — raw is already validated
     digits = digits.lstrip("0")  # drop trunk-prefix zeros (a leading "0" or international "00")
     if len(digits) > 10 and digits.startswith(_INDIA_CC):
         digits = digits[len(_INDIA_CC):]
     if not _PHONE_RE.match(digits):
-        raise ValueError("Enter a valid mobile number (10-15 digits)")
+        raise ValueError("Enter a valid 10-digit mobile number")
+    # Reject obviously-fake numbers like "1111111111" — a real number never
+    # repeats the same digit ten times.
+    if len(set(digits)) == 1:
+        raise ValueError("Enter a valid mobile number")
     return digits
 
 

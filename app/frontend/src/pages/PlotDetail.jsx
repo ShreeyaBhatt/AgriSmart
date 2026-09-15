@@ -7,6 +7,7 @@ import AmendmentsPanel from "../components/AmendmentsPanel.jsx";
 import CropsPanel from "../components/CropsPanel.jsx";
 import Timeline from "../components/Timeline.jsx";
 import LogForms from "../components/LogForms.jsx";
+import AgentAdvisorCard from "../components/AgentAdvisorCard.jsx";
 import { ProfileSkeleton } from "../components/Skeleton.jsx";
 import { api } from "../api.js";
 import { useLang, useT } from "../i18n/useT.js";
@@ -37,11 +38,14 @@ export default function PlotDetail() {
     api.getPlot(id).then((p) => {
       if (!alive) return;
       setPlot(p);
-      api.amendments(p.lat, p.lon).then(setAmendments).catch(() => {});
-      api.crops(p.lat, p.lon).then(setCrops).catch(() => {});
+      // The amendments/crops text is localized server-side at request time
+      // (like /predict), so it doesn't move with the UI when the farmer
+      // switches language afterwards — this effect re-runs on `lang` too.
+      api.amendments(p.lat, p.lon, undefined, lang).then(setAmendments).catch(() => {});
+      api.crops(p.lat, p.lon, undefined, undefined, lang).then(setCrops).catch(() => {});
     }).catch((e) => setError(e.detail || e.message));
     return () => { alive = false; };
-  }, [id]);
+  }, [id, lang]);
 
   // Timeline titles are localized server-side, so re-fetch it whenever the
   // farmer switches language (loadTimeline already changes identity with lang).
@@ -110,6 +114,9 @@ export default function PlotDetail() {
           </div>
         </div>
       )}
+
+      {/* Module G: Autonomous Agentic Advisor */}
+      <AgentAdvisorCard plotId={id} lang={lang} />
 
       {plot.soil_snapshot && <SoilProfileCard profile={plot.soil_snapshot} />}
 

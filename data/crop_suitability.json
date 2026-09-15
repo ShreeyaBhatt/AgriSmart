@@ -1,82 +1,165 @@
 {
   "citation": "Suitability ranges compiled from ICAR crop production guides and State Agricultural University package-of-practices. Climate suitability (temperature/rainfall) is scored by Module C, not here.",
+  "citation_hi": "उपयुक्तता सीमाएँ ICAR की फ़सल उत्पादन गाइड और राज्य कृषि विश्वविद्यालयों की पैकेज-ऑफ़-प्रैक्टिस से संकलित। जलवायु उपयुक्तता (तापमान/वर्षा) का आकलन यहाँ नहीं, मॉड्यूल C द्वारा किया जाता है।",
+  "citation_gu": "યોગ્યતા શ્રેણીઓ ICAR ના પાક ઉત્પાદન માર્ગદર્શિકાઓ અને રાજ્ય કૃષિ યુનિવર્સિટીઓની પેકેજ-ઓફ-પ્રેક્ટિસમાંથી સંકલિત. આબોહવા યોગ્યતા (તાપમાન/વરસાદ) નું મૂલ્યાંકન અહીં નહીં, મોડ્યુલ C દ્વારા થાય છે.",
+  "citation_mr": "योग्यता श्रेणी ICAR च्या पीक उत्पादन मार्गदर्शिका आणि राज्य कृषी विद्यापीठांच्या पॅकेज-ऑफ-प्रॅक्टिसमधून संकलित. हवामान योग्यता (तापमान/पाऊस) येथे नव्हे, मॉड्यूल C द्वारे मोजली जाते.",
+  "citation_ta": "பொருத்தப்பாடு வரம்புகள் ICAR பயிர் உற்பத்தி வழிகாட்டிகள் மற்றும் மாநில வேளாண் பல்கலைக்கழகங்களின் நடைமுறை-தொகுப்பிலிருந்து தொகுக்கப்பட்டவை. காலநிலை பொருத்தம் (வெப்பநிலை/மழை) இங்கு அல்ல, மாட்யூல் C ஆல் மதிப்பிடப்படுகிறது.",
+  "citation_te": "అనుకూలత పరిధులు ICAR పంట ఉత్పత్తి మార్గదర్శకాలు మరియు రాష్ట్ర వ్యవసాయ విశ్వవిద్యాలయాల ప్యాకేజీ-ఆఫ్-ప్రాక్టీసెస్ నుండి సంకలనం చేయబడ్డాయి. వాతావరణ అనుకూలత (ఉష్ణోగ్రత/వర్షపాతం) ఇక్కడ కాదు, మాడ్యూల్ C ద్వారా అంచనా వేయబడుతుంది.",
+  "citation_pa": "ਯੋਗਤਾ ਸੀਮਾਵਾਂ ICAR ਦੀਆਂ ਫ਼ਸਲ ਉਤਪਾਦਨ ਗਾਈਡਾਂ ਅਤੇ ਰਾਜ ਖੇਤੀਬਾੜੀ ਯੂਨੀਵਰਸਿਟੀਆਂ ਦੇ ਪੈਕੇਜ-ਆਫ਼-ਪ੍ਰੈਕਟਿਸ ਤੋਂ ਸੰਕਲਿਤ। ਜਲਵਾਯੂ ਅਨੁਕੂਲਤਾ (ਤਾਪਮਾਨ/ਬਾਰਿਸ਼) ਦਾ ਮੁਲਾਂਕਣ ਇੱਥੇ ਨਹੀਂ, ਮੌਡਿਊਲ C ਦੁਆਰਾ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।",
   "crops": [
     {
       "name": "Rice",
+      "name_hi": "धान", "name_gu": "ડાંગર", "name_mr": "भात", "name_ta": "நெல்", "name_te": "వరి", "name_pa": "ਚੌਲ",
       "textures": ["clay", "silty clay", "clay loam", "silty clay loam"],
       "ph": [5.0, 7.5],
       "seasons": ["kharif"],
-      "notes": "Tolerates poor drainage and standing water; best on heavy soils that hold water."
+      "notes": "Tolerates poor drainage and standing water; best on heavy soils that hold water.",
+      "notes_hi": "खराब जल निकासी और खड़े पानी को सहन करता है; पानी रोकने वाली भारी मिट्टी पर सबसे अच्छा।",
+      "notes_gu": "નબળા નિકાલ અને ઊભા પાણીને સહન કરે છે; પાણી રોકી રાખતી ભારે માટીમાં શ્રેષ્ઠ.",
+      "notes_mr": "खराब निचरा आणि साचलेले पाणी सहन करते; पाणी धरून ठेवणाऱ्या जड मातीत उत्तम.",
+      "notes_ta": "மோசமான வடிகால் மற்றும் தேங்கிய நீரைத் தாங்கும்; நீரைத் தக்கவைக்கும் கன மண்ணில் சிறந்தது.",
+      "notes_te": "సరైన నీటి పారుదల లేకపోయినా, నిలిచిన నీటిని తట్టుకుంటుంది; నీటిని నిలుపుకునే బరువైన నేలల్లో ఉత్తమం.",
+      "notes_pa": "ਮਾੜੀ ਨਿਕਾਸੀ ਅਤੇ ਖੜ੍ਹੇ ਪਾਣੀ ਨੂੰ ਸਹਿਣ ਕਰਦਾ ਹੈ; ਪਾਣੀ ਰੋਕਣ ਵਾਲੀ ਭਾਰੀ ਮਿੱਟੀ 'ਤੇ ਸਭ ਤੋਂ ਵਧੀਆ।"
     },
     {
       "name": "Wheat",
+      "name_hi": "गेहूं", "name_gu": "ઘઉં", "name_mr": "गहू", "name_ta": "கோதுமை", "name_te": "గోధుమ", "name_pa": "ਕਣਕ",
       "textures": ["loam", "clay loam", "silt loam", "sandy clay loam"],
       "ph": [6.0, 7.5],
       "seasons": ["rabi"],
-      "notes": "Needs well-drained medium soils; sensitive to waterlogging and salinity."
+      "notes": "Needs well-drained medium soils; sensitive to waterlogging and salinity.",
+      "notes_hi": "अच्छी जल निकासी वाली मध्यम मिट्टी चाहिए; जलभराव और लवणता के प्रति संवेदनशील।",
+      "notes_gu": "સારા નિકાલવાળી મધ્યમ માટીની જરૂર; પાણી ભરાવા અને ક્ષારતા પ્રત્યે સંવેદનશીલ.",
+      "notes_mr": "चांगला निचरा असलेली मध्यम माती आवश्यक; पाणी साचणे आणि क्षारतेस संवेदनशील.",
+      "notes_ta": "நல்ல வடிகால் உள்ள நடுத்தர மண் தேவை; நீர்த்தேக்கம் மற்றும் உப்புத்தன்மைக்கு உணர்திறன் கொண்டது.",
+      "notes_te": "మంచి నీటి పారుదల ఉన్న మధ్యస్థ నేల అవసరం; నీరు నిలవడం మరియు లవణీయతకు సున్నితంగా ఉంటుంది.",
+      "notes_pa": "ਚੰਗੀ ਨਿਕਾਸੀ ਵਾਲੀ ਦਰਮਿਆਨੀ ਮਿੱਟੀ ਚਾਹੀਦੀ ਹੈ; ਪਾਣੀ ਖੜ੍ਹਨ ਅਤੇ ਖਾਰੇਪਣ ਪ੍ਰਤੀ ਸੰਵੇਦਨਸ਼ੀਲ।"
     },
     {
       "name": "Cotton",
+      "name_hi": "कपास", "name_gu": "કપાસ", "name_mr": "कापूस", "name_ta": "பருத்தி", "name_te": "పత్తి", "name_pa": "ਕਪਾਹ",
       "textures": ["clay", "clay loam", "sandy clay loam", "loam"],
       "ph": [6.0, 8.0],
       "seasons": ["kharif"],
-      "notes": "Deep black (Vertisol) soils are ideal; tolerates mild alkalinity."
+      "notes": "Deep black (Vertisol) soils are ideal; tolerates mild alkalinity.",
+      "notes_hi": "गहरी काली (वर्टिसोल) मिट्टी आदर्श है; हल्की क्षारीयता सहन करती है।",
+      "notes_gu": "ઊંડી કાળી (વર્ટિસોલ) માટી આદર્શ છે; હળવી ક્ષારીયતા સહન કરે છે.",
+      "notes_mr": "खोल काळी (व्हर्टिसॉल) माती आदर्श आहे; सौम्य क्षारतेला सहन करते.",
+      "notes_ta": "ஆழமான கருப்பு (வெர்டிசால்) மண் சிறந்தது; லேசான காரத்தன்மையைத் தாங்கும்.",
+      "notes_te": "లోతైన నల్ల (వర్టిసాల్) నేలలు అనువైనవి; తేలికపాటి క్షారత్వాన్ని తట్టుకుంటుంది.",
+      "notes_pa": "ਡੂੰਘੀ ਕਾਲੀ (ਵਰਟੀਸੋਲ) ਮਿੱਟੀ ਆਦਰਸ਼ ਹੈ; ਹਲਕੀ ਖਾਰਾਪਣ ਸਹਿਣ ਕਰਦੀ ਹੈ।"
     },
     {
       "name": "Groundnut",
+      "name_hi": "मूंगफली", "name_gu": "મગફળી", "name_mr": "भुईमूग", "name_ta": "நிலக்கடலை", "name_te": "వేరుశనగ", "name_pa": "ਮੂੰਗਫਲੀ",
       "textures": ["sandy loam", "loamy sand", "loam", "sandy clay loam"],
       "ph": [6.0, 7.5],
       "seasons": ["kharif", "zaid"],
-      "notes": "Needs loose, friable, well-drained light soil for peg penetration; add gypsum at flowering."
+      "notes": "Needs loose, friable, well-drained light soil for peg penetration; add gypsum at flowering.",
+      "notes_hi": "खूँटी प्रवेश के लिए ढीली, भुरभुरी, अच्छी जल निकासी वाली हल्की मिट्टी चाहिए; फूल आने पर जिप्सम डालें।",
+      "notes_gu": "પેગ પ્રવેશ માટે ઢીલી, ભરભરી, સારા નિકાલવાળી હલકી માટીની જરૂર; ફૂલ આવે ત્યારે જીપ્સમ ઉમેરો.",
+      "notes_mr": "आऱ्या रुतण्यासाठी सैल, भुसभुशीत, चांगला निचरा असलेली हलकी माती लागते; फुलोऱ्याच्या वेळी जिप्सम द्या.",
+      "notes_ta": "காம்பு ஊடுருவலுக்கு தளர்வான, நல்ல வடிகால் உள்ள இலேசான மண் தேவை; பூக்கும் நேரத்தில் ஜிப்சம் சேர்க்கவும்.",
+      "notes_te": "పెగ్ చొచ్చుకుపోవడానికి వదులుగా, నీటి పారుదల ఉన్న తేలికపాటి నేల అవసరం; పూత దశలో జిప్సం వేయండి.",
+      "notes_pa": "ਪੈੱਗ ਦੇ ਦਾਖਲੇ ਲਈ ਢਿੱਲੀ, ਭੁਰਭੁਰੀ, ਚੰਗੀ ਨਿਕਾਸੀ ਵਾਲੀ ਹਲਕੀ ਮਿੱਟੀ ਚਾਹੀਦੀ ਹੈ; ਫੁੱਲ ਆਉਣ 'ਤੇ ਜਿਪਸਮ ਪਾਓ।"
     },
     {
       "name": "Pearl millet (Bajra)",
+      "name_hi": "बाजरा", "name_gu": "બાજરી", "name_mr": "बाजरी", "name_ta": "கம்பு", "name_te": "సజ్జ", "name_pa": "ਬਾਜਰਾ",
       "textures": ["sandy loam", "loamy sand", "sand", "loam"],
       "ph": [6.5, 8.5],
       "seasons": ["kharif"],
-      "notes": "Very drought- and heat-tolerant; grows on poor light soils and mild alkalinity."
+      "notes": "Very drought- and heat-tolerant; grows on poor light soils and mild alkalinity.",
+      "notes_hi": "सूखे और गर्मी को अत्यधिक सहन करता है; खराब हल्की मिट्टी और हल्की क्षारीयता में उगता है।",
+      "notes_gu": "દુષ્કાળ અને ગરમી ખૂબ સહન કરે છે; નબળી હલકી માટી અને હળવી ક્ષારીયતામાં ઉગે છે.",
+      "notes_mr": "दुष्काळ आणि उष्णता खूप सहन करते; निकृष्ट हलक्या मातीत आणि सौम्य क्षारतेत वाढते.",
+      "notes_ta": "வறட்சி மற்றும் வெப்பத்தை மிகவும் தாங்கும்; மோசமான இலேசான மண் மற்றும் லேசான காரத்தன்மையில் வளரும்.",
+      "notes_te": "కరువు మరియు వేడిని బాగా తట్టుకుంటుంది; నాసిరకం తేలికపాటి నేలలు మరియు తేలికపాటి క్షారత్వంలో పెరుగుతుంది.",
+      "notes_pa": "ਸੋਕੇ ਅਤੇ ਗਰਮੀ ਨੂੰ ਬਹੁਤ ਸਹਿਣ ਕਰਦਾ ਹੈ; ਮਾੜੀ ਹਲਕੀ ਮਿੱਟੀ ਅਤੇ ਹਲਕੀ ਖਾਰਾਪਣ ਵਿੱਚ ਉੱਗਦਾ ਹੈ।"
     },
     {
       "name": "Sorghum (Jowar)",
+      "name_hi": "ज्वार", "name_gu": "જુવાર", "name_mr": "ज्वारी", "name_ta": "சோளம் (சோளக்கம்பு)", "name_te": "జొన్న", "name_pa": "ਜਵਾਰ",
       "textures": ["loam", "clay loam", "sandy clay loam", "sandy loam"],
       "ph": [6.0, 8.0],
       "seasons": ["kharif", "rabi"],
-      "notes": "Wide adaptability; tolerates short drought and moderate alkalinity."
+      "notes": "Wide adaptability; tolerates short drought and moderate alkalinity.",
+      "notes_hi": "व्यापक अनुकूलन क्षमता; छोटे सूखे और मध्यम क्षारीयता को सहन करती है।",
+      "notes_gu": "વ્યાપક અનુકૂલનક્ષમતા; ટૂંકા દુષ્કાળ અને મધ્યમ ક્ષારીયતાને સહન કરે છે.",
+      "notes_mr": "विस्तृत अनुकूलनक्षमता; कमी कालावधीचा दुष्काळ आणि मध्यम क्षारता सहन करते.",
+      "notes_ta": "பரந்த தகவமைப்புத் திறன்; குறுகிய வறட்சி மற்றும் மிதமான காரத்தன்மையைத் தாங்கும்.",
+      "notes_te": "విస్తృత అనుకూలత; తక్కువ కాలం కరువు మరియు మధ్యస్థ క్షారత్వాన్ని తట్టుకుంటుంది.",
+      "notes_pa": "ਵਿਆਪਕ ਅਨੁਕੂਲਤਾ; ਥੋੜ੍ਹੇ ਸੋਕੇ ਅਤੇ ਦਰਮਿਆਨੀ ਖਾਰਾਪਣ ਨੂੰ ਸਹਿਣ ਕਰਦੀ ਹੈ।"
     },
     {
       "name": "Chickpea (Gram)",
+      "name_hi": "चना", "name_gu": "ચણા", "name_mr": "हरभरा", "name_ta": "கொண்டைக்கடலை", "name_te": "శనగ", "name_pa": "ਛੋਲੇ",
       "textures": ["loam", "clay loam", "sandy loam", "sandy clay loam"],
       "ph": [6.0, 8.0],
       "seasons": ["rabi"],
-      "notes": "Legume; fixes N and suits residual soil moisture. Avoid waterlogging and acid soils."
+      "notes": "Legume; fixes N and suits residual soil moisture. Avoid waterlogging and acid soils.",
+      "notes_hi": "दलहन; N स्थिर करती है और शेष मिट्टी की नमी में उपयुक्त। जलभराव और अम्लीय मिट्टी से बचें।",
+      "notes_gu": "કઠોળ; N સ્થિર કરે છે અને બાકી રહેલા માટીના ભેજમાં યોગ્ય. પાણી ભરાવા અને એસિડિક માટી ટાળો.",
+      "notes_mr": "कडधान्य; N स्थिर करते आणि शिल्लक मातीतील ओलाव्यात योग्य. पाणी साचणे आणि आम्लयुक्त माती टाळा.",
+      "notes_ta": "பயறு வகை; N ஐ நிலைநிறுத்தி எஞ்சிய மண் ஈரப்பதத்திற்கு ஏற்றது. நீர்த்தேக்கம் மற்றும் அமில மண்ணைத் தவிர்க்கவும்.",
+      "notes_te": "పప్పుధాన్యం; N ను స్థిరీకరిస్తుంది మరియు మిగిలిన నేల తేమకు అనుకూలం. నీరు నిలవడం మరియు ఆమ్ల నేలలను నివారించండి.",
+      "notes_pa": "ਦਾਲ; N ਸਥਿਰ ਕਰਦੀ ਹੈ ਅਤੇ ਬਾਕੀ ਬਚੀ ਮਿੱਟੀ ਦੀ ਨਮੀ ਲਈ ਢੁਕਵੀਂ। ਪਾਣੀ ਖੜ੍ਹਨ ਅਤੇ ਤੇਜ਼ਾਬੀ ਮਿੱਟੀ ਤੋਂ ਬਚੋ।"
     },
     {
       "name": "Soybean",
+      "name_hi": "सोयाबीन", "name_gu": "સોયાબીન", "name_mr": "सोयाबीन", "name_ta": "சோயாபீன்", "name_te": "సోయాబీన్", "name_pa": "ਸੋਇਆਬੀਨ",
       "textures": ["loam", "clay loam", "silt loam", "sandy clay loam"],
       "ph": [6.0, 7.5],
       "seasons": ["kharif"],
-      "notes": "Legume; needs well-drained medium soil with good organic matter."
+      "notes": "Legume; needs well-drained medium soil with good organic matter.",
+      "notes_hi": "दलहन; अच्छी जल निकासी और अच्छे जैविक पदार्थ वाली मध्यम मिट्टी चाहिए।",
+      "notes_gu": "કઠોળ; સારા નિકાલ અને સારા ઓર્ગેનિક પદાર્થવાળી મધ્યમ માટીની જરૂર.",
+      "notes_mr": "कडधान्य; चांगला निचरा आणि चांगले सेंद्रिय पदार्थ असलेली मध्यम माती आवश्यक.",
+      "notes_ta": "பயறு வகை; நல்ல வடிகால் மற்றும் நல்ல கரிமப் பொருள் கொண்ட நடுத்தர மண் தேவை.",
+      "notes_te": "పప్పుధాన్యం; మంచి నీటి పారుదల మరియు మంచి సేంద్రియ పదార్థం ఉన్న మధ్యస్థ నేల అవసరం.",
+      "notes_pa": "ਦਾਲ; ਚੰਗੀ ਨਿਕਾਸੀ ਅਤੇ ਚੰਗੇ ਜੈਵਿਕ ਪਦਾਰਥ ਵਾਲੀ ਦਰਮਿਆਨੀ ਮਿੱਟੀ ਚਾਹੀਦੀ ਹੈ।"
     },
     {
       "name": "Maize",
+      "name_hi": "मक्का", "name_gu": "મકાઈ", "name_mr": "मका", "name_ta": "சோளம்", "name_te": "మొక్కజొన్న", "name_pa": "ਮੱਕੀ",
       "textures": ["loam", "sandy loam", "silt loam", "clay loam"],
       "ph": [5.5, 7.5],
       "seasons": ["kharif", "rabi"],
-      "notes": "Heavy feeder; needs fertile well-drained soil and cannot tolerate waterlogging."
+      "notes": "Heavy feeder; needs fertile well-drained soil and cannot tolerate waterlogging.",
+      "notes_hi": "अधिक पोषक तत्व चाहने वाली फ़सल; उपजाऊ, अच्छी जल निकासी वाली मिट्टी चाहिए और जलभराव सहन नहीं करती।",
+      "notes_gu": "વધુ પોષક તત્વો માંગતો પાક; ફળદ્રુપ, સારા નિકાલવાળી માટીની જરૂર અને પાણી ભરાવો સહન કરી શકતો નથી.",
+      "notes_mr": "जास्त पोषक तत्वे लागणारे पीक; सुपीक, चांगला निचरा असलेली माती लागते आणि पाणी साचणे सहन होत नाही.",
+      "notes_ta": "அதிக ஊட்டச்சத்து தேவைப்படும் பயிர்; வளமான, நல்ல வடிகால் மண் தேவை, நீர்த்தேக்கத்தைத் தாங்காது.",
+      "notes_te": "ఎక్కువ పోషకాలు అవసరమయ్యే పంట; సారవంతమైన, నీటి పారుదల ఉన్న నేల అవసరం మరియు నీరు నిలవడాన్ని తట్టుకోదు.",
+      "notes_pa": "ਵੱਧ ਖੁਰਾਕ ਲੋੜੀਂਦੀ ਫ਼ਸਲ; ਉਪਜਾਊ, ਚੰਗੀ ਨਿਕਾਸੀ ਵਾਲੀ ਮਿੱਟੀ ਚਾਹੀਦੀ ਹੈ ਅਤੇ ਪਾਣੀ ਖੜ੍ਹਨਾ ਸਹਿਣ ਨਹੀਂ ਕਰਦੀ।"
     },
     {
       "name": "Sugarcane",
+      "name_hi": "गन्ना", "name_gu": "શેરડી", "name_mr": "ऊस", "name_ta": "கரும்பு", "name_te": "చెరకు", "name_pa": "ਗੰਨਾ",
       "textures": ["clay loam", "loam", "silty clay loam", "sandy clay loam"],
       "ph": [6.0, 7.7],
       "seasons": ["kharif"],
-      "notes": "Long-duration, high water and nutrient demand; needs deep fertile soil."
+      "notes": "Long-duration, high water and nutrient demand; needs deep fertile soil.",
+      "notes_hi": "लंबी अवधि की फ़सल, अधिक पानी और पोषक तत्वों की मांग; गहरी उपजाऊ मिट्टी चाहिए।",
+      "notes_gu": "લાંબા ગાળાનો પાક, વધુ પાણી અને પોષક તત્વોની માંગ; ઊંડી ફળદ્રુપ માટીની જરૂર.",
+      "notes_mr": "दीर्घ कालावधीचे पीक, जास्त पाणी आणि पोषक तत्वांची गरज; खोल सुपीक माती आवश्यक.",
+      "notes_ta": "நீண்ட காலப் பயிர், அதிக நீர் மற்றும் ஊட்டச்சத்து தேவை; ஆழமான வளமான மண் தேவை.",
+      "notes_te": "దీర్ఘకాలిక పంట, ఎక్కువ నీరు మరియు పోషకాల అవసరం; లోతైన సారవంతమైన నేల అవసరం.",
+      "notes_pa": "ਲੰਬੇ ਸਮੇਂ ਦੀ ਫ਼ਸਲ, ਵੱਧ ਪਾਣੀ ਅਤੇ ਖੁਰਾਕੀ ਤੱਤਾਂ ਦੀ ਮੰਗ; ਡੂੰਘੀ ਉਪਜਾਊ ਮਿੱਟੀ ਚਾਹੀਦੀ ਹੈ।"
     },
     {
       "name": "Mustard",
+      "name_hi": "सरसों", "name_gu": "સરસવ", "name_mr": "मोहरी", "name_ta": "கடுகு", "name_te": "ఆవాలు", "name_pa": "ਸਰ੍ਹੋਂ",
       "textures": ["loam", "sandy loam", "clay loam", "sandy clay loam"],
       "ph": [6.0, 7.5],
       "seasons": ["rabi"],
-      "notes": "Suited to light-to-medium soils on residual moisture; mildly salt-tolerant."
+      "notes": "Suited to light-to-medium soils on residual moisture; mildly salt-tolerant.",
+      "notes_hi": "शेष नमी पर हल्की से मध्यम मिट्टी के लिए उपयुक्त; हल्की नमक सहनशीलता।",
+      "notes_gu": "બાકી ભેજ પર હલકી-થી-મધ્યમ માટી માટે યોગ્ય; હળવી મીઠા-સહનશીલતા.",
+      "notes_mr": "शिल्लक ओलाव्यावर हलक्या-ते-मध्यम मातीसाठी योग्य; सौम्य क्षार-सहनशीलता.",
+      "notes_ta": "எஞ்சிய ஈரப்பதத்தில் இலேசான-முதல்-நடுத்தர மண்ணுக்கு ஏற்றது; லேசான உப்புத் தாங்கும் தன்மை.",
+      "notes_te": "మిగిలిన తేమపై తేలికపాటి-నుండి-మధ్యస్థ నేలలకు అనుకూలం; తేలికపాటి ఉప్పు తట్టుకునే గుణం.",
+      "notes_pa": "ਬਾਕੀ ਬਚੀ ਨਮੀ 'ਤੇ ਹਲਕੀ-ਤੋਂ-ਦਰਮਿਆਨੀ ਮਿੱਟੀ ਲਈ ਢੁਕਵੀਂ; ਹਲਕੀ ਲੂਣ-ਸਹਿਣਸ਼ੀਲਤਾ।"
     }
   ]
 }

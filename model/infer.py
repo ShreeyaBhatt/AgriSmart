@@ -128,6 +128,75 @@ def model_version() -> str:
     return f"{m.get('backbone', 'efficientnet_b0')}-{len(m.get('classes', []))}c"
 
 
+# --- Crop-aware guard rail --------------------------------------------------
+# The trained model only covers the crops in data/disease_cards.json (6 in
+# this build: Apple, Bell pepper, Grape, Maize, Potato, Tomato) — softmax
+# still forces a confident-looking prediction from that list for any other
+# crop (e.g. Cotton, Wheat), since there's no reject/background class. True
+# feature-space OOD detection (Mahalanobis distance on embeddings, or a
+# calibrated/temperature-scaled rejection threshold) needs statistics
+# computed at training time that this build doesn't have — that's real
+# future work, not something to fake here. What's implemented instead is the
+# practical mitigation the app already has the data for: compare the
+# prediction's crop against the farmer's own declared crop (Plot.main_crop
+# or their profile's primary_crop) and, on a mismatch, warn instead of
+# staying silent, and hide the specific chemical/organic dosing (which may
+# not even apply to the actual plant) in favour of generic precautions.
+_CROP_ALIASES = {
+    "corn": "maize", "sweet corn": "maize",
+    "pepper": "bell pepper", "capsicum": "bell pepper", "bell peppers": "bell pepper",
+}
+
+
+def _normalize_crop(name: str) -> str:
+    n = name.strip().lower()
+    return _CROP_ALIASES.get(n, n)
+
+
+def _crop_for_label(label: str) -> str | None:
+    return (_cards().get(label) or {}).get("crop")
+
+
+def known_crops(lang: str = "en") -> list[str]:
+    """Distinct crop names the trained model actually covers, in the
+    requested language — derived from the same card corpus used for labels/
+    precautions, so this list can never drift from what the model really
+    supports."""
+    seen: dict[str, str] = {}
+    for card in _cards().values():
+        en = card.get("crop")
+        if not en or en in seen:
+            continue
+        seen[en] = (card.get(f"crop_{lang}") if lang != "en" else en) or en
+    return [seen[k] for k in sorted(seen)]
+
+
+_CROP_MISMATCH_WARNING = {
+    "en": "This scanner currently supports {supported}. Your recorded crop is '{expected}', which doesn't match this photo's prediction — the result may be unreliable, so specific treatment steps are hidden below.",
+    "hi": "यह स्कैनर फ़िलहाल {supported} को सपोर्ट करता है। आपकी दर्ज फसल '{expected}' है, जो इस फोटो के अनुमान से मेल नहीं खाती — परिणाम अविश्वसनीय हो सकता है, इसलिए नीचे विशिष्ट उपचार के चरण छुपा दिए गए हैं।",
+    "gu": "આ સ્કેનર હાલમાં {supported} ને સપોર્ટ કરે છે. તમારો નોંધાયેલ પાક '{expected}' છે, જે આ ફોટોની આગાહી સાથે મેળ ખાતો નથી — પરિણામ અવિશ્વસનીય હોઈ શકે છે, તેથી નીચે ચોક્કસ સારવારના પગલાં છુપાવાયા છે.",
+    "mr": "हे स्कॅनर सध्या {supported} ला सपोर्ट करते. तुमचे नोंदवलेले पीक '{expected}' आहे, जे या फोटोच्या अंदाजाशी जुळत नाही — निकाल अविश्वसनीय असू शकतो, त्यामुळे खाली विशिष्ट उपचार पायऱ्या लपवल्या आहेत.",
+    "ta": "இந்த ஸ்கேனர் தற்போது {supported} ஆகியவற்றை ஆதரிக்கிறது. உங்கள் பதிவுசெய்யப்பட்ட பயிர் '{expected}', இது இந்த புகைப்படத்தின் கணிப்புடன் பொருந்தவில்லை — முடிவு நம்பகமாக இல்லாமல் இருக்கலாம், எனவே கீழே உள்ள குறிப்பிட்ட சிகிச்சை படிகள் மறைக்கப்பட்டுள்ளன.",
+    "te": "ఈ స్కానర్ ప్రస్తుతం {supported} మద్దతు ఇస్తుంది. మీ నమోదైన పంట '{expected}', ఇది ఈ ఫోటో అంచనాతో సరిపోలడం లేదు — ఫలితం నమ్మదగనిది కావచ్చు, కాబట్టి క్రింద నిర్దిష్ట చికిత్స దశలు దాచబడ్డాయి.",
+    "pa": "ਇਹ ਸਕੈਨਰ ਇਸ ਸਮੇਂ {supported} ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ। ਤੁਹਾਡੀ ਦਰਜ ਫ਼ਸਲ '{expected}' ਹੈ, ਜੋ ਇਸ ਫੋਟੋ ਦੀ ਭਵਿੱਖਬਾਣੀ ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ — ਨਤੀਜਾ ਭਰੋਸੇਯੋਗ ਨਹੀਂ ਹੋ ਸਕਦਾ, ਇਸ ਲਈ ਹੇਠਾਂ ਖਾਸ ਇਲਾਜ ਦੇ ਕਦਮ ਲੁਕਾਏ ਗਏ ਹਨ।",
+}
+
+
+def crop_warning_for(predicted_label: str, expected_crop: str | None, lang: str = "en") -> str | None:
+    """None if there's nothing to warn about (no declared crop, or it
+    matches the prediction); otherwise a localized warning naming the
+    supported crops, for the caller to also use as a signal to suppress
+    crop-specific treatment steps."""
+    if not expected_crop:
+        return None
+    predicted_crop = _crop_for_label(predicted_label)
+    if not predicted_crop or _normalize_crop(predicted_crop) == _normalize_crop(expected_crop):
+        return None
+    supported = ", ".join(known_crops(lang))
+    tmpl = _CROP_MISMATCH_WARNING.get(lang, _CROP_MISMATCH_WARNING["en"])
+    return tmpl.format(supported=supported, expected=expected_crop)
+
+
 def precautions_for(label: str, abstained: bool, lang: str = "en") -> list[str]:
     if abstained:
         return _ABSTAIN_PRECAUTIONS.get(lang, _ABSTAIN_PRECAUTIONS["en"])
@@ -148,13 +217,26 @@ def localized_label_for(label: str, lang: str) -> str | None:
     return f"{crop} — {disease}".strip(" —")
 
 
-def run_inference(image_path: str, gradcam_out: Path | None = None, lang: str = "en") -> dict:
+def run_inference(
+    image_path: str, gradcam_out: Path | None = None, lang: str = "en",
+    expected_crop: str | None = None,
+) -> dict:
     result = predict_detailed(image_path)  # {predicted_class, raw_class, confidence, abstained, top3}
     result["model_version"] = model_version()
     result["precautions"] = precautions_for(result["raw_class"], result["abstained"], lang)
     result["predicted_label"] = (
         None if result["abstained"] else localized_label_for(result["raw_class"], lang)
     )
+    result["crop_warning"] = None
+    if not result["abstained"]:
+        warning = crop_warning_for(result["raw_class"], expected_crop, lang)
+        if warning:
+            result["crop_warning"] = warning
+            # Crop-specific dosing may not even apply to the actual plant in
+            # the photo — fall back to the same generic precautions used
+            # when we have no card match at all, rather than risk steering
+            # a farmer toward a wrong-crop treatment.
+            result["precautions"] = _GENERIC_PRECAUTIONS.get(lang, _GENERIC_PRECAUTIONS["en"])
     result["gradcam_path"] = None
     result["pretty_top3"] = result["top3"]
 

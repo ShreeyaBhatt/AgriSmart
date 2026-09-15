@@ -85,6 +85,16 @@ export default function DiagnosisCard({ diagnosis, originalUrl }) {
             <ConfidenceBar value={diagnosis.confidence} />
           </div>
         )}
+
+        {diagnosis.crop_warning && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-2xl border-2 border-rose-300 bg-rose-50 px-4 py-3 text-rose-800">
+            <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold uppercase tracking-wide">{t("scan.cropMismatchTitle")}</div>
+              <p className="mt-0.5 text-sm leading-snug">{diagnosis.crop_warning}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
