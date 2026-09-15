@@ -5,7 +5,7 @@ import CropsPanel from "../components/CropsPanel.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import Icon from "../components/Icon.jsx";
 import SoilLoadingExperience from "../components/SoilLoadingExperience.jsx";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSoilCheck } from "../lib/SoilCheckContext.jsx";
 import { useLang, useT } from "../i18n/useT.js";
 
@@ -15,16 +15,24 @@ export default function SoilCheck() {
   const { lat, setLat, lon, setLon, season, setSeason, textureOverride, loading, error, result, analyse } =
     useSoilCheck();
 
+  const prevLangRef = useRef(lang);
+
   const handleAnalyze = () => analyse(lat, lon, season, undefined, lang);
 
   // The amendments/crops text returned by /recommend/* is localized
   // server-side at request time (like /predict), so it doesn't move with the
-  // UI when the farmer switches language afterwards — re-run the same lookup.
+  // UI when the farmer switches language afterwards — only re-run lookup
+  // if language actually changed, NOT on mount or route transition.
   useEffect(() => {
-    if (!result) return;
-    analyse(lat, lon, season, textureOverride, lang);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
+    if (!result) {
+      prevLangRef.current = lang;
+      return;
+    }
+    if (prevLangRef.current !== lang) {
+      prevLangRef.current = lang;
+      analyse(lat, lon, season, textureOverride, lang);
+    }
+  }, [lang, result, lat, lon, season, textureOverride, analyse]);
 
   return (
     <div>
