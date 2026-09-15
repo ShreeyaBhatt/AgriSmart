@@ -77,7 +77,12 @@ def _severity(disease_class: str | None) -> int:
     return 30  # unknown named disease -> moderate
 
 
+def _deviation_pct(used: float, recommended: float) -> float:
+    """Returns the two-sided percentage deviation (negative = deficit)."""
+    return round((used - recommended) / recommended * 100, 1)
+
 def _overuse_pct(used: float, recommended: float) -> float:
+    """Returns the one-sided percentage overuse (clamped at 0)."""
     return round(max(0.0, (used - recommended) / recommended * 100), 1)
 
 
