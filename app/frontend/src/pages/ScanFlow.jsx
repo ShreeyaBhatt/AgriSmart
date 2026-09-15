@@ -72,13 +72,18 @@ export default function ScanFlow() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <div>
+    <div>
+      <div className="mb-4">
         <h1 className="text-lg font-bold tracking-tight text-ink">{t("scan.title")}</h1>
         <p className="text-sm text-muted">{t("scan.help")}</p>
       </div>
 
-      <Card className="border-2 p-4">
+      {/* Same left-form / right-results split as Soil check / Weather /
+          Sustainability, so the diagnosis card has room to breathe on a
+          wide window instead of everything being squeezed into one narrow
+          centered column. */}
+      <div className="grid items-start gap-5 md:grid-cols-[minmax(0,420px)_1fr]">
+      <Card className="border-2 p-4 md:sticky md:top-20">
         <div
           onDragEnter={(e) => {
             e.preventDefault();
@@ -184,7 +189,10 @@ export default function ScanFlow() {
         </button>
       </Card>
 
-      {result && <DiagnosisCard diagnosis={result} originalUrl={preview} />}
+      <div className="min-w-0">
+        {result && <DiagnosisCard diagnosis={result} originalUrl={preview} />}
+      </div>
+      </div>
     </div>
   );
 }

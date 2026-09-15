@@ -458,12 +458,20 @@ function ProfileStep({
   );
 }
 
+// Mirrors the backend's _normalize_phone (app/backend/models/auth.py) so an
+// obviously-bad number is caught before it ever reaches the network — the
+// backend still re-validates and is the source of truth either way.
 const isValidPhone = (phone) => {
-  const digits = (phone || "")
-    .replace(/[\s\-()]/g, "")
-    .replace(/^\+/, "");
+  const raw = (phone || "").trim();
+  if (!raw || raw.startsWith("-")) return false; // no negative numbers
+  if (!/^\+?[\d\s\-()]+$/.test(raw)) return false; // letters/symbols beyond the usual formatting chars
 
-  return /^\d{10,15}$/.test(digits);
+  let digits = raw.replace(/\D/g, "").replace(/^0+/, ""); // strip formatting + trunk-prefix zeros
+  if (digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2); // country code
+
+  if (!/^\d{10}$/.test(digits)) return false; // exactly 10 digits, no more, no less
+  if (new Set(digits).size === 1) return false; // reject "1111111111"-style fakes
+  return true;
 };
 
 const formatAuthError = (err) => {

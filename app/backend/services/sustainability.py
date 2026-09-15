@@ -26,6 +26,16 @@ When ``GEMINI_API_KEY`` is set, the computed score and inputs are sent to
 Gemini for sanity checking — it validates whether the numbers look realistic
 and provides context-aware tips.
 
+``score``/``band`` blend water efficiency, chemical efficiency *and* crop
+health into one number — by design, since that's what "overall
+sustainability" means here. But blending has a cost: a real, single-digit
+weighted risk (e.g. -30% water deviation costs only 0.4*30 = 12 points) can
+still land in the "excellent" band, which reads as "no risk" even though a
+specific indicator is severe. ``water_deviation_pct`` and
+``moisture_stress_risk`` are a deliberately SEPARATE, unblended indicator for
+exactly that case — computed independently of the score/band, never used to
+adjust them, so the UI can show both without one silently masking the other.
+
 See ``docs/sustainability.md``.
 """
 
@@ -73,6 +83,25 @@ def _overuse_pct(used: float, recommended: float) -> float:
 
 def _deficit_pct(used: float, recommended: float) -> float:
     return round(max(0.0, (recommended - used) / recommended * 100), 1)
+
+
+# Thresholds for the standalone moisture-stress indicator — independent of
+# the score/band cutoffs above. Under 10% mirrors the formula's own "soft
+# optimal band" (~90-110% of requirement); severe starts at 25% deviation,
+# comfortably below the ~30% example that motivated adding this indicator
+# (a deviation that size only costs 0.4*30=12 score points on its own —
+# nowhere near enough to move the blended score out of "excellent").
+_MODERATE_DEVIATION_PCT = 10.0
+_SEVERE_DEVIATION_PCT = 25.0
+
+
+def _moisture_stress_risk(deviation_pct: float) -> str:
+    magnitude = abs(deviation_pct)
+    if magnitude >= _SEVERE_DEVIATION_PCT:
+        return "severe"
+    if magnitude >= _MODERATE_DEVIATION_PCT:
+        return "moderate"
+    return "none"
 
 
 def _formula_tips(
@@ -159,6 +188,13 @@ async def compute_score(req: SustainabilityRequest) -> SustainabilityScore:
     chem_over = _overuse_pct(req.chemical_used_kg_ha, req.chemical_recommended_kg_ha)
     crop_health = 100 - _severity(req.disease_class)
 
+    # water_over and water_deficit are mutually exclusive (see module
+    # docstring), so this difference is just whichever one is nonzero, signed:
+    # positive = overusing, negative = under-watering. Purely for display —
+    # not fed back into the score.
+    water_deviation = round(water_over - water_deficit, 1)
+    moisture_stress_risk = _moisture_stress_risk(water_deviation)
+
     raw = (100 - 0.4 * water_over - 0.4 * water_deficit - 0.3 * chem_over
            + 0.3 * (crop_health - 100))
     score = round(max(0.0, min(100.0, raw)), 1)
@@ -181,4 +217,5 @@ async def compute_score(req: SustainabilityRequest) -> SustainabilityScore:
         chemical_overuse_pct=chem_over, crop_health_pct=float(crop_health),
         formula=FORMULA, tips=tips,
         ai_validated=ai_validated, ai_notes=ai_notes,
+        water_deviation_pct=water_deviation, moisture_stress_risk=moisture_stress_risk,
     )
